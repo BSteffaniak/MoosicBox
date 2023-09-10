@@ -1,14 +1,7 @@
 // Vitest Snapshot v1
 
-exports[`<Player /> > renders 1 1`] = `
+exports[`<Player /> > renders Connecting...`] = `
 <div>
-  <button
-    class="increment"
-  >
-    Clicks: 
-    <!--#-->
-    0
-    <!--/-->
-  </button>
+  Connecting...
 </div>
 `;

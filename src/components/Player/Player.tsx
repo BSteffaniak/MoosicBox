@@ -1,4 +1,11 @@
-import { pause, play, restartPlayer, startPlayer, stopPlayer } from "~/services/api";
+import { Show } from "solid-js";
+import {
+    pause,
+    play,
+    restartPlayer,
+    startPlayer,
+    stopPlayer,
+} from "~/services/api";
 import { currentPlayerId, playing, setPlaying } from "~/services/player";
 import "./Player.css";
 
@@ -13,34 +20,33 @@ export default function Player() {
     }
 
     return (
-        <>
-            {currentPlayerId() ? (
+        <Show
+            when={currentPlayerId()}
+            fallback={<div>Connecting...</div>}
+            keyed
+        >
+            {(playerId) => (
                 <>
-                    <button class="increment" onClick={() => togglePlay()}>
+                    <button class="button" onClick={() => togglePlay()}>
                         {playing() ? "Pause" : "Play"}
                     </button>
-                    <button
-                        class="increment"
-                        onClick={() => stopPlayer(currentPlayerId()!)}
-                    >
+                    <button class="button" onClick={() => stopPlayer(playerId)}>
                         Stop player
                     </button>
                     <button
-                        class="increment"
-                        onClick={() => startPlayer(currentPlayerId()!)}
+                        class="button"
+                        onClick={() => startPlayer(playerId)}
                     >
                         Start player
                     </button>
                     <button
-                        class="increment"
-                        onClick={() => restartPlayer(currentPlayerId()!)}
+                        class="button"
+                        onClick={() => restartPlayer(playerId)}
                     >
                         Restart player
                     </button>
                 </>
-            ) : (
-                <div>loading... {currentPlayerId()}</div>
             )}
-        </>
+        </Show>
     );
 }
