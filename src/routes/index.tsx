@@ -6,9 +6,13 @@ import "./index.css";
 export default function Home() {
     onMount(initConnection);
     return (
-        <main>
-            <h1>Music Player</h1>
-            <Player />
-        </main>
+        <div id="root">
+            <main>
+                <h1>Music Player</h1>
+            </main>
+            <footer>
+                <Player />
+            </footer>
+        </div>
     );
 }

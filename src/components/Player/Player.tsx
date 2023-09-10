@@ -20,33 +20,28 @@ export default function Player() {
     }
 
     return (
-        <Show
-            when={currentPlayerId()}
-            fallback={<div>Connecting...</div>}
-            keyed
-        >
-            {(playerId) => (
-                <>
-                    <button class="button" onClick={() => togglePlay()}>
-                        {playing() ? "Pause" : "Play"}
-                    </button>
-                    <button class="button" onClick={() => stopPlayer(playerId)}>
-                        Stop player
-                    </button>
-                    <button
-                        class="button"
-                        onClick={() => startPlayer(playerId)}
-                    >
-                        Start player
-                    </button>
-                    <button
-                        class="button"
-                        onClick={() => restartPlayer(playerId)}
-                    >
-                        Restart player
-                    </button>
-                </>
-            )}
-        </Show>
+        <>
+            <button class="button" onClick={() => togglePlay()}>
+                {playing() ? "Pause" : "Play"}
+            </button>
+            <button
+                class="button"
+                onClick={() => stopPlayer(currentPlayerId()!)}
+            >
+                Stop player
+            </button>
+            <button
+                class="button"
+                onClick={() => startPlayer(currentPlayerId()!)}
+            >
+                Start player
+            </button>
+            <button
+                class="button"
+                onClick={() => restartPlayer(currentPlayerId()!)}
+            >
+                Restart player
+            </button>
+        </>
     );
 }

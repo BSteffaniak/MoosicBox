@@ -3,10 +3,27 @@ body {
         "Helvetica Neue", sans-serif;
 }
 
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+#root {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+header {
+    flex: 0 1 auto;
+}
+
 main {
     text-align: center;
     padding: 1em;
     margin: 0 auto;
+    flex: 1 1 auto;
 }
 
 h1 {
@@ -33,4 +50,10 @@ p {
     p {
         max-width: none;
     }
+}
+
+footer {
+    display: flex;
+    flex: 0 1 100px;
+    align-items: center;
 }
