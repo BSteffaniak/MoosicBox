@@ -5,7 +5,7 @@ import "./albums.css";
 function album(album: Album) {
     return (
         <div class="album">
-            <img style={{ width: "200px" }} src={album.icon ?? "/img/no-image-available.svg"} />
+            <img style={{ width: "200px" }} src={album.icon ?? "/img/album.svg"} />
             <div class="album-title">
                 <div>{album.title}</div>
                 <div>{album.artist}</div>
