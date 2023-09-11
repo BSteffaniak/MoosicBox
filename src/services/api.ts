@@ -21,7 +21,8 @@ export interface StatusResponse {
 }
 
 export interface Album {
-    text: string;
+    title: string;
+    artist: string;
     icon: string;
 }
 
