@@ -21,9 +21,8 @@ header {
 
 main {
     text-align: center;
-    padding: 1em;
-    margin: 0 auto;
     flex: 1 1 auto;
+    overflow-y: auto;
 }
 
 h1 {
@@ -56,4 +55,10 @@ footer {
     display: flex;
     flex: 0 1 100px;
     align-items: center;
+}
+
+.footer-player {
+    text-align: center;
+    width: 100%;
+    height: 100px;
 }

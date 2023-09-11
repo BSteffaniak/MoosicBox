@@ -35,18 +35,23 @@ async function pingConnection() {
     }
 }
 
+export let initialized: Promise<void>;
+
 export async function initConnection() {
-    if (isServer) return;
+    initialized = new Promise(async (resolve) => {
+        if (isServer) return;
 
-    updateStatus();
+        updateStatus();
 
-    if (connection()) {
-        console.debug("Connection already exists in local storage");
-        setCurrentPlayerId(connection()!.players[0]);
-        console.log(currentPlayerId());
-        pingConnection();
-    } else {
-        console.debug("Connection doesn't exist in local storage");
-        await newConnection();
-    }
+        if (connection()) {
+            console.debug("Connection already exists in local storage");
+            setCurrentPlayerId(connection()!.players[0]);
+            console.log(currentPlayerId());
+            pingConnection();
+        } else {
+            console.debug("Connection doesn't exist in local storage");
+            await newConnection();
+        }
+        resolve();
+    });
 }

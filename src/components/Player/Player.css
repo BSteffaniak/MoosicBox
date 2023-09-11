@@ -1,13 +1,12 @@
 .button {
     font-family: inherit;
     font-size: inherit;
-    padding: 1em 2em;
+    padding: 10px;
     color: #335d92;
     background-color: rgba(68, 107, 158, 0.1);
     border-radius: 2em;
     border: 2px solid rgba(68, 107, 158, 0);
     outline: none;
-    width: 200px;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
 }
@@ -18,4 +17,43 @@
 
 .button:active {
     background-color: rgba(68, 107, 158, 0.2);
+}
+
+.player {
+    display: inline-block;
+    position: relative;
+    transform: translateY(-50%);
+    top: 50%;
+}
+
+.media-button {
+    margin: 5px;
+}
+
+.play-button {
+    width: 25px;
+    position: relative;
+    top: 2px;
+    left: 2px;
+}
+
+.pause-button {
+    width: 25px;
+    position: relative;
+    top: 2px;
+}
+
+.next-track-button {
+    width: 25px;
+    position: relative;
+    top: 2px;
+    left: 1px;
+}
+
+.previous-track-button {
+    width: 25px;
+    transform: scaleX(-1);
+    position: relative;
+    top: 2px;
+    right: 1px;
 }

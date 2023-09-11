@@ -1,3 +1,5 @@
+import { currentPlayerId, initialized } from "./player";
+
 const API_URL = "http://127.0.0.1:8000";
 
 export interface PingResponse {
@@ -16,6 +18,20 @@ export interface ConnectionResponse {
 
 export interface StatusResponse {
     players: Player[];
+}
+
+export interface Album {
+    text: string;
+    icon: string;
+}
+
+export async function getAlbums(): Promise<Album[]> {
+    await initialized;
+    const response = await fetch(`${API_URL}/albums?playerId=${currentPlayerId()}`, {
+        credentials: "include",
+    });
+
+    return await response.json();
 }
 
 export async function getStatus(): Promise<StatusResponse> {
@@ -95,6 +111,30 @@ export async function play(playerId: string): Promise<any> {
 export async function pause(playerId: string): Promise<any> {
     const response = await fetch(
         `${API_URL}/playback/pause?playerId=${playerId}`,
+        {
+            method: "POST",
+            credentials: "include",
+        },
+    );
+
+    return await response.json();
+}
+
+export async function nextTrack(playerId: string): Promise<any> {
+    const response = await fetch(
+        `${API_URL}/playback/next-track?playerId=${playerId}`,
+        {
+            method: "POST",
+            credentials: "include",
+        },
+    );
+
+    return await response.json();
+}
+
+export async function previousTrack(playerId: string): Promise<any> {
+    const response = await fetch(
+        `${API_URL}/playback/previous-track?playerId=${playerId}`,
         {
             method: "POST",
             credentials: "include",

@@ -1,7 +1,8 @@
-import { Show } from "solid-js";
 import {
+    nextTrack,
     pause,
     play,
+    previousTrack,
     restartPlayer,
     startPlayer,
     stopPlayer,
@@ -20,28 +21,42 @@ export default function Player() {
     }
 
     return (
-        <>
-            <button class="button" onClick={() => togglePlay()}>
-                {playing() ? "Pause" : "Play"}
+        <div class="player">
+            <button
+                class="media-button button"
+                onClick={() => previousTrack(currentPlayerId()!)}
+            >
+                <img
+                    class="previous-track-button"
+                    src="/img/next-button.svg"
+                    alt="Pause"
+                />
+            </button>
+            <button class="media-button button" onClick={() => togglePlay()}>
+                {playing() ? (
+                    <img
+                        class="pause-button"
+                        src="/img/pause-button.svg"
+                        alt="Pause"
+                    />
+                ) : (
+                    <img
+                        class="play-button"
+                        src="/img/play-button.svg"
+                        alt="Play"
+                    />
+                )}
             </button>
             <button
-                class="button"
-                onClick={() => stopPlayer(currentPlayerId()!)}
+                class="media-button button"
+                onClick={() => nextTrack(currentPlayerId()!)}
             >
-                Stop player
+                <img
+                    class="next-track-button"
+                    src="/img/next-button.svg"
+                    alt="Pause"
+                />
             </button>
-            <button
-                class="button"
-                onClick={() => startPlayer(currentPlayerId()!)}
-            >
-                Start player
-            </button>
-            <button
-                class="button"
-                onClick={() => restartPlayer(currentPlayerId()!)}
-            >
-                Restart player
-            </button>
-        </>
+        </div>
     );
 }
