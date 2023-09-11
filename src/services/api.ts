@@ -96,9 +96,10 @@ export async function restartPlayer(playerId: string): Promise<any> {
     return await response.json();
 }
 
-export async function play(playerId: string): Promise<any> {
+export async function play(): Promise<any> {
+    await initialized;
     const response = await fetch(
-        `${API_URL}/playback/play?playerId=${playerId}`,
+        `${API_URL}/playback/play?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
@@ -108,9 +109,10 @@ export async function play(playerId: string): Promise<any> {
     return await response.json();
 }
 
-export async function pause(playerId: string): Promise<any> {
+export async function pause(): Promise<any> {
+    await initialized;
     const response = await fetch(
-        `${API_URL}/playback/pause?playerId=${playerId}`,
+        `${API_URL}/playback/pause?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
@@ -120,9 +122,10 @@ export async function pause(playerId: string): Promise<any> {
     return await response.json();
 }
 
-export async function nextTrack(playerId: string): Promise<any> {
+export async function nextTrack(): Promise<any> {
+    await initialized;
     const response = await fetch(
-        `${API_URL}/playback/next-track?playerId=${playerId}`,
+        `${API_URL}/playback/next-track?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
@@ -132,9 +135,10 @@ export async function nextTrack(playerId: string): Promise<any> {
     return await response.json();
 }
 
-export async function previousTrack(playerId: string): Promise<any> {
+export async function previousTrack(): Promise<any> {
+    await initialized;
     const response = await fetch(
-        `${API_URL}/playback/previous-track?playerId=${playerId}`,
+        `${API_URL}/playback/previous-track?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
