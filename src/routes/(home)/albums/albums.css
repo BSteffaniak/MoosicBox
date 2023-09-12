@@ -10,3 +10,82 @@
     text-align: center;
     width: 200px;
 }
+
+.album-controls {
+    cursor: pointer;
+    transition: opacity 0.04s;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0;
+}
+
+.album-controls:hover {
+    opacity: 1;
+}
+
+.album-controls .button {
+    border-radius: 100%;
+    border: none;
+    cursor: pointer;
+}
+
+.album-controls .play-button {
+    transition: transform 0.1s;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 0px;
+    margin: 0px;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    left: 5%;
+    top: calc(95% - 30px);
+}
+
+.album-controls .play-button:hover {
+    transform: scale(1.08);
+}
+
+.album-controls .play-button img {
+    width: 16px;
+    position: relative;
+    left: 1px;
+    top: 2px;
+}
+
+.album-icon {
+    cursor: pointer;
+}
+
+.album-icon-container {
+    position: relative;
+}
+
+.album-icon-container:hover ~ .album-details .album-title {
+    text-decoration: underline;
+}
+
+.album-title {
+    margin-top: 3px;
+    font-size: 16px;
+}
+
+.album-title-text {
+    cursor: pointer;
+}
+
+.album-artist {
+    margin-top: 3px;
+    font-size: 14px;
+    color: #444;
+}
+
+.album-artist-text {
+    cursor: pointer;
+}
+
+.album-artist-text:hover {
+    text-decoration: underline;
+}

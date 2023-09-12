@@ -1,6 +1,11 @@
+import { makePersisted } from "@solid-primitives/storage";
+import { createSignal } from "solid-js";
 import { currentPlayerId, initialized } from "./player";
 
-const API_URL = "http://127.0.0.1:8000";
+export const [apiUrl, setApiUrl] = makePersisted(
+    createSignal("http://127.0.0.1:8000"),
+    { name: "apiUrl" },
+);
 
 export interface PingResponse {
     alive: boolean;
@@ -21,6 +26,7 @@ export interface StatusResponse {
 }
 
 export interface Album {
+    id: string;
     title: string;
     artist: string;
     icon: string;
@@ -28,15 +34,26 @@ export interface Album {
 
 export async function getAlbums(): Promise<Album[]> {
     await initialized;
-    const response = await fetch(`${API_URL}/albums?playerId=${currentPlayerId()}`, {
-        credentials: "include",
+    const response = await fetch(
+        `${apiUrl()}/albums?playerId=${currentPlayerId()}`,
+        {
+            credentials: "include",
+        },
+    );
+
+    const albums: Album[] = await response.json();
+
+    albums.forEach((album) => {
+        if (album.icon && !album.icon.startsWith("http")) {
+            album.icon = `${apiUrl()}/${album.icon}`;
+        }
     });
 
-    return await response.json();
+    return albums;
 }
 
 export async function getStatus(): Promise<StatusResponse> {
-    const response = await fetch(`${API_URL}/status`, {
+    const response = await fetch(`${apiUrl()}/status`, {
         credentials: "include",
     });
 
@@ -44,7 +61,7 @@ export async function getStatus(): Promise<StatusResponse> {
 }
 
 export async function connect(): Promise<ConnectionResponse> {
-    const response = await fetch(`${API_URL}/connect`, {
+    const response = await fetch(`${apiUrl()}/connect`, {
         method: "POST",
         credentials: "include",
     });
@@ -53,7 +70,7 @@ export async function connect(): Promise<ConnectionResponse> {
 }
 
 export async function ping(clientId: string): Promise<PingResponse> {
-    const response = await fetch(`${API_URL}/ping?clientId=${clientId}`, {
+    const response = await fetch(`${apiUrl()}/ping?clientId=${clientId}`, {
         method: "POST",
         credentials: "include",
     });
@@ -63,7 +80,7 @@ export async function ping(clientId: string): Promise<PingResponse> {
 
 export async function stopPlayer(playerId: string): Promise<any> {
     const response = await fetch(
-        `${API_URL}/playback/stop-player?playerId=${playerId}`,
+        `${apiUrl()}/playback/stop-player?playerId=${playerId}`,
         {
             method: "POST",
             credentials: "include",
@@ -75,7 +92,7 @@ export async function stopPlayer(playerId: string): Promise<any> {
 
 export async function startPlayer(playerId: string): Promise<any> {
     const response = await fetch(
-        `${API_URL}/playback/start-player?playerId=${playerId}`,
+        `${apiUrl()}/playback/start-player?playerId=${playerId}`,
         {
             method: "POST",
             credentials: "include",
@@ -87,7 +104,7 @@ export async function startPlayer(playerId: string): Promise<any> {
 
 export async function restartPlayer(playerId: string): Promise<any> {
     const response = await fetch(
-        `${API_URL}/playback/restart-player?playerId=${playerId}`,
+        `${apiUrl()}/playback/restart-player?playerId=${playerId}`,
         {
             method: "POST",
             credentials: "include",
@@ -100,7 +117,20 @@ export async function restartPlayer(playerId: string): Promise<any> {
 export async function play(): Promise<any> {
     await initialized;
     const response = await fetch(
-        `${API_URL}/playback/play?playerId=${currentPlayerId()}`,
+        `${apiUrl()}/playback/play?playerId=${currentPlayerId()}`,
+        {
+            method: "POST",
+            credentials: "include",
+        },
+    );
+
+    return await response.json();
+}
+
+export async function playAlbum(albumId: string): Promise<any> {
+    await initialized;
+    const response = await fetch(
+        `${apiUrl()}/playback/play-album?playerId=${currentPlayerId()}&albumId=${albumId}`,
         {
             method: "POST",
             credentials: "include",
@@ -113,7 +143,7 @@ export async function play(): Promise<any> {
 export async function pause(): Promise<any> {
     await initialized;
     const response = await fetch(
-        `${API_URL}/playback/pause?playerId=${currentPlayerId()}`,
+        `${apiUrl()}/playback/pause?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
@@ -126,7 +156,7 @@ export async function pause(): Promise<any> {
 export async function nextTrack(): Promise<any> {
     await initialized;
     const response = await fetch(
-        `${API_URL}/playback/next-track?playerId=${currentPlayerId()}`,
+        `${apiUrl()}/playback/next-track?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
@@ -139,7 +169,7 @@ export async function nextTrack(): Promise<any> {
 export async function previousTrack(): Promise<any> {
     await initialized;
     const response = await fetch(
-        `${API_URL}/playback/previous-track?playerId=${currentPlayerId()}`,
+        `${apiUrl()}/playback/previous-track?playerId=${currentPlayerId()}`,
         {
             method: "POST",
             credentials: "include",
