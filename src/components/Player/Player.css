@@ -1,4 +1,4 @@
-.button {
+.player .button {
     font-family: inherit;
     font-size: inherit;
     padding: 10px;
@@ -11,11 +11,11 @@
     cursor: pointer;
 }
 
-.button:focus {
+.player .button:focus {
     border: 2px solid #335d92;
 }
 
-.button:active {
+.player .button:active {
     background-color: rgba(68, 107, 158, 0.2);
 }
 
