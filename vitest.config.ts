@@ -1,5 +1,5 @@
-import solid from "solid-start/vite";
-import { defineConfig } from "vitest/config";
+import solid from 'solid-start/vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     plugins: [solid()],
@@ -8,15 +8,15 @@ export default defineConfig({
             registerNodeLoader: true,
             inline: [/solid-js/],
         },
-        environment: "jsdom",
+        environment: 'jsdom',
         globals: true,
         setupFiles: [
-            "node_modules/@testing-library/jest-dom/extend-expect",
-            "./setupVitest.js",
+            'node_modules/@testing-library/jest-dom/extend-expect',
+            './setupVitest.js',
         ],
         transformMode: { web: [/\.[jt]sx?$/] },
     },
     resolve: {
-        conditions: ["development", "browser"],
+        conditions: ['development', 'browser'],
     },
 });

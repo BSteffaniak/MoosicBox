@@ -1,7 +1,7 @@
-import { createSignal, For, Show } from "solid-js";
-import { isServer } from "solid-js/web";
-import * as api from "~/services/api";
-import "./albums.css";
+import { createSignal, For, Show } from 'solid-js';
+import { isServer } from 'solid-js/web';
+import * as api from '~/services/api';
+import './albums.css';
 
 function playAlbum(album: api.Album) {
     api.playAlbum(album.id);
@@ -12,12 +12,12 @@ function album(album: api.Album) {
         <div class="album">
             <div
                 class="album-icon-container"
-                style={{ width: "200px", height: "200px" }}
+                style={{ width: '200px', height: '200px' }}
             >
                 <img
                     class="album-icon"
-                    style={{ width: "200px", height: "200px" }}
-                    src={album.icon ?? "/img/album.svg"}
+                    style={{ width: '200px', height: '200px' }}
+                    src={album.icon ?? '/img/album.svg'}
                 />
                 <div class="album-controls">
                     <button class="media-button play-button button">

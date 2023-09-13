@@ -1,6 +1,6 @@
 // @refresh reload
-import { Routes } from "@solidjs/router";
-import { Suspense } from "solid-js";
+import { Routes } from '@solidjs/router';
+import { Suspense } from 'solid-js';
 import {
     Body,
     FileRoutes,
@@ -10,8 +10,8 @@ import {
     Meta,
     Scripts,
     Title,
-} from "solid-start";
-import { ErrorBoundary } from "solid-start/error-boundary";
+} from 'solid-start';
+import { ErrorBoundary } from 'solid-start/error-boundary';
 
 export default function Root() {
     return (

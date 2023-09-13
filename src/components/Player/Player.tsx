@@ -1,6 +1,6 @@
-import * as api from "~/services/api";
-import { playing, setPlaying } from "~/services/player";
-import "./Player.css";
+import * as api from '~/services/api';
+import { playing, setPlaying } from '~/services/player';
+import './Player.css';
 
 export default function Player() {
     async function play() {
