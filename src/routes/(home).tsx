@@ -9,7 +9,7 @@ export default function Home() {
     return (
         <div id="root">
             <main>
-                <h1>Music Player</h1>
+                <h1>MoosicBox</h1>
                 <Outlet />
             </main>
             <footer>
