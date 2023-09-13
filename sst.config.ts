@@ -1,16 +1,35 @@
-import type { SSTConfig } from "sst";
-import { SolidStartSite } from "sst/constructs";
+import { SSMClient } from '@aws-sdk/client-ssm';
+import type { SSTConfig } from 'sst';
+import { fetchSstSecret } from 'sst-secrets';
+import { SolidStartSite, StackContext } from 'sst/constructs';
 
 export default {
     config(_input) {
         return {
-            name: "slimmerfe",
-            region: "us-east-1",
+            name: 'slimmerfe',
+            region: 'us-east-1',
         };
     },
-    stacks(app) {
-        app.stack(function Site({ stack }) {
-            const site = new SolidStartSite(stack, "site");
+    async stacks(app) {
+        app.stack(async ({ stack }: StackContext): Promise<void> => {
+            const ssm = new SSMClient({ region: stack.region });
+            const isProd = stack.stage === 'prod';
+            const DOMAIN = await fetchSstSecret(
+                ssm,
+                app.name,
+                'DOMAIN',
+                stack.stage,
+            );
+            const subdomain = isProd ? '' : `${stack.stage}.`;
+            const domainName = `${subdomain}${DOMAIN}`;
+
+            const site = new SolidStartSite(stack, 'site', {
+                customDomain: {
+                    hostedZone: DOMAIN,
+                    domainName,
+                },
+            });
+
             stack.addOutputs({
                 url: site.url,
             });

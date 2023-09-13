@@ -1,7 +1,7 @@
 {
     "name": "slimmerfe",
     "scripts": {
-        "dev": "sst bind 'solid-start dev --host --port 3001'",
+        "dev": "sst bind 'solid-start dev --host --port 3000'",
         "build": "solid-start build",
         "start": "solid-start start",
         "test": "vitest run",
