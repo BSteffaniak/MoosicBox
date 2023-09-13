@@ -20,12 +20,11 @@ function album(album: api.Album) {
                     src={album.icon ?? '/img/album.svg'}
                 />
                 <div class="album-controls">
-                    <button class="media-button play-button button">
-                        <img
-                            src="/img/play-button.svg"
-                            alt="Play"
-                            onClick={() => playAlbum(album)}
-                        />
+                    <button
+                        class="media-button play-button button"
+                        onClick={() => playAlbum(album)}
+                    >
+                        <img src="/img/play-button.svg" alt="Play" />
                     </button>
                 </div>
             </div>
