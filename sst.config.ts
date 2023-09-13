@@ -11,7 +11,7 @@ export default {
         };
     },
     async stacks(app) {
-        app.stack(async ({ stack }: StackContext): Promise<void> => {
+        await app.stack(async ({ stack }: StackContext): Promise<void> => {
             const ssm = new SSMClient({ region: stack.region });
             const isProd = stack.stage === 'prod';
             const DOMAIN = await fetchSstSecret(
@@ -32,6 +32,7 @@ export default {
 
             stack.addOutputs({
                 url: site.url,
+                host: domainName,
             });
         });
     },
