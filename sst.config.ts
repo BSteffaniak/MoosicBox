@@ -6,7 +6,7 @@ import { SolidStartSite, StackContext } from 'sst/constructs';
 export default {
     config(_input) {
         return {
-            name: 'slimmerfe',
+            name: 'moosicbox',
             region: 'us-east-1',
         };
     },
@@ -23,7 +23,7 @@ export default {
             const subdomain = isProd ? '' : `${stack.stage}.`;
             const domainName = `${subdomain}${DOMAIN}`;
 
-            const site = new SolidStartSite(stack, 'site', {
+            const site = new SolidStartSite(stack, 'MoosicBox', {
                 customDomain: {
                     hostedZone: DOMAIN,
                     domainName,
