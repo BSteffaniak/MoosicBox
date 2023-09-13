@@ -1,1 +1,1 @@
-# Moosic Box
+# MoosicBox
