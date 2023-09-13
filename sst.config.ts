@@ -32,7 +32,7 @@ export default {
 
             stack.addOutputs({
                 url: site.url,
-                host: domainName,
+                host: `https://${domainName}`,
             });
         });
     },
