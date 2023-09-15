@@ -32,21 +32,29 @@ export interface Album {
     icon: string;
 }
 
-export const AlbumSource = {
-    local: 'Local',
-    tidal: 'Tidal',
-    qobuz: 'Qobuz',
-} as const;
+export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
+export type AlbumSort =
+    | 'Artist'
+    | 'Name'
+    | 'Year'
+    | 'Year-Desc';
 
-export type AlbumSources = (keyof typeof AlbumSource)[];
+export type AlbumFilters = {
+    sources?: AlbumSource[];
+    sort?: AlbumSort;
+};
 
 export async function getAlbums(
-    sources: AlbumSources | undefined = undefined,
+    filters: AlbumFilters | undefined = undefined,
 ): Promise<Album[]> {
     await initialized;
-    const sourcesQuery = sources ? `&sources=${sources.join(',')}` : '';
+    const query = new URLSearchParams({
+        playerId: currentPlayerId()!
+    });
+    if (filters?.sources) query.set('sources', filters.sources.join(','));
+    if (filters?.sort) query.set('sort', filters.sort);
     const response = await fetch(
-        `${apiUrl()}/albums?playerId=${currentPlayerId()}${sourcesQuery}`,
+        `${apiUrl()}/albums?${query}`,
         {
             credentials: 'include',
         },
@@ -55,8 +63,8 @@ export async function getAlbums(
     const albums: Album[] = await response.json();
 
     albums.forEach((album) => {
-        if (album.icon && !album.icon.startsWith('http')) {
-            album.icon = `${apiUrl()}/${album.icon}`;
+        if (album.icon && album.icon[0] === '/') {
+            album.icon = `${apiUrl()}${album.icon}`;
         }
     });
 
