@@ -1,7 +1,8 @@
+import './albums.css';
+import * as api from '~/services/api';
 import { createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import * as api from '~/services/api';
-import './albums.css';
+import { useLocation } from 'solid-start';
 
 function playAlbum(album: api.Album) {
     api.playAlbum(album.id);
@@ -45,7 +46,9 @@ export default function Albums() {
 
     (async () => {
         if (isServer) return;
-        setAlbums(await api.getAlbums());
+        const location = useLocation();
+        const sources = location.query.sources?.split(',') as api.AlbumSources | undefined; 
+        setAlbums(await api.getAlbums(sources));
     })();
 
     return (

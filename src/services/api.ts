@@ -32,10 +32,21 @@ export interface Album {
     icon: string;
 }
 
-export async function getAlbums(): Promise<Album[]> {
+export const AlbumSource = {
+    local: 'Local',
+    tidal: 'Tidal',
+    qobuz: 'Qobuz',
+} as const;
+
+export type AlbumSources = (keyof typeof AlbumSource)[];
+
+export async function getAlbums(
+    sources: AlbumSources | undefined = undefined,
+): Promise<Album[]> {
     await initialized;
+    const sourcesQuery = sources ? `&sources=${sources.join(',')}` : '';
     const response = await fetch(
-        `${apiUrl()}/albums?playerId=${currentPlayerId()}`,
+        `${apiUrl()}/albums?playerId=${currentPlayerId()}${sourcesQuery}`,
         {
             credentials: 'include',
         },
