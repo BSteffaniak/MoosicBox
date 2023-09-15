@@ -46,7 +46,6 @@ export async function initConnection() {
         if (connection()) {
             console.debug('Connection already exists in local storage');
             setCurrentPlayerId(connection()!.players[0]);
-            console.log(currentPlayerId());
             pingConnection();
         } else {
             console.debug("Connection doesn't exist in local storage");
