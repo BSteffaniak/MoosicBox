@@ -92,25 +92,35 @@ export default function Albums() {
 
     return (
         <>
-            <div class="albums-header">Albums:</div>
-            <button onClick={() => loadAlbums({ sources: ['Local'] })}>
-                Local
-            </button>
-            <button onClick={() => loadAlbums({ sources: ['Tidal'] })}>
-                Tidal
-            </button>
-            <button onClick={() => loadAlbums({ sources: ['Qobuz'] })}>
-                Qobuz
-            </button>
-            <button onClick={() => loadAlbums({ sort: 'Artist' })}>
-                Album Artist
-            </button>
-            <button onClick={() => loadAlbums({ sort: 'Name' })}>
-                Album Name
-            </button>
-            <button onClick={() => loadAlbums({ sort: getAlbumSort() === 'Year' ? 'Year-Desc' : 'Year' })}>
-                Album Year
-            </button>
+            <header id="albums-header">
+                <button onClick={() => loadAlbums({ sources: ['Local'] })}>
+                    Local
+                </button>
+                <button onClick={() => loadAlbums({ sources: ['Tidal'] })}>
+                    Tidal
+                </button>
+                <button onClick={() => loadAlbums({ sources: ['Qobuz'] })}>
+                    Qobuz
+                </button>
+                <button onClick={() => loadAlbums({ sort: 'Artist' })}>
+                    Album Artist
+                </button>
+                <button onClick={() => loadAlbums({ sort: 'Name' })}>
+                    Album Name
+                </button>
+                <button
+                    onClick={() =>
+                        loadAlbums({
+                            sort:
+                                getAlbumSort() === 'Year'
+                                    ? 'Year-Desc'
+                                    : 'Year',
+                        })
+                    }
+                >
+                    Album Year
+                </button>
+            </header>
             <div class="albums-container">
                 <div class="albums">
                     <Show when={albums()} fallback={<div>Loading...</div>}>

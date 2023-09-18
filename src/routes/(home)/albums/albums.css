@@ -6,6 +6,12 @@
     justify-content: space-between;
 }
 
+#albums-header {
+    position: sticky;
+    top: 0px;
+    z-index: 10;
+}
+
 .album {
     text-align: center;
     width: 200px;
