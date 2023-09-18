@@ -39,20 +39,26 @@ export type AlbumSort =
     | 'Year'
     | 'Year-Desc';
 
-export type AlbumFilters = {
+export type AlbumsRequest = {
     sources?: AlbumSource[];
     sort?: AlbumSort;
+    filters?: AlbumFilters;
+};
+
+export type AlbumFilters = {
+    search?: string;
 };
 
 export async function getAlbums(
-    filters: AlbumFilters | undefined = undefined,
+    request: AlbumsRequest | undefined = undefined,
 ): Promise<Album[]> {
     await initialized;
     const query = new URLSearchParams({
         playerId: currentPlayerId()!
     });
-    if (filters?.sources) query.set('sources', filters.sources.join(','));
-    if (filters?.sort) query.set('sort', filters.sort);
+    if (request?.sources) query.set('sources', request.sources.join(','));
+    if (request?.sort) query.set('sort', request.sort);
+    if (request?.filters?.search) query.set('search', request.filters.search);
     const response = await fetch(
         `${apiUrl()}/albums?${query}`,
         {

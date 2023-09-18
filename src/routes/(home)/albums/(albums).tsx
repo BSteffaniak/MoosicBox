@@ -2,6 +2,7 @@ import './albums.css';
 import * as api from '~/services/api';
 import { createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
+import { debounce } from '@solid-primitives/scheduled';
 
 function playAlbum(album: api.Album) {
     api.playAlbum(album.id);
@@ -42,13 +43,22 @@ function album(album: api.Album) {
 
 export default function Albums() {
     const [albums, setAlbums] = createSignal<api.Album[]>();
-    var searchParams = new URLSearchParams(
+    const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
+    const searchParams = new URLSearchParams(
         isServer ? {} : window.location.search,
     );
 
     function setSearchParam(name: string, value: string) {
         searchParams.set(name, value);
-        var newRelativePathQuery = `${
+        const newRelativePathQuery = `${
+            window.location.pathname
+        }?${searchParams.toString()}`;
+        history.pushState(null, '', newRelativePathQuery);
+    }
+
+    function removeSearchParam(name: string) {
+        searchParams.delete(name);
+        const newRelativePathQuery = `${
             window.location.pathname
         }?${searchParams.toString()}`;
         history.pushState(null, '', newRelativePathQuery);
@@ -64,6 +74,10 @@ export default function Albums() {
         return searchParams.get('sort') as api.AlbumSort | undefined;
     }
 
+    function getSearchFilter(): string | undefined {
+        return searchParams.get('search') as string | undefined;
+    }
+
     function setAlbumSources(sources: api.AlbumSource[]) {
         setSearchParam('sources', sources.join(','));
     }
@@ -72,21 +86,36 @@ export default function Albums() {
         setSearchParam('sort', sort);
     }
 
+    function setSearchFilter(search: string) {
+        if (search.trim().length === 0) {
+            removeSearchParam('search');
+        } else {
+            setSearchParam('search', search);
+        }
+        setSearchFilterValue(search);
+    }
+
     async function loadAlbums(
-        filters: api.AlbumFilters | undefined = undefined,
+        request: api.AlbumsRequest | undefined = undefined,
     ) {
-        if (filters?.sources) setAlbumSources(filters.sources);
-        if (filters?.sort) setAlbumSort(filters.sort);
+        if (request?.sources) setAlbumSources(request.sources);
+        if (request?.sort) setAlbumSort(request.sort);
+        if (typeof request?.filters?.search === 'string')
+            setSearchFilter(request.filters.search);
         setAlbums(
             await api.getAlbums({
                 sources: getAlbumSources(),
                 sort: getAlbumSort(),
+                filters: {
+                    search: getSearchFilter(),
+                },
             }),
         );
     }
 
     (async () => {
         if (isServer) return;
+        setSearchFilterValue(getSearchFilter() ?? '');
         await loadAlbums();
     })();
 
@@ -120,6 +149,19 @@ export default function Albums() {
                 >
                     Album Year
                 </button>
+                <input
+                    type="text"
+                    value={searchFilterValue()}
+                    onInput={debounce(
+                        (e) =>
+                            loadAlbums({
+                                filters: {
+                                    search: e.target.value ?? undefined,
+                                },
+                            }),
+                        200,
+                    )}
+                />
             </header>
             <div class="albums-container">
                 <div class="albums">

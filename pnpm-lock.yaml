@@ -8,6 +8,9 @@ dependencies:
   '@aws-sdk/client-ssm':
     specifier: ^3.410.0
     version: 3.410.0
+  '@solid-primitives/scheduled':
+    specifier: ^1.4.1
+    version: 1.4.1(solid-js@1.7.11)
   '@solid-primitives/storage':
     specifier: ^2.1.1
     version: 2.1.1(solid-js@1.7.11)(solid-start@0.3.5)
@@ -4270,6 +4273,14 @@ packages:
       '@smithy/abort-controller': 2.0.6
       '@smithy/types': 2.3.0
       tslib: 2.6.2
+
+  /@solid-primitives/scheduled@1.4.1(solid-js@1.7.11):
+    resolution: {integrity: sha512-OLcNXwYpX7HUOEqNPcmR31dkyI1E2imkMDBRlqsGT0ZhJV1L2g0TEREpo4nm/kUhh8LVQzkfnxS+GONx9kh90A==}
+    peerDependencies:
+      solid-js: ^1.6.12
+    dependencies:
+      solid-js: 1.7.11
+    dev: false
 
   /@solid-primitives/storage@2.1.1(solid-js@1.7.11)(solid-start@0.3.5):
     resolution: {integrity: sha512-GDbELt4Xjp0ySsHZ+RHzup0YIl1epHz8A2SVQYNRZPgkIEJk0Fyrt2vW6Etym2yUruTt8yT3d8106LVb71KIWg==}
