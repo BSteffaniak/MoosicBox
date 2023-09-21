@@ -3,7 +3,13 @@ import * as api from '~/services/api';
 import { createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import { play, setPlaylist, setPlaylistPosition, setSound, sound } from '~/services/player';
+import {
+    play,
+    setPlaylist,
+    setPlaylistPosition,
+    setSound,
+    sound,
+} from '~/services/player';
 
 async function playAlbum(album: api.Album) {
     const tracks = await api.getAlbumTracks(album.id);
@@ -12,7 +18,7 @@ async function playAlbum(album: api.Album) {
     sound()?.unload();
     setSound(undefined);
     setPlaylistPosition(0);
-    setPlaylist(tracks.map(({id}) => `${api.apiUrl()}/track?id=${id}`));
+    setPlaylist(tracks.map(({ id }) => `${api.apiUrl()}/track?id=${id}`));
     await play();
 }
 
@@ -48,7 +54,6 @@ function album(album: api.Album) {
         </div>
     );
 }
-
 
 export default function Albums() {
     const [albums, setAlbums] = createSignal<api.Album[]>();

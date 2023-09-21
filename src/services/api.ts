@@ -108,17 +108,14 @@ export async function getAlbums(
 ): Promise<Album[]> {
     await initialized;
     const query = new URLSearchParams({
-        playerId: currentPlayerId()!
+        playerId: currentPlayerId()!,
     });
     if (request?.sources) query.set('sources', request.sources.join(','));
     if (request?.sort) query.set('sort', request.sort);
     if (request?.filters?.search) query.set('search', request.filters.search);
-    const response = await fetch(
-        `${apiUrl()}/albums?${query}`,
-        {
-            credentials: 'include',
-        },
-    );
+    const response = await fetch(`${apiUrl()}/albums?${query}`, {
+        credentials: 'include',
+    });
 
     const albums: Album[] = await response.json();
 
