@@ -1,56 +1,52 @@
-import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { isServer } from 'solid-js/web';
-import {
-    connect,
-    ConnectionResponse,
-    getStatus,
-    ping,
-    StatusResponse,
-} from './api';
+import { Howl } from 'howler';
+import { makePersisted } from '@solid-primitives/storage';
 
-export const [connection, setConnection] = makePersisted(
-    createSignal<ConnectionResponse | undefined>(),
-    { name: 'player/connection' },
-);
-export const [status, setStatus] = createSignal<StatusResponse | undefined>();
 export const [currentPlayerId, setCurrentPlayerId] = createSignal<string>();
-export const [playing, setPlaying] = createSignal(false);
+export const [sound, setSound] = createSignal<Howl>();
+export const [playing, setPlaying] = makePersisted(createSignal(false), { name: 'player.playing' });
+export const [playlistPosition, setPlaylistPosition] = makePersisted(createSignal<number>(0), { name: 'player.playlistPosition' });
+export const [playlist, setPlaylist] = makePersisted(createSignal<string[]>([]), { name: 'player.playlist' });
 
-async function newConnection() {
-    setConnection(await connect());
-    setCurrentPlayerId(connection()!.players[0]);
-}
-
-async function updateStatus() {
-    setStatus(await getStatus());
-    setPlaying(status()!.players.some((p) => p.isPlaying));
-}
-
-async function pingConnection() {
-    const pingResponse = await ping(connection()!.clientId);
-
-    if (!pingResponse.alive) {
-        await newConnection();
+export async function play() {
+    if (!sound()) {
+        setSound(new Howl({
+            src: [playlist()![playlistPosition()]],
+            html5: true
+        }));
+        sound()!.pannerAttr({panningModel: 'equalpower'});
     }
+    sound()!.play();
+    sound()!.on('end', () => {
+       nextTrack(); 
+    });
+    setPlaying(true);
 }
 
-export let initialized: Promise<void>;
+export async function pause() {
+    sound()?.pause();
+    setPlaying(false);
+}
 
-export async function initConnection() {
-    initialized = new Promise(async (resolve) => {
-        if (isServer) return;
+export async function previousTrack() {
+    if ((sound()?.seek() ?? 0) < 5) {
+        setPlaylistPosition((value) => value > 0 ? value - 1 : value);
+        sound()?.stop();
+        sound()?.unload();
+        setSound(undefined);
+    } else {
+        sound()!.seek(0);
+    }
+    play();
+}
 
-        updateStatus();
+export async function nextTrack() {
+    sound()?.stop();
+    sound()?.unload();
+    setSound(undefined);
 
-        if (connection()) {
-            console.debug('Connection already exists in local storage');
-            setCurrentPlayerId(connection()!.players[0]);
-            pingConnection();
-        } else {
-            console.debug("Connection doesn't exist in local storage");
-            await newConnection();
-        }
-        resolve();
-    });
+    if (playlistPosition() < playlist()!.length - 1) {
+        setPlaylistPosition((value) => value + 1);
+        play();
+    }
 }

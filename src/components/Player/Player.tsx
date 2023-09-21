@@ -1,23 +1,13 @@
-import * as api from '~/services/api';
-import { playing, setPlaying } from '~/services/player';
 import './Player.css';
+import { nextTrack, pause, play, playing, playlist, playlistPosition, previousTrack, setPlaying, setPlaylistPosition, setSound, sound } from '~/services/player';
 
 export default function Player() {
-    async function play() {
-        await api.play();
-        setPlaying(true);
-    }
-
-    async function pause() {
-        await api.pause();
-        setPlaying(false);
-    }
 
     return (
         <div class="player">
             <button
                 class="media-button button"
-                onClick={() => api.previousTrack()}
+                onClick={() => previousTrack()}
             >
                 <img
                     class="previous-track-button"
@@ -42,7 +32,7 @@ export default function Player() {
                     />
                 </button>
             )}
-            <button class="media-button button" onClick={() => api.nextTrack()}>
+            <button class="media-button button" onClick={() => nextTrack()}>
                 <img
                     class="next-track-button"
                     src="/img/next-button.svg"

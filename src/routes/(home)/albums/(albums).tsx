@@ -3,9 +3,17 @@ import * as api from '~/services/api';
 import { createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
+import { play, setPlaylist, setPlaylistPosition, setSound, sound } from '~/services/player';
 
-function playAlbum(album: api.Album) {
-    api.playAlbum(album.id);
+async function playAlbum(album: api.Album) {
+    const tracks = await api.getAlbumTracks(album.id);
+
+    sound()?.stop();
+    sound()?.unload();
+    setSound(undefined);
+    setPlaylistPosition(0);
+    setPlaylist(tracks.map(({id}) => `${api.apiUrl()}/track?id=${id}`));
+    await play();
 }
 
 function album(album: api.Album) {
@@ -18,7 +26,7 @@ function album(album: api.Album) {
                 <img
                     class="album-icon"
                     style={{ width: '200px', height: '200px' }}
-                    src={album.icon ?? '/img/album.svg'}
+                    src={album.artwork ?? '/img/album.svg'}
                 />
                 <div class="album-controls">
                     <button
@@ -40,6 +48,7 @@ function album(album: api.Album) {
         </div>
     );
 }
+
 
 export default function Albums() {
     const [albums, setAlbums] = createSignal<api.Album[]>();
@@ -141,13 +150,13 @@ export default function Albums() {
                     onClick={() =>
                         loadAlbums({
                             sort:
-                                getAlbumSort() === 'Year'
-                                    ? 'Year-Desc'
-                                    : 'Year',
+                                getAlbumSort() === 'Release-Date'
+                                    ? 'Release-Date-Desc'
+                                    : 'Release-Date',
                         })
                     }
                 >
-                    Album Year
+                    Album Release Date
                 </button>
                 <input
                     type="text"
@@ -163,13 +172,14 @@ export default function Albums() {
                     )}
                 />
             </header>
-            <div class="albums-container">
-                <div class="albums">
-                    <Show when={albums()} fallback={<div>Loading...</div>}>
+            <Show when={albums()} fallback={<div>Loading...</div>}>
+                <div class="albums-container">
+                    Showing {albums()?.length} albums
+                    <div class="albums">
                         <For each={albums()}>{album}</For>
-                    </Show>
+                    </div>
                 </div>
-            </div>
+            </Show>
         </>
     );
 }

@@ -1,11 +1,18 @@
 import { makePersisted } from '@solid-primitives/storage';
+import { isServer } from 'solid-js/web';
 import { createSignal } from 'solid-js';
-import { currentPlayerId, initialized } from './player';
+import { currentPlayerId, setCurrentPlayerId, setPlaying } from './player';
 
 export const [apiUrl, setApiUrl] = makePersisted(
     createSignal('http://127.0.0.1:8000'),
     { name: 'apiUrl' },
 );
+
+export const [connection, setConnection] = makePersisted(
+    createSignal<ConnectionResponse | undefined>(),
+    { name: 'player/connection' },
+);
+export const [status, setStatus] = createSignal<StatusResponse | undefined>();
 
 export interface PingResponse {
     alive: boolean;
@@ -29,15 +36,21 @@ export interface Album {
     id: string;
     title: string;
     artist: string;
-    icon: string;
+    artwork: string;
+}
+
+export interface Track {
+    id: string;
+    title: string;
+    file: string;
 }
 
 export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
 export type AlbumSort =
     | 'Artist'
     | 'Name'
-    | 'Year'
-    | 'Year-Desc';
+    | 'Release-Date'
+    | 'Release-Date-Desc';
 
 export type AlbumsRequest = {
     sources?: AlbumSource[];
@@ -48,6 +61,47 @@ export type AlbumsRequest = {
 export type AlbumFilters = {
     search?: string;
 };
+
+export let initialized: Promise<void>;
+
+export async function initConnection() {
+    initialized = (async () => {
+        if (isServer) return;
+
+        updateStatus();
+
+        if (connection()) {
+            console.debug('Connection already exists in local storage');
+            setCurrentPlayerId(connection()!.players[0]);
+            pingConnection();
+        } else {
+            console.debug("Connection doesn't exist in local storage");
+            await newConnection();
+        }
+    })();
+}
+
+async function newConnection() {
+    setConnection(await connect());
+    setCurrentPlayerId(connection()!.players[0]);
+}
+
+async function updateStatus() {
+    setStatus(await getStatus());
+    setPlaying(status()!.players.some((p) => p.isPlaying));
+}
+
+async function pingConnection() {
+    try {
+        const pingResponse = await ping(connection()!.clientId);
+
+        if (!pingResponse.alive) {
+            await newConnection();
+        }
+    } catch {
+        await newConnection();
+    }
+}
 
 export async function getAlbums(
     request: AlbumsRequest | undefined = undefined,
@@ -69,8 +123,10 @@ export async function getAlbums(
     const albums: Album[] = await response.json();
 
     albums.forEach((album) => {
-        if (album.icon && album.icon[0] === '/') {
-            album.icon = `${apiUrl()}${album.icon}`;
+        if (album.artwork && album.artwork[0] === '/') {
+            album.artwork = `${apiUrl()}${album.artwork}`;
+        } else if (album.artwork && !album.artwork.startsWith('http')) {
+            album.artwork = `${apiUrl()}/albums/${album.id}/300x300`;
         }
     });
 
@@ -145,6 +201,19 @@ export async function play(): Promise<any> {
         `${apiUrl()}/playback/play?playerId=${currentPlayerId()}`,
         {
             method: 'POST',
+            credentials: 'include',
+        },
+    );
+
+    return await response.json();
+}
+
+export async function getAlbumTracks(albumId: string): Promise<Track[]> {
+    await initialized;
+    const response = await fetch(
+        `${apiUrl()}/album/tracks?albumId=${albumId}`,
+        {
+            method: 'GET',
             credentials: 'include',
         },
     );

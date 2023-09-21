@@ -1,6 +1,6 @@
 import { onMount } from 'solid-js';
 import { Outlet } from 'solid-start';
-import { initConnection } from '~/services/player';
+import { initConnection } from '~/services/api';
 import Player from '~/components/Player';
 import './(home)/home.css';
 
