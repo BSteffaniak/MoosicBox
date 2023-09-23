@@ -3,10 +3,19 @@ import { isServer } from 'solid-js/web';
 import { createSignal } from 'solid-js';
 import { currentPlayerId, setCurrentPlayerId, setPlaying } from './player';
 
-export const [apiUrl, setApiUrl] = makePersisted(
-    createSignal('http://127.0.0.1:8000'),
-    { name: 'apiUrl' },
-);
+function getDefaultApiUrl(): string {
+    if (isServer) return 'http://localhost:8000';
+
+    return `${window.location.protocol}//${window.location.hostname}:8000`;
+}
+
+export const [apiUrl, setApiUrl] = makePersisted(createSignal(''), {
+    name: 'apiUrl',
+});
+
+if (!apiUrl()) {
+    setApiUrl(getDefaultApiUrl);
+}
 
 export const [connection, setConnection] = makePersisted(
     createSignal<ConnectionResponse | undefined>(),
