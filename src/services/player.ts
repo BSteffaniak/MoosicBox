@@ -177,3 +177,18 @@ export async function addAlbumToQueue(album: Album) {
 
     setPlaylist([...playlist()!, ...tracks]);
 }
+
+if (!isServer) {
+    document.body.onkeydown = function (e) {
+        if (e.key == ' ' || e.code == 'Space') {
+            if (playing()) {
+                pause();
+            } else {
+                play();
+            }
+            if (e.target == document.body) {
+                e.preventDefault();
+            }
+        }
+    };
+}
