@@ -72,11 +72,22 @@ export function play() {
                 html5: true,
             }),
         );
+        if (navigator && navigator.mediaSession) {
+            navigator.mediaSession.setActionHandler('play', () => play());
+            navigator.mediaSession.setActionHandler('pause', () => pause());
+            navigator.mediaSession.setActionHandler('stop', () => stop());
+            navigator.mediaSession.setActionHandler('nexttrack', () =>
+                nextTrack(),
+            );
+            navigator.mediaSession.setActionHandler('previoustrack', () =>
+                previousTrack(),
+            );
+        }
         sound()!.pannerAttr({ panningModel: 'equalpower' });
         setCurrentTrack(track);
     }
 
-    sound()!.once('end', () => {
+    sound()!.on('end', () => {
         console.debug('Track ended');
         setCurrentSeek(undefined);
         clearInterval(seekHandle);
@@ -137,7 +148,6 @@ export async function nextTrack() {
     } else {
         console.debug('No next track to play');
         stop();
-        setPlaying(false);
     }
 }
 
@@ -147,6 +157,7 @@ export function stop() {
     setSound(undefined);
     setCurrentSeek(undefined);
     clearInterval(seekHandle);
+    setPlaying(false);
     console.debug('Track stopped');
 }
 
