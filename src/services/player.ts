@@ -186,9 +186,7 @@ if (!isServer) {
             } else {
                 play();
             }
-            if (e.target == document.body) {
-                e.preventDefault();
-            }
+            e.preventDefault();
         }
     };
 }
