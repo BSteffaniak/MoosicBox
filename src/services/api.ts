@@ -14,7 +14,7 @@ export const [apiUrl, setApiUrl] = makePersisted(createSignal(''), {
 });
 
 if (!apiUrl()) {
-    setApiUrl(getDefaultApiUrl);
+    setApiUrl(getDefaultApiUrl());
 }
 
 export const [connection, setConnection] = makePersisted(
