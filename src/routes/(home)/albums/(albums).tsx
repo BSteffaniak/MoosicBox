@@ -217,9 +217,9 @@ export default function Albums() {
                     onClick={() =>
                         loadAlbums({
                             sort:
-                                getAlbumSort() === 'Release-Date'
-                                    ? 'Release-Date-Desc'
-                                    : 'Release-Date',
+                                getAlbumSort() === 'Release-Date-Desc'
+                                    ? 'Release-Date'
+                                    : 'Release-Date-Desc',
                         })
                     }
                 >
