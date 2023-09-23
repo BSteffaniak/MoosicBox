@@ -1,15 +1,15 @@
 .player .button {
     font-family: inherit;
     font-size: inherit;
-    padding: 10px;
+    padding: 0px;
     color: #335d92;
     background-color: rgba(68, 107, 158, 0.1);
     border-radius: 2em;
     border: 2px solid rgba(68, 107, 158, 0);
     outline: none;
     cursor: pointer;
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
 }
 
 .player .button:focus {
@@ -32,15 +32,101 @@
     flex: 1;
 }
 
+.player .player-now-playing-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
 .player-album-icon {
     padding: 10px 20px;
+}
+
+.dark .player-now-playing-details-title {
+}
+
+.player-now-playing-details-artist {
+    margin-top: 7px;
+}
+
+.dark .player-now-playing-details-artist,
+.dark .player-now-playing-details-artist a {
+    color: #808080;
+}
+
+.dark .player-now-playing-details-album,
+.dark .player-now-playing-details-album a {
+    color: #808080;
+}
+
+.player-now-playing-details-artist,
+.player-now-playing-details-album {
+    font-size: 14px;
+}
+
+.player-now-playing-details a {
+    text-decoration: none;
+}
+
+.player-now-playing-details a:hover {
+    text-decoration: underline;
 }
 
 .player .player-media-controls {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1.5;
+    flex-direction: column;
+}
+
+.player .player-media-controls-seeker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    width: 100%;
+    padding-bottom: 6px;
+}
+
+.player .player-media-controls-seeker-current-time {
+    width: 100px;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.player .player-media-controls-seeker-bar {
     flex: 1;
+    height: 4px;
+    width: 100%;
+    background-color: #222222;
+    border-radius: 10px;
+    position: relative;
+}
+
+.player .player-media-controls-seeker-bar-progress {
+    transition: width 0.1s;
+    height: 100%;
+    background-color: #ffffff;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+.player .player-media-controls-seeker-bar-progress-trigger {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    bottom: 0;
+    padding: 13px 0;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.player .player-media-controls-seeker-total-time {
+    width: 100px;
+    text-align: left;
+    padding-left: 10px;
 }
 
 .player .player-track-options {
@@ -52,27 +138,27 @@
 }
 
 .play-button {
-    width: 25px;
+    width: 17px;
     position: relative;
     top: 2px;
     left: 2px;
 }
 
 .pause-button {
-    width: 25px;
+    width: 17px;
     position: relative;
     top: 2px;
 }
 
 .next-track-button {
-    width: 25px;
+    width: 18px;
     position: relative;
     top: 2px;
     left: 1px;
 }
 
 .previous-track-button {
-    width: 25px;
+    width: 18px;
     transform: scaleX(-1);
     position: relative;
     top: 2px;

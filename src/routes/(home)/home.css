@@ -9,6 +9,10 @@ body {
     margin: 0;
 }
 
+a {
+    color: white;
+}
+
 #root {
     min-height: calc(100% - 140px);
     padding-bottom: 120px;

@@ -18,6 +18,7 @@ function album(album: api.Album) {
                         class="album-icon"
                         style={{ width: '200px', height: '200px' }}
                         src={api.getAlbumArtwork(album)}
+                        alt={`${album.title} by ${album.artist}`}
                         loading="lazy"
                     />
                     <div class="album-controls">

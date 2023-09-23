@@ -51,7 +51,9 @@ export interface Album {
 
 export interface Track {
     trackId: number;
+    album: string;
     albumId: number;
+    artist: string;
     artistId: number;
     title: string;
     containsArtwork: boolean;
@@ -150,11 +152,15 @@ export async function getAlbums(
     return albums;
 }
 
-export function getAlbumArtwork(album: {
-    albumId: number;
-    containsArtwork: boolean;
-}): string {
-    if (album.containsArtwork) {
+export function getAlbumArtwork(
+    album:
+        | {
+              albumId: number;
+              containsArtwork: boolean;
+          }
+        | undefined,
+): string {
+    if (album?.containsArtwork) {
         return `${apiUrl()}/albums/${album.albumId}/300x300`;
     }
     return '/img/album.svg';

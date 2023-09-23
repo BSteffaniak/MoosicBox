@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { Album, Track, apiUrl, getAlbumTracks } from './api';
@@ -6,33 +6,42 @@ import { isServer } from 'solid-js/web';
 
 export const [currentPlayerId, setCurrentPlayerId] = createSignal<string>();
 export const [sound, setSound] = createSignal<Howl>();
-export const [playing, setPlaying] = makePersisted(createSignal(false), {
-    name: `player.v1.playing`,
-});
+export const [playing, setPlaying] = makePersisted(
+    createSignal(false, { equals: false }),
+    {
+        name: `player.v1.playing`,
+    },
+);
 export const [currentSeek, setCurrentSeek] = makePersisted(
-    createSignal<number>(),
+    createSignal<number>(0, { equals: false }),
     {
         name: `player.v1.currentSeek`,
     },
 );
+export const [currentTrackLength, setCurrentTrackLength] = makePersisted(
+    createSignal<number>(0, { equals: false }),
+    {
+        name: `player.v1.currentTrackLength`,
+    },
+);
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
-    createSignal<Album>(),
+    createSignal<Album | undefined>(undefined, { equals: false }),
     {
         name: `player.v2.currentAlbum`,
     },
 );
 export const [currentTrack, setCurrentTrack] = makePersisted(
-    createSignal<Track>(),
+    createSignal<Track | undefined>(undefined, { equals: false }),
     {
         name: `player.v2.currentTrack`,
     },
 );
 export const [playlistPosition, setPlaylistPosition] = makePersisted(
-    createSignal<number>(0),
+    createSignal<number>(0, { equals: false }),
     { name: `player.v1.playlistPosition` },
 );
 export const [playlist, setPlaylist] = makePersisted(
-    createSignal<Track[]>([]),
+    createSignal<Track[]>([], { equals: false }),
     { name: `player.v1.playlist` },
 );
 
@@ -93,6 +102,10 @@ export function play() {
         clearInterval(seekHandle);
         nextTrack();
     });
+    sound()!.on('load', () => {
+        console.debug('Track loaded', sound(), sound()!.duration());
+        setCurrentTrackLength(Math.round(sound()!.duration()));
+    });
 
     sound()!.play();
 
@@ -116,6 +129,7 @@ export function seek(seek: number) {
     if (typeof seek === 'number') {
         console.debug(`Setting seek to ${seek}`);
         setCurrentSeek(seek);
+        sound()?.seek(seek);
     }
 }
 
@@ -180,7 +194,12 @@ export async function addAlbumToQueue(album: Album) {
 
 if (!isServer) {
     document.body.onkeydown = function (e) {
-        if (e.key == ' ' || e.code == 'Space') {
+        const target = e.target as HTMLElement;
+
+        if (
+            !(target instanceof HTMLInputElement) &&
+            (e.key == ' ' || e.code == 'Space')
+        ) {
             if (playing()) {
                 pause();
             } else {
