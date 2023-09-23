@@ -10,6 +10,7 @@ import {
     previousTrack,
 } from '~/services/player';
 import { A } from '@solidjs/router';
+import { getAlbumArtwork } from '~/services/api';
 
 export default function Player() {
     return (
@@ -18,14 +19,11 @@ export default function Player() {
                 <Show when={currentTrack()}>
                     {(currentTrack) => (
                         <>
-                            <A href={`/albums/${currentAlbum()!.id}`}>
+                            <A href={`/albums/${currentTrack().albumId}`}>
                                 <img
                                     class="player-album-icon"
                                     style={{ width: '70px', height: '70px' }}
-                                    src={
-                                        currentAlbum()!.artwork ??
-                                        '/img/album.svg'
-                                    }
+                                    src={getAlbumArtwork(currentTrack())}
                                 />
                             </A>
                             {currentTrack().title}

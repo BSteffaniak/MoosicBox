@@ -18,13 +18,13 @@ export const [currentSeek, setCurrentSeek] = makePersisted(
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
     createSignal<Album>(),
     {
-        name: `player.v1.currentAlbum`,
+        name: `player.v2.currentAlbum`,
     },
 );
 export const [currentTrack, setCurrentTrack] = makePersisted(
     createSignal<Track>(),
     {
-        name: `player.v1.currentTrack`,
+        name: `player.v2.currentTrack`,
     },
 );
 export const [playlistPosition, setPlaylistPosition] = makePersisted(
@@ -49,7 +49,7 @@ if (!isServer) {
 }
 
 function getTrackUrl(track: Track): string {
-    return `${apiUrl()}/track?trackId=${track.id}`;
+    return `${apiUrl()}/track?trackId=${track.trackId}`;
 }
 
 function refreshCurrentSeek() {
@@ -164,7 +164,7 @@ export function stop() {
 export async function playAlbum(album: Album) {
     setCurrentAlbum(album);
 
-    const tracks = await getAlbumTracks(album.id);
+    const tracks = await getAlbumTracks(album.albumId);
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
@@ -173,7 +173,7 @@ export async function playAlbum(album: Album) {
 }
 
 export async function addAlbumToQueue(album: Album) {
-    const tracks = await getAlbumTracks(album.id);
+    const tracks = await getAlbumTracks(album.albumId);
 
     setPlaylist([...playlist()!, ...tracks]);
 }

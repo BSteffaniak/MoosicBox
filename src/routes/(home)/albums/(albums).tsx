@@ -13,11 +13,11 @@ function album(album: api.Album) {
                 class="album-icon-container"
                 style={{ width: '200px', height: '200px' }}
             >
-                <A href={`/albums/${album.id}`}>
+                <A href={`/albums/${album.albumId}`}>
                     <img
                         class="album-icon"
                         style={{ width: '200px', height: '200px' }}
-                        src={album.artwork ?? '/img/album.svg'}
+                        src={api.getAlbumArtwork(album)}
                     />
                     <div class="album-controls">
                         <button

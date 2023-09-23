@@ -33,17 +33,19 @@ export interface StatusResponse {
 }
 
 export interface Album {
-    id: number;
+    albumId: number;
     title: string;
     artist: string;
-    artwork: string | undefined;
+    artistId: number;
     containsArtwork: boolean;
 }
 
 export interface Track {
-    id: string;
+    trackId: number;
+    albumId: number;
+    artistId: number;
     title: string;
-    file: string;
+    containsArtwork: boolean;
 }
 
 export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
@@ -116,7 +118,7 @@ export async function getAlbum(id: number): Promise<Album> {
         credentials: 'include',
     });
 
-    return processAlbum(await response.json());
+    return await response.json();
 }
 
 export async function getAlbums(
@@ -136,16 +138,17 @@ export async function getAlbums(
 
     const albums: Album[] = await response.json();
 
-    albums.forEach(processAlbum);
-
     return albums;
 }
 
-function processAlbum(album: Album): Album {
+export function getAlbumArtwork(album: {
+    albumId: number;
+    containsArtwork: boolean;
+}): string {
     if (album.containsArtwork) {
-        album.artwork = `${apiUrl()}/albums/${album.id}/300x300`;
+        return `${apiUrl()}/albums/${album.albumId}/300x300`;
     }
-    return album;
+    return '/img/album.svg';
 }
 
 export async function getStatus(): Promise<StatusResponse> {

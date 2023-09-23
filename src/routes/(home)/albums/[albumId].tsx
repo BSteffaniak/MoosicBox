@@ -30,7 +30,7 @@ export default function Album() {
                                 <img
                                     class="album-icon"
                                     style={{ width: '200px', height: '200px' }}
-                                    src={album().artwork ?? '/img/album.svg'}
+                                    src={api.getAlbumArtwork(album())}
                                 />
                                 <h1>{album().title}</h1>
                                 <button
