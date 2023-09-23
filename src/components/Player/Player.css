@@ -7,8 +7,9 @@
     border-radius: 2em;
     border: 2px solid rgba(68, 107, 158, 0);
     outline: none;
-    font-variant-numeric: tabular-nums;
     cursor: pointer;
+    width: 55px;
+    height: 55px;
 }
 
 .player .button:focus {
@@ -20,10 +21,30 @@
 }
 
 .player {
-    display: inline-block;
-    position: relative;
-    transform: translateY(-50%);
-    top: 50%;
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.player .player-now-playing {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.player-album-icon {
+    padding: 10px 20px;
+}
+
+.player .player-media-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.player .player-track-options {
+    flex: 1;
 }
 
 .media-button {

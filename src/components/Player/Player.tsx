@@ -1,52 +1,75 @@
+import { Show } from 'solid-js';
 import './Player.css';
 import {
+    currentAlbum,
+    currentTrack,
     nextTrack,
     pause,
     play,
     playing,
-    playlist,
-    playlistPosition,
     previousTrack,
-    setPlaying,
-    setPlaylistPosition,
-    setSound,
-    sound,
 } from '~/services/player';
+import { A } from '@solidjs/router';
 
 export default function Player() {
     return (
         <div class="player">
-            <button class="media-button button" onClick={() => previousTrack()}>
-                <img
-                    class="previous-track-button"
-                    src="/img/next-button.svg"
-                    alt="Pause"
-                />
-            </button>
-            {playing() ? (
-                <button class="media-button button" onClick={() => pause()}>
+            <div class="player-now-playing">
+                <Show when={currentTrack()}>
+                    {(currentTrack) => (
+                        <>
+                            <A href={`/albums/${currentAlbum()!.id}`}>
+                                <img
+                                    class="player-album-icon"
+                                    style={{ width: '70px', height: '70px' }}
+                                    src={
+                                        currentAlbum()!.artwork ??
+                                        '/img/album.svg'
+                                    }
+                                />
+                            </A>
+                            {currentTrack().title}
+                        </>
+                    )}
+                </Show>
+            </div>
+            <div class="player-media-controls">
+                <button
+                    class="media-button button"
+                    onClick={() => previousTrack()}
+                >
                     <img
-                        class="pause-button"
-                        src="/img/pause-button.svg"
-                        alt="Pause"
+                        class="previous-track-button"
+                        src="/img/next-button-white.svg"
+                        alt="Previous Track"
                     />
                 </button>
-            ) : (
-                <button class="media-button button" onClick={() => play()}>
+                {playing() ? (
+                    <button class="media-button button" onClick={() => pause()}>
+                        <img
+                            class="pause-button"
+                            src="/img/pause-button-white.svg"
+                            alt="Pause"
+                        />
+                    </button>
+                ) : (
+                    <button class="media-button button" onClick={() => play()}>
+                        <img
+                            class="play-button"
+                            src="/img/play-button-white.svg"
+                            alt="Play"
+                        />
+                    </button>
+                )}
+                <button class="media-button button" onClick={() => nextTrack()}>
                     <img
-                        class="play-button"
-                        src="/img/play-button.svg"
-                        alt="Play"
+                        class="next-track-button"
+                        src="/img/next-button-white.svg"
+                        alt="Next Track"
                     />
                 </button>
-            )}
-            <button class="media-button button" onClick={() => nextTrack()}>
-                <img
-                    class="next-track-button"
-                    src="/img/next-button.svg"
-                    alt="Pause"
-                />
-            </button>
+            </div>
+            <div class="player-track-options"></div>
         </div>
     );
 }

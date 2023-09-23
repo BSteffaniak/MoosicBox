@@ -7,14 +7,18 @@ import './(home)/home.css';
 export default function Home() {
     onMount(initConnection);
     return (
-        <div id="root">
+        <div id="root" class="dark">
             <main>
-                <h1>MoosicBox</h1>
+                <header>
+                    <h1>MoosicBox</h1>
+                </header>
                 <Outlet />
             </main>
             <footer>
-                <div class="footer-player">
-                    <Player />
+                <div class="footer-player-container">
+                    <div class="footer-player">
+                        <Player />
+                    </div>
                 </div>
             </footer>
         </div>

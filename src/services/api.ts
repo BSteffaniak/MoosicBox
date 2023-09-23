@@ -33,10 +33,11 @@ export interface StatusResponse {
 }
 
 export interface Album {
-    id: string;
+    id: number;
     title: string;
     artist: string;
-    artwork: string;
+    artwork: string | undefined;
+    containsArtwork: boolean;
 }
 
 export interface Track {
@@ -103,6 +104,19 @@ async function pingConnection() {
     }
 }
 
+export async function getAlbum(id: number): Promise<Album> {
+    await initialized;
+    const query = new URLSearchParams({
+        albumId: `${id}`,
+    });
+
+    const response = await fetch(`${apiUrl()}/album?${query}`, {
+        credentials: 'include',
+    });
+
+    return processAlbum(await response.json());
+}
+
 export async function getAlbums(
     request: AlbumsRequest | undefined = undefined,
 ): Promise<Album[]> {
@@ -113,21 +127,23 @@ export async function getAlbums(
     if (request?.sources) query.set('sources', request.sources.join(','));
     if (request?.sort) query.set('sort', request.sort);
     if (request?.filters?.search) query.set('search', request.filters.search);
+
     const response = await fetch(`${apiUrl()}/albums?${query}`, {
         credentials: 'include',
     });
 
     const albums: Album[] = await response.json();
 
-    albums.forEach((album) => {
-        if (album.artwork && album.artwork[0] === '/') {
-            album.artwork = `${apiUrl()}${album.artwork}`;
-        } else if (album.artwork && !album.artwork.startsWith('http')) {
-            album.artwork = `${apiUrl()}/albums/${album.id}/300x300`;
-        }
-    });
+    albums.forEach(processAlbum);
 
     return albums;
+}
+
+function processAlbum(album: Album): Album {
+    if (album.containsArtwork) {
+        album.artwork = `${apiUrl()}/albums/${album.id}/300x300`;
+    }
+    return album;
 }
 
 export async function getStatus(): Promise<StatusResponse> {
@@ -205,7 +221,7 @@ export async function play(): Promise<any> {
     return await response.json();
 }
 
-export async function getAlbumTracks(albumId: string): Promise<Track[]> {
+export async function getAlbumTracks(albumId: number): Promise<Track[]> {
     await initialized;
     const response = await fetch(
         `${apiUrl()}/album/tracks?albumId=${albumId}`,

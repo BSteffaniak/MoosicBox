@@ -1,29 +1,61 @@
 import { createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import * as api from '~/services/api';
-import './albums.css';
+import './album.css';
 import { useParams } from 'solid-start';
-
-function playAlbum(album: api.Album) {
-    api.playAlbum(album.id);
-}
+import { playAlbum } from '~/services/player';
+import { A } from '@solidjs/router';
 
 export default function Album() {
     const params = useParams();
     const [album, setAlbum] = createSignal<api.Album>();
+    const [tracks, setTracks] = createSignal<api.Track[]>();
 
     (async () => {
         if (isServer) return;
-        setAlbum(await api.getAlbum(params.albumId));
+        setAlbum(await api.getAlbum(parseInt(params.albumId)));
+        setTracks(await api.getAlbumTracks(parseInt(params.albumId)));
     })();
 
     return (
         <>
-            <div class="albums-header">Albums:</div>
-            <div class="albums-container">
-                <div class="albums">
+            <A href="#" onClick={() => history.back()}>
+                Back
+            </A>
+            <div class="album-container">
+                <div class="album">
                     <Show when={album()} fallback={<div>Loading...</div>}>
-                        {(album) => <div>{album().title}</div>}
+                        {(album) => (
+                            <div>
+                                <img
+                                    class="album-icon"
+                                    style={{ width: '200px', height: '200px' }}
+                                    src={album().artwork ?? '/img/album.svg'}
+                                />
+                                <h1>{album().title}</h1>
+                                <button
+                                    class="media-button play-button button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        playAlbum(album());
+                                        return false;
+                                    }}
+                                >
+                                    <img
+                                        src="/img/play-button.svg"
+                                        alt="Play"
+                                    />
+                                </button>
+                            </div>
+                        )}
+                    </Show>
+                    <Show when={tracks()} fallback={<div>Loading...</div>}>
+                        {(tracks) => (
+                            <For each={tracks()}>
+                                {(track) => <div>{track.title}</div>}
+                            </For>
+                        )}
                     </Show>
                 </div>
             </div>

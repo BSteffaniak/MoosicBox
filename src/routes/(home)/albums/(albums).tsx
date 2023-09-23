@@ -1,26 +1,10 @@
 import './albums.css';
 import * as api from '~/services/api';
-import { createSignal, For, Show } from 'solid-js';
+import { createSignal, For, onCleanup, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import {
-    play,
-    setPlaylist,
-    setPlaylistPosition,
-    setSound,
-    sound,
-} from '~/services/player';
-
-async function playAlbum(album: api.Album) {
-    const tracks = await api.getAlbumTracks(album.id);
-
-    sound()?.stop();
-    sound()?.unload();
-    setSound(undefined);
-    setPlaylistPosition(0);
-    setPlaylist(tracks.map(({ id }) => `${api.apiUrl()}/track?id=${id}`));
-    await play();
-}
+import { addAlbumToQueue, playAlbum } from '~/services/player';
+import { A } from '@solidjs/router';
 
 function album(album: api.Album) {
     return (
@@ -29,19 +13,37 @@ function album(album: api.Album) {
                 class="album-icon-container"
                 style={{ width: '200px', height: '200px' }}
             >
-                <img
-                    class="album-icon"
-                    style={{ width: '200px', height: '200px' }}
-                    src={album.artwork ?? '/img/album.svg'}
-                />
-                <div class="album-controls">
-                    <button
-                        class="media-button play-button button"
-                        onClick={() => playAlbum(album)}
-                    >
-                        <img src="/img/play-button.svg" alt="Play" />
-                    </button>
-                </div>
+                <A href={`/albums/${album.id}`}>
+                    <img
+                        class="album-icon"
+                        style={{ width: '200px', height: '200px' }}
+                        src={album.artwork ?? '/img/album.svg'}
+                    />
+                    <div class="album-controls">
+                        <button
+                            class="media-button play-button button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                playAlbum(album);
+                                return false;
+                            }}
+                        >
+                            <img src="/img/play-button.svg" alt="Play" />
+                        </button>
+                        <button
+                            class="media-button options-button button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                addAlbumToQueue(album);
+                                return false;
+                            }}
+                        >
+                            <img src="/img/more-options.svg" alt="Play" />
+                        </button>
+                    </div>
+                </A>
             </div>
             <div class="album-details">
                 <div class="album-title">
@@ -55,6 +57,8 @@ function album(album: api.Album) {
     );
 }
 
+let historyListener: () => void;
+
 export default function Albums() {
     const [albums, setAlbums] = createSignal<api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
@@ -64,17 +68,13 @@ export default function Albums() {
 
     function setSearchParam(name: string, value: string) {
         searchParams.set(name, value);
-        const newRelativePathQuery = `${
-            window.location.pathname
-        }?${searchParams.toString()}`;
+        const newRelativePathQuery = `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
     }
 
     function removeSearchParam(name: string) {
         searchParams.delete(name);
-        const newRelativePathQuery = `${
-            window.location.pathname
-        }?${searchParams.toString()}`;
+        const newRelativePathQuery = `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
     }
 
@@ -126,6 +126,68 @@ export default function Albums() {
             }),
         );
     }
+
+    if (!isServer) {
+        if (historyListener) {
+            window.removeEventListener('popstate', historyListener);
+        }
+
+        historyListener = () => {
+            const newSearchParams = new URLSearchParams(window.location.search);
+
+            let wasChange = false;
+
+            searchParams.forEach((_value, key) => {
+                if (!newSearchParams.has(key)) {
+                    switch (key) {
+                        case 'sources':
+                            wasChange = true;
+                            break;
+                        case 'sort':
+                            wasChange = true;
+                            break;
+                        case 'search':
+                            searchParams.delete(key);
+                            setSearchFilterValue('');
+                            wasChange = true;
+                            break;
+                    }
+                }
+            });
+
+            newSearchParams.forEach((value, key) => {
+                console.log(searchParams.get(key), value);
+                if (searchParams.get(key) !== value) {
+                    searchParams.set(key, value);
+
+                    switch (key) {
+                        case 'sources':
+                            wasChange = true;
+                            break;
+                        case 'sort':
+                            wasChange = true;
+                            break;
+                        case 'search':
+                            setSearchFilterValue(value);
+                            wasChange = true;
+                            break;
+                    }
+                }
+            });
+
+            if (wasChange) {
+                loadAlbums();
+            }
+        };
+
+        window.addEventListener('popstate', historyListener);
+    }
+
+    onCleanup(() => {
+        if (historyListener) {
+            window.removeEventListener('popstate', historyListener);
+        }
+    });
 
     (async () => {
         if (isServer) return;
