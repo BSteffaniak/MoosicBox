@@ -225,6 +225,18 @@ export default function Albums() {
                 >
                     Album Release Date
                 </button>
+                <button
+                    onClick={() =>
+                        loadAlbums({
+                            sort:
+                                getAlbumSort() === 'Date-Added-Desc'
+                                    ? 'Date-Added'
+                                    : 'Date-Added-Desc',
+                        })
+                    }
+                >
+                    Date Added
+                </button>
                 <input
                     type="text"
                     value={searchFilterValue()}

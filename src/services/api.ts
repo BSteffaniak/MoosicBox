@@ -51,7 +51,9 @@ export type AlbumSort =
     | 'Artist'
     | 'Name'
     | 'Release-Date'
-    | 'Release-Date-Desc';
+    | 'Release-Date-Desc'
+    | 'Date-Added'
+    | 'Date-Added-Desc';
 
 export type AlbumsRequest = {
     sources?: AlbumSource[];
