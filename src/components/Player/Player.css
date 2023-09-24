@@ -86,7 +86,8 @@
     justify-content: center;
     flex-direction: row;
     width: 100%;
-    padding-bottom: 6px;
+    padding-top: 5px;
+    padding-bottom: 4px;
 }
 
 .player .player-media-controls-seeker-current-time {
@@ -105,7 +106,10 @@
 }
 
 .player .player-media-controls-seeker-bar-progress {
-    transition: width 0.1s;
+    will-change: width;
+    transition-property: width;
+    transition-duration: 1s;
+    transition-timing-function: linear;
     height: 100%;
     background-color: #ffffff;
     border-radius: 10px;
@@ -163,4 +167,11 @@
     position: relative;
     top: 2px;
     right: 1px;
+}
+
+.no-transition {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
 }

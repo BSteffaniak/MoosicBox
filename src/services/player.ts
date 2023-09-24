@@ -1,5 +1,5 @@
 import { createSignal, onMount } from 'solid-js';
-import { Howl } from 'howler';
+import { Howl, HowlCallback } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { Album, Track, apiUrl, getAlbumTracks } from './api';
 import { isServer } from 'solid-js/web';
@@ -13,7 +13,7 @@ export const [playing, setPlaying] = makePersisted(
     },
 );
 export const [currentSeek, setCurrentSeek] = makePersisted(
-    createSignal<number>(0, { equals: false }),
+    createSignal<number | undefined>(undefined, { equals: false }),
     {
         name: `player.v1.currentSeek`,
     },
@@ -65,12 +65,16 @@ function refreshCurrentSeek() {
     const seek = sound()?.seek();
     if (typeof seek === 'number') {
         const roundedSeek = Math.round(seek);
-        console.debug(`Setting currentSeek to ${roundedSeek}`);
-        setCurrentSeek(roundedSeek);
+        if (currentSeek() !== roundedSeek) {
+            console.debug(`Setting currentSeek to ${roundedSeek}`);
+            setCurrentSeek(roundedSeek);
+        }
     }
 }
 
 let seekHandle: NodeJS.Timeout;
+let endHandle: HowlCallback;
+let loadHandle: HowlCallback;
 
 export function play() {
     if (!sound()) {
@@ -96,16 +100,22 @@ export function play() {
         setCurrentTrack(track);
     }
 
-    sound()!.on('end', () => {
-        console.debug('Track ended');
-        setCurrentSeek(undefined);
-        clearInterval(seekHandle);
-        nextTrack();
-    });
-    sound()!.on('load', () => {
-        console.debug('Track loaded', sound(), sound()!.duration());
-        setCurrentTrackLength(Math.round(sound()!.duration()));
-    });
+    sound()!.on(
+        'end',
+        (endHandle = (id: number) => {
+            console.debug('Track ended', sound(), id);
+            setCurrentSeek(undefined);
+            clearInterval(seekHandle);
+            nextTrack();
+        }),
+    );
+    sound()!.on(
+        'load',
+        (loadHandle = () => {
+            console.debug('Track loaded', sound(), sound()!.duration());
+            setCurrentTrackLength(Math.round(sound()!.duration()));
+        }),
+    );
 
     sound()!.play();
 
@@ -113,12 +123,12 @@ export function play() {
         console.debug(`Setting initial seek to ${currentSeek()}`);
         sound()!.seek(currentSeek());
     } else {
-        setCurrentSeek(Math.round(sound()!.seek()));
+        //setCurrentSeek(Math.round(sound()!.seek()));
     }
 
     seekHandle = setInterval(() => {
         refreshCurrentSeek();
-    }, 1000);
+    }, 200);
 
     setPlaying(true);
     console.debug('Playing', sound());

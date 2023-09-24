@@ -1,4 +1,4 @@
-import { Show, createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, on, onCleanup, onMount } from 'solid-js';
 import './Player.css';
 import {
     currentAlbum,
@@ -19,23 +19,119 @@ import {
 import { A } from '@solidjs/router';
 import { getAlbumArtwork } from '~/services/api';
 import { toTime } from '~/services/formatting';
+import { isServer } from 'solid-js/web';
 
-function seekTo(event: MouseEvent): void {
-    const element = event.target as HTMLElement;
+function eventToSeekPosition(event: MouseEvent, element: HTMLElement): number {
     const pos = element.getBoundingClientRect()!;
     const mouseX = event.clientX - pos.left;
     const percentage = mouseX / pos.width;
-    const seekPosition = currentTrackLength() * percentage;
-    seek(Math.round(seekPosition));
+    return currentTrackLength() * percentage;
 }
 
+function seekTo(event: MouseEvent): void {
+    seek(Math.round(eventToSeekPosition(event, event.target as HTMLElement)));
+}
+
+let dragStartListener: (event: MouseEvent) => void;
+let dragListener: (event: MouseEvent) => void;
+let dragEndListener: (event: MouseEvent) => void;
+
 export default function Player() {
+    let progressBar: HTMLDivElement | undefined;
+    let progressBarTrigger: HTMLDivElement | undefined;
+    let [dragging, setDragging] = createSignal(false);
+    let [applyDrag, setApplyDrag] = createSignal(false);
+    let [seekPosition, setSeekPosition] = createSignal(currentSeek());
+
+    function speedyProgressTransition() {
+        progressBar?.classList.add('no-transition');
+        setTimeout(() => {
+            progressBar?.classList.remove('no-transition');
+        }, 100);
+    }
+
     onMount(() => {
         setCurrentTrackLength(currentTrackLength());
         setCurrentAlbum(currentAlbum());
         setCurrentTrack(currentTrack());
         setCurrentSeek(currentSeek());
+        speedyProgressTransition();
+
+        if (!isServer) {
+            dragStartListener = (_event: MouseEvent) => {
+                progressBar?.classList.add('no-transition');
+                setDragging(true);
+                setApplyDrag(true);
+            };
+            dragListener = (event: MouseEvent) => {
+                if (dragging()) {
+                    event.preventDefault();
+                    if (!applyDrag()) return;
+                    setSeekPosition(
+                        eventToSeekPosition(event, progressBarTrigger!),
+                    );
+                }
+            };
+            dragEndListener = (event: MouseEvent) => {
+                if (dragging()) {
+                    setDragging(false);
+                    if (!applyDrag()) return;
+                    setApplyDrag(false);
+                    seek(Math.round(seekPosition()!));
+                    progressBar?.classList.remove('no-transition');
+                    event.preventDefault();
+                }
+            };
+            progressBarTrigger!.addEventListener(
+                'mousedown',
+                dragStartListener,
+            );
+            window.addEventListener('mousemove', dragListener);
+            window.addEventListener('mouseup', dragEndListener);
+        }
     });
+
+    onCleanup(() => {
+        if (!isServer) {
+            progressBarTrigger!.removeEventListener(
+                'mousedown',
+                dragStartListener,
+            );
+            window.removeEventListener('mousemove', dragListener);
+            window.removeEventListener('mouseup', dragEndListener);
+        }
+    });
+
+    createEffect(
+        on(
+            () => currentSeek(),
+            (newSeek, oldSeek) => {
+                if (!dragging()) {
+                    setSeekPosition(newSeek);
+                }
+                if (
+                    typeof newSeek === 'undefined' ||
+                    typeof oldSeek === 'undefined' ||
+                    Math.abs(newSeek - oldSeek) > 1.2
+                ) {
+                    speedyProgressTransition();
+                }
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => playing(),
+            () => {
+                if (dragging()) {
+                    setApplyDrag(false);
+                    progressBar?.classList.remove('no-transition');
+                }
+            },
+        ),
+    );
+
     return (
         <div class="player">
             <div class="player-now-playing">
@@ -117,10 +213,15 @@ export default function Player() {
                     </div>
                     <div class="player-media-controls-seeker-bar">
                         <div
+                            ref={progressBar}
                             class="player-media-controls-seeker-bar-progress"
                             style={{
                                 width: `${Math.min(
-                                    ((currentSeek() ?? 0) /
+                                    ((applyDrag() && dragging()
+                                        ? seekPosition()!
+                                        : (currentSeek() ?? 0) +
+                                          (currentSeek() ?? 0) /
+                                              currentTrackLength()) /
                                         currentTrackLength()) *
                                         100,
                                     100,
@@ -128,6 +229,7 @@ export default function Player() {
                             }}
                         ></div>
                         <div
+                            ref={progressBarTrigger}
                             class="player-media-controls-seeker-bar-progress-trigger"
                             onClick={(e) => seekTo(e)}
                         ></div>
