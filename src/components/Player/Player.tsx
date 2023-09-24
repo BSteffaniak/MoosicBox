@@ -21,15 +21,16 @@ import { getAlbumArtwork } from '~/services/api';
 import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 
-function eventToSeekPosition(event: MouseEvent, element: HTMLElement): number {
+let mouseX: number;
+
+function eventToSeekPosition(element: HTMLElement): number {
     const pos = element.getBoundingClientRect()!;
-    const mouseX = event.clientX - pos.left;
-    const percentage = mouseX / pos.width;
+    const percentage = (mouseX - pos.left) / pos.width;
     return currentTrackLength() * percentage;
 }
 
 function seekTo(event: MouseEvent): void {
-    seek(Math.round(eventToSeekPosition(event, event.target as HTMLElement)));
+    seek(Math.round(eventToSeekPosition(event.target as HTMLElement)));
 }
 
 let dragStartListener: (event: MouseEvent) => void;
@@ -50,6 +51,13 @@ export default function Player() {
         }, 100);
     }
 
+    function getSeekPosition() {
+        return Math.max(
+            Math.min(Math.round(seekPosition() ?? 0), currentTrackLength()),
+            0,
+        );
+    }
+
     onMount(() => {
         setCurrentTrackLength(currentTrackLength());
         setCurrentAlbum(currentAlbum());
@@ -64,13 +72,12 @@ export default function Player() {
                 setApplyDrag(true);
             };
             dragListener = (event: MouseEvent) => {
+                mouseX = event.clientX;
                 if (dragging()) {
                     event.preventDefault();
                     if (!applyDrag()) return;
-                    setSeekPosition(
-                        eventToSeekPosition(event, progressBarTrigger!),
-                    );
                 }
+                setSeekPosition(eventToSeekPosition(progressBarTrigger!));
             };
             dragEndListener = (event: MouseEvent) => {
                 if (dragging()) {
@@ -106,9 +113,6 @@ export default function Player() {
         on(
             () => currentSeek(),
             (newSeek, oldSeek) => {
-                if (!dragging()) {
-                    setSeekPosition(newSeek);
-                }
                 if (
                     typeof newSeek === 'undefined' ||
                     typeof oldSeek === 'undefined' ||
@@ -116,6 +120,15 @@ export default function Player() {
                 ) {
                     speedyProgressTransition();
                 }
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => currentTrackLength(),
+            () => {
+                setSeekPosition(eventToSeekPosition(progressBarTrigger!));
             },
         ),
     );
@@ -218,7 +231,7 @@ export default function Player() {
                             style={{
                                 width: `${Math.min(
                                     ((applyDrag() && dragging()
-                                        ? seekPosition()!
+                                        ? getSeekPosition()!
                                         : (currentSeek() ?? 0) +
                                           (currentSeek() ?? 0) /
                                               currentTrackLength()) /
@@ -233,6 +246,17 @@ export default function Player() {
                             class="player-media-controls-seeker-bar-progress-trigger"
                             onClick={(e) => seekTo(e)}
                         ></div>
+                        <div
+                            class="player-media-controls-seeker-bar-progress-tooltip"
+                            style={{
+                                left: `${
+                                    (getSeekPosition() / currentTrackLength()) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {toTime(getSeekPosition())}
+                        </div>
                     </div>
                     <div class="player-media-controls-seeker-total-time">
                         {toTime(currentTrackLength())}

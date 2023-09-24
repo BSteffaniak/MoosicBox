@@ -116,13 +116,31 @@
     pointer-events: none;
 }
 
+.player-media-controls-seeker-bar-progress-trigger:hover
+    + .player-media-controls-seeker-bar-progress-tooltip {
+    display: block;
+}
+
+.player .player-media-controls-seeker-bar-progress-tooltip {
+    display: none;
+    position: absolute;
+    left: 0%;
+    top: -34px;
+    transform: translateX(-50%);
+    background-color: #ffffff;
+    color: black;
+    padding: 1px 4px;
+    border-radius: 3px;
+    pointer-events: none;
+}
+
 .player .player-media-controls-seeker-bar-progress-trigger {
     position: absolute;
     left: 0;
     right: 0;
     top: 50%;
     bottom: 0;
-    padding: 13px 0;
+    padding: 20px 0;
     transform: translateY(-50%);
     cursor: pointer;
 }
