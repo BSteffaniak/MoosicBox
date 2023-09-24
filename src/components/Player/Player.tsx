@@ -52,10 +52,7 @@ export default function Player() {
     }
 
     function getSeekPosition() {
-        return Math.max(
-            Math.min(Math.round(seekPosition() ?? 0), currentTrackLength()),
-            0,
-        );
+        return Math.max(Math.min(seekPosition() ?? 0, currentTrackLength()), 0);
     }
 
     onMount(() => {
@@ -257,7 +254,7 @@ export default function Player() {
                                 }%`,
                             }}
                         >
-                            {toTime(getSeekPosition())}
+                            {toTime(Math.round(getSeekPosition()))}
                         </div>
                     </div>
                     <div class="player-media-controls-seeker-total-time">
