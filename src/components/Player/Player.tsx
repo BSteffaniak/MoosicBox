@@ -66,10 +66,12 @@ export default function Player() {
         speedyProgressTransition();
 
         if (!isServer) {
-            dragStartListener = (_event: MouseEvent) => {
-                progressBar?.classList.add('no-transition');
-                setDragging(true);
-                setApplyDrag(true);
+            dragStartListener = (event: MouseEvent) => {
+                if (event.button === 0) {
+                    progressBar?.classList.add('no-transition');
+                    setDragging(true);
+                    setApplyDrag(true);
+                }
             };
             dragListener = (event: MouseEvent) => {
                 mouseX = event.clientX;
@@ -80,7 +82,7 @@ export default function Player() {
                 setSeekPosition(eventToSeekPosition(progressBarTrigger!));
             };
             dragEndListener = (event: MouseEvent) => {
-                if (dragging()) {
+                if (event.button === 0 && dragging()) {
                     setDragging(false);
                     if (!applyDrag()) return;
                     setApplyDrag(false);
