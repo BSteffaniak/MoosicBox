@@ -3,61 +3,7 @@ import * as api from '~/services/api';
 import { createSignal, For, onCleanup, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import { addAlbumToQueue, playAlbum } from '~/services/player';
-import { A } from '@solidjs/router';
-
-function album(album: api.Album) {
-    return (
-        <div class="album">
-            <div
-                class="album-icon-container"
-                style={{ width: '200px', height: '200px' }}
-            >
-                <A href={`/albums/${album.albumId}`}>
-                    <img
-                        class="album-icon"
-                        style={{ width: '200px', height: '200px' }}
-                        src={api.getAlbumArtwork(album)}
-                        alt={`${album.title} by ${album.artist}`}
-                        loading="lazy"
-                    />
-                    <div class="album-controls">
-                        <button
-                            class="media-button play-button button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                playAlbum(album);
-                                return false;
-                            }}
-                        >
-                            <img src="/img/play-button.svg" alt="Play" />
-                        </button>
-                        <button
-                            class="media-button options-button button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                addAlbumToQueue(album);
-                                return false;
-                            }}
-                        >
-                            <img src="/img/more-options.svg" alt="Play" />
-                        </button>
-                    </div>
-                </A>
-            </div>
-            <div class="album-details">
-                <div class="album-title">
-                    <span class="album-title-text">{album.title}</span>
-                </div>
-                <div class="album-artist">
-                    <span class="album-artist-text">{album.artist}</span>
-                </div>
-            </div>
-        </div>
-    );
-}
+import Album from '~/components/Album';
 
 let historyListener: () => void;
 
@@ -253,14 +199,16 @@ export default function Albums() {
                     )}
                 />
             </header>
-            <Show when={albums()} fallback={<div>Loading...</div>}>
+            {albums() && (
                 <div class="albums-container">
                     Showing {albums()?.length} albums
                     <div class="albums">
-                        <For each={albums()}>{album}</For>
+                        <For each={albums()}>
+                            {(album) => <Album album={album} controls={true} />}
+                        </For>
                     </div>
                 </div>
-            </Show>
+            )}
         </>
     );
 }

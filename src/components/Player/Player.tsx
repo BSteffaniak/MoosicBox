@@ -1,4 +1,11 @@
-import { createEffect, createSignal, on, onCleanup, onMount } from 'solid-js';
+import {
+    Show,
+    createEffect,
+    createSignal,
+    on,
+    onCleanup,
+    onMount,
+} from 'solid-js';
 import './Player.css';
 import {
     currentAlbum,
@@ -20,6 +27,7 @@ import { A } from '@solidjs/router';
 import { getAlbumArtwork } from '~/services/api';
 import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
+import Album from '../Album';
 
 let mouseX: number;
 
@@ -53,6 +61,14 @@ export default function Player() {
 
     function getSeekPosition() {
         return Math.max(Math.min(seekPosition() ?? 0, currentTrackLength()), 0);
+    }
+
+    function getProgressBarWidth(): number {
+        if (applyDrag() && dragging()) {
+            return (getSeekPosition() / currentTrackLength()) * 100;
+        }
+
+        return (currentSeek()! / currentTrackLength()) * 100;
     }
 
     onMount(() => {
@@ -147,13 +163,18 @@ export default function Player() {
     return (
         <div class="player">
             <div class="player-now-playing">
-                <A href={`/albums/${currentTrack()?.albumId}`}>
-                    <img
-                        class="player-album-icon"
-                        style={{ width: '70px', height: '70px' }}
-                        src={getAlbumArtwork(currentTrack())}
-                    />
-                </A>
+                <Show when={currentTrack()}>
+                    {(currentTrack) => (
+                        <div class="player-album-icon">
+                            <Album
+                                album={currentTrack()}
+                                size={70}
+                                artist={false}
+                                title={false}
+                            />
+                        </div>
+                    )}
+                </Show>
                 <div class="player-now-playing-details">
                     <div class="player-now-playing-details-title">
                         <A href={`/albums/${currentTrack()?.albumId}`}>
@@ -227,18 +248,7 @@ export default function Player() {
                         <div
                             ref={progressBar}
                             class="player-media-controls-seeker-bar-progress"
-                            style={{
-                                width: `${Math.min(
-                                    ((applyDrag() && dragging()
-                                        ? getSeekPosition()!
-                                        : (currentSeek() ?? 0) +
-                                          (currentSeek() ?? 0) /
-                                              currentTrackLength()) /
-                                        currentTrackLength()) *
-                                        100,
-                                    100,
-                                )}%`,
-                            }}
+                            style={{ width: `${getProgressBarWidth()}%` }}
                         ></div>
                         <div
                             ref={progressBarTrigger}
