@@ -252,6 +252,10 @@ export default function Player() {
                                     (getSeekPosition() / currentTrackLength()) *
                                     100
                                 }%`,
+                                display:
+                                    applyDrag() && dragging()
+                                        ? 'block'
+                                        : undefined,
                             }}
                         >
                             {toTime(Math.round(getSeekPosition()))}
