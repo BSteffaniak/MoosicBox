@@ -76,6 +76,8 @@ export default function player() {
     }
 
     function closePlaylist() {
+        if (!showingPlaylist()) return;
+
         setShowingPlaylist(false);
         playlistSlideoutTimeout = setTimeout(() => {
             playlistSlideout!.style.display = 'none';
@@ -84,6 +86,8 @@ export default function player() {
     }
 
     function openPlaylist() {
+        if (showingPlaylist()) return;
+
         if (playlistSlideoutTimeout) {
             clearTimeout(playlistSlideoutTimeout);
         }
@@ -200,6 +204,22 @@ export default function player() {
             },
         ),
     );
+
+    const handleClick = (event: MouseEvent) => {
+        if (!playlistSlideout?.contains(event.target as Node)) {
+            closePlaylist();
+        }
+    };
+
+    onMount(() => {
+        if (isServer) return;
+        document.addEventListener('click', handleClick);
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        document.removeEventListener('click', handleClick);
+    });
 
     return (
         <>
