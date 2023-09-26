@@ -51,10 +51,19 @@ let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
 let playlistSlideoutTimeout: NodeJS.Timeout | undefined;
 
+enum BackToNowPlayingPosition {
+    top = 'TOP',
+    bottom = 'BOTTOM',
+    none = 'NONE',
+}
+
 export default function player() {
     let progressBar: HTMLDivElement | undefined;
     let progressBarTrigger: HTMLDivElement | undefined;
     let playlistSlideout: HTMLDivElement | undefined;
+    let playlistSlideoutContentRef: HTMLDivElement | undefined;
+    let backToNowPlayingTopRef: HTMLDivElement | undefined;
+    let backToNowPlayingBottomRef: HTMLDivElement | undefined;
     let playerRef: HTMLDivElement | undefined;
     const [dragging, setDragging] = createSignal(false);
     const [applyDrag, setApplyDrag] = createSignal(false);
@@ -253,11 +262,73 @@ export default function player() {
         offPreviousTrack(previousTrackListener);
     });
 
-    function scrollPlaylistToNowPlaying(instant = false) {
-        const element = playlistSlideout?.querySelector(
-            '.playlist-tracks-playing-from',
+    const [backToNowPlayingPosition, setBackToNowPlayingPosition] =
+        createSignal(BackToNowPlayingPosition.none);
+
+    let backToNowPlayingTopTimeout: NodeJS.Timeout;
+    let backToNowPlayingBottomTimeout: NodeJS.Timeout;
+
+    onMount(() => {
+        playlistSlideoutContentRef!.addEventListener('scroll', () => {
+            if (getCurrentTrack()!.getBoundingClientRect().bottom < 0) {
+                clearTimeout(backToNowPlayingBottomTimeout);
+                setBackToNowPlayingPosition(BackToNowPlayingPosition.bottom);
+                backToNowPlayingTopRef!.style.opacity = '0';
+                backToNowPlayingBottomRef!.style.display = 'block';
+                setTimeout(() => {
+                    backToNowPlayingBottomRef!.style.opacity = '1';
+                }, 0);
+            } else if (
+                getCurrentTrack()!.getBoundingClientRect().top >
+                playlistSlideout!.offsetHeight
+            ) {
+                clearTimeout(backToNowPlayingTopTimeout);
+                setBackToNowPlayingPosition(BackToNowPlayingPosition.top);
+                backToNowPlayingBottomRef!.style.opacity = '0';
+                backToNowPlayingTopRef!.style.display = 'block';
+                setTimeout(() => {
+                    backToNowPlayingTopRef!.style.opacity = '1';
+                }, 0);
+            } else {
+                backToNowPlayingTopRef!.style.opacity = '0';
+                backToNowPlayingBottomRef!.style.opacity = '0';
+                if (
+                    backToNowPlayingPosition() === BackToNowPlayingPosition.top
+                ) {
+                    backToNowPlayingTopTimeout = setTimeout(() => {
+                        backToNowPlayingTopRef!.style.display = 'none';
+                    }, 300);
+                } else if (
+                    backToNowPlayingPosition() ===
+                    BackToNowPlayingPosition.bottom
+                ) {
+                    backToNowPlayingBottomTimeout = setTimeout(() => {
+                        backToNowPlayingBottomRef!.style.display = 'none';
+                    }, 300);
+                }
+                setBackToNowPlayingPosition(BackToNowPlayingPosition.none);
+            }
+        });
+    });
+
+    function getPlayingFrom(): Element | null {
+        return (
+            playlistSlideout?.querySelector('.playlist-tracks-playing-from') ??
+            null
         );
-        element?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
+    }
+
+    function getCurrentTrack(): Element | null {
+        return (
+            playlistSlideout?.querySelector('.playlist-tracks-track.current') ??
+            null
+        );
+    }
+
+    function scrollPlaylistToNowPlaying(instant = false) {
+        getPlayingFrom()?.scrollIntoView({
+            behavior: instant ? 'instant' : 'smooth',
+        });
     }
 
     return (
@@ -399,7 +470,26 @@ export default function player() {
                     transform: `translateX(${showingPlaylist() ? 0 : 100}%)`,
                 }}
             >
-                <Playlist />
+                <div
+                    ref={playlistSlideoutContentRef}
+                    class="playlist-slideout-content"
+                >
+                    <Playlist />
+                </div>
+                <div
+                    ref={backToNowPlayingTopRef}
+                    class="playlist-slideout-back-to-now-playing-top"
+                    onClick={() => scrollPlaylistToNowPlaying()}
+                >
+                    Back to now playing
+                </div>
+                <div
+                    ref={backToNowPlayingBottomRef}
+                    class="playlist-slideout-back-to-now-playing-bottom"
+                    onClick={() => scrollPlaylistToNowPlaying()}
+                >
+                    Back to now playing
+                </div>
             </div>
         </>
     );
