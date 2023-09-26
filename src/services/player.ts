@@ -1,8 +1,10 @@
-import { createSignal, onMount } from 'solid-js';
+import { createSignal } from 'solid-js';
 import { Howl, HowlCallback } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { Album, Track, apiUrl, getAlbumTracks } from './api';
 import { isServer } from 'solid-js/web';
+
+export type TrackListenerCallback = (track: Track, position: number) => void;
 
 export const [currentPlayerId, setCurrentPlayerId] = createSignal<string>();
 export const [sound, setSound] = createSignal<Howl>();
@@ -152,6 +154,19 @@ export function pause() {
     console.debug('Paused');
 }
 
+let previousTrackListeners: TrackListenerCallback[] = [];
+export function onPreviousTrack(
+    callback: TrackListenerCallback,
+): TrackListenerCallback {
+    previousTrackListeners.push(callback);
+    return callback;
+}
+export function offPreviousTrack(callback: TrackListenerCallback): void {
+    previousTrackListeners = previousTrackListeners.filter(
+        (c) => c !== callback,
+    );
+}
+
 export async function previousTrack() {
     if ((sound()?.seek() ?? 0) < 5) {
         console.debug('Playing previous track');
@@ -160,10 +175,24 @@ export async function previousTrack() {
         stop();
         if (shouldPlay) play();
         else setTrack();
+        previousTrackListeners.forEach((callback) =>
+            callback(currentTrack()!, playlistPosition()!),
+        );
     } else {
         console.debug('Setting track position to 0');
         sound()!.seek(0);
     }
+}
+
+let nextTrackListeners: TrackListenerCallback[] = [];
+export function onNextTrack(
+    callback: TrackListenerCallback,
+): TrackListenerCallback {
+    nextTrackListeners.push(callback);
+    return callback;
+}
+export function offNextTrack(callback: TrackListenerCallback): void {
+    nextTrackListeners = nextTrackListeners.filter((c) => c !== callback);
 }
 
 export async function nextTrack() {
@@ -174,6 +203,9 @@ export async function nextTrack() {
         stop();
         if (shouldPlay) play();
         else setTrack();
+        nextTrackListeners.forEach((callback) =>
+            callback(currentTrack()!, playlistPosition()!),
+        );
     } else {
         console.debug('No next track to play');
         stop();
