@@ -80,14 +80,6 @@
     top: 2px;
 }
 
-.album-icon {
-    cursor: pointer;
-}
-
-.album-icon.blur {
-    filter: ;
-}
-
 .album-icon-container {
     position: relative;
     display: inline-block;

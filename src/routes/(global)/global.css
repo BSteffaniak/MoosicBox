@@ -13,6 +13,14 @@ a {
     color: white;
 }
 
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    cursor: pointer;
+}
+
 #root {
     min-height: calc(100% - 140px);
     padding-bottom: 120px;
@@ -80,4 +88,18 @@ p {
 
 .dark .footer-player {
     /*background-color: #080a0b;*/
+}
+
+*::-webkit-scrollbar {
+    width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #282a2b;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #181a1b;
+    border-radius: 20px;
+    border: 3px solid #181a1b;
 }

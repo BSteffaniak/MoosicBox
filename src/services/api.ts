@@ -47,15 +47,19 @@ export interface Album {
     artist: string;
     artistId: number;
     containsArtwork: boolean;
+    dateReleased: string;
+    dateAdded: string;
 }
 
 export interface Track {
     trackId: number;
+    number: number;
+    title: string;
+    duration: number;
     album: string;
     albumId: number;
     artist: string;
     artistId: number;
-    title: string;
     containsArtwork: boolean;
 }
 

@@ -25,7 +25,7 @@ export const [currentTrackLength, setCurrentTrackLength] = makePersisted(
     },
 );
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
-    createSignal<Album | undefined>(undefined, { equals: false }),
+    createSignal<Album | Track | undefined>(undefined, { equals: false }),
     {
         name: `player.v2.currentAlbum`,
     },
@@ -76,7 +76,7 @@ let seekHandle: NodeJS.Timeout;
 let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
 
-export function play() {
+function setTrack() {
     if (!sound()) {
         const track = playlist()![playlistPosition()];
         setSound(
@@ -99,6 +99,10 @@ export function play() {
         sound()!.pannerAttr({ panningModel: 'equalpower' });
         setCurrentTrack(track);
     }
+}
+
+export function play() {
+    setTrack();
 
     sound()!.on(
         'end',
@@ -122,8 +126,6 @@ export function play() {
     if (typeof currentSeek() === 'number') {
         console.debug(`Setting initial seek to ${currentSeek()}`);
         sound()!.seek(currentSeek());
-    } else {
-        //setCurrentSeek(Math.round(sound()!.seek()));
     }
 
     seekHandle = setInterval(() => {
@@ -154,8 +156,10 @@ export async function previousTrack() {
     if ((sound()?.seek() ?? 0) < 5) {
         console.debug('Playing previous track');
         setPlaylistPosition((value) => (value > 0 ? value - 1 : value));
+        const shouldPlay = playing();
         stop();
-        play();
+        if (shouldPlay) play();
+        else setTrack();
     } else {
         console.debug('Setting track position to 0');
         sound()!.seek(0);
@@ -163,12 +167,13 @@ export async function previousTrack() {
 }
 
 export async function nextTrack() {
-    stop();
-
     if (playlistPosition() < playlist()!.length - 1) {
         console.debug('Playing next track');
         setPlaylistPosition((value) => value + 1);
-        play();
+        const shouldPlay = playing();
+        stop();
+        if (shouldPlay) play();
+        else setTrack();
     } else {
         console.debug('No next track to play');
         stop();
@@ -185,7 +190,7 @@ export function stop() {
     console.debug('Track stopped');
 }
 
-export async function playAlbum(album: Album) {
+export async function playAlbum(album: Album | Track) {
     setCurrentAlbum(album);
 
     const tracks = await getAlbumTracks(album.albumId);
@@ -196,10 +201,37 @@ export async function playAlbum(album: Album) {
     play();
 }
 
-export async function addAlbumToQueue(album: Album) {
+export async function playPlaylist(tracks: Track[]) {
+    const firstTrack = tracks[0];
+    setCurrentAlbum(firstTrack);
+
+    setPlaylistPosition(0);
+    setPlaylist(tracks);
+    stop();
+    play();
+}
+
+export async function addAlbumToQueue(album: Album | Track) {
     const tracks = await getAlbumTracks(album.albumId);
 
     setPlaylist([...playlist()!, ...tracks]);
+}
+
+export function removeTrackFromPlaylist(index: number) {
+    console.debug('Removing track from playlist', index);
+    if (index < playlistPosition()) {
+        setPlaylistPosition(playlistPosition() - 1);
+    }
+    setPlaylist([...playlist()!.filter((_, i) => i !== index)]);
+}
+
+export function playFromPlaylistPosition(index: number) {
+    console.debug('Playing from playlist position', index);
+    setPlaylistPosition(index);
+    const shouldPlay = playing();
+    stop();
+    if (shouldPlay) play();
+    else setTrack();
 }
 
 if (!isServer) {

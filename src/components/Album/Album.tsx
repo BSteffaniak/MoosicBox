@@ -3,7 +3,7 @@ import './album.css';
 import * as api from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
 
-function albumControls(album: api.Album) {
+function albumControls(album: api.Album | api.Track) {
     return (
         <div class="album-controls">
             <button
@@ -32,7 +32,11 @@ function albumControls(album: api.Album) {
     );
 }
 
-function albumDetails(album: api.Album, showArtist = true, showTitle = true) {
+function albumDetails(
+    album: api.Album | api.Track,
+    showArtist = true,
+    showTitle = true,
+) {
     return (
         <div class="album-details">
             {showTitle && (
@@ -49,18 +53,48 @@ function albumDetails(album: api.Album, showArtist = true, showTitle = true) {
     );
 }
 
-export default function Album(props: {
-    album: api.Album;
+function albumImage(props: AlbumProps) {
+    return (
+        <img
+            class="album-icon"
+            style={{
+                width: `${props.size}px`,
+                height: `${props.size}px`,
+                filter: props.blur ? `blur(${props.size / 20}px)` : undefined,
+            }}
+            src={api.getAlbumArtwork(props.album)}
+            alt={`${props.album.title} by ${props.album.artist}`}
+            loading="lazy"
+        />
+    );
+}
+
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+type AlbumProps = {
+    album: api.Album | api.Track;
     controls?: boolean;
-    size?: number;
-    artist?: boolean;
-    title?: boolean;
-    blur?: boolean;
-}) {
+    size: number;
+    artist: boolean;
+    title: boolean;
+    blur: boolean;
+    route: boolean;
+};
+
+export default function album(
+    props: PartialBy<
+        AlbumProps,
+        'size' | 'artist' | 'title' | 'blur' | 'route'
+    >,
+) {
     props.size = props.size ?? 200;
-    props.artist = props.artist ?? true;
-    props.title = props.title ?? true;
+    props.artist = props.artist ?? false;
+    props.title = props.title ?? false;
     props.blur = props.blur ?? false;
+    props.route = props.route ?? true;
+    if (props.album.albumId === 847 || props.album.albumId === 39) {
+        props.blur = true;
+    }
 
     return (
         <div class="album">
@@ -68,22 +102,17 @@ export default function Album(props: {
                 class="album-icon-container"
                 style={{ width: `${props.size}px`, height: `${props.size}px` }}
             >
-                <A href={`/albums/${props.album.albumId}`}>
-                    <img
-                        class="album-icon"
-                        style={{
-                            width: `${props.size}px`,
-                            height: `${props.size}px`,
-                            filter: props.blur
-                                ? `blur(${props.size / 20}px)`
-                                : undefined,
-                        }}
-                        src={api.getAlbumArtwork(props.album)}
-                        alt={`${props.album.title} by ${props.album.artist}`}
-                        loading="lazy"
-                    />
-                    {props.controls && albumControls(props.album)}
-                </A>
+                {props.route ? (
+                    <A href={`/albums/${props.album.albumId}`}>
+                        {albumImage(props as AlbumProps)}
+                        {props.controls && albumControls(props.album)}
+                    </A>
+                ) : (
+                    <>
+                        {albumImage(props as AlbumProps)}
+                        {props.controls && albumControls(props.album)}
+                    </>
+                )}
             </div>
             {(props.artist || props.title) &&
                 albumDetails(props.album, props.artist, props.title)}

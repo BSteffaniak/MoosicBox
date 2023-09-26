@@ -7,7 +7,8 @@ export function toTime(seconds: number) {
     const minutesAndSeconds = `${minutes % 60}:${zeroPad(seconds % 60, 2)}`;
 
     if (minutes >= 60) {
-        return `${~~(minutes / 60)}:${minutesAndSeconds}`;
+        const pad = minutes % 60 < 10 ? '0' : '';
+        return `${~~(minutes / 60)}:${pad}${minutesAndSeconds}`;
     }
 
     return minutesAndSeconds;

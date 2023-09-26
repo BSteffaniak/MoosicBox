@@ -2,16 +2,13 @@ import { onMount } from 'solid-js';
 import { Outlet } from 'solid-start';
 import { initConnection } from '~/services/api';
 import Player from '~/components/Player';
-import './(home)/home.css';
+import './(global)/global.css';
 
-export default function Home() {
+export default function global() {
     onMount(initConnection);
     return (
         <div id="root" class="dark">
             <main>
-                <header>
-                    <h1>MoosicBox</h1>
-                </header>
                 <Outlet />
             </main>
             <footer>

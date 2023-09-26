@@ -1,13 +1,13 @@
 import './albums.css';
 import * as api from '~/services/api';
-import { createSignal, For, onCleanup, Show } from 'solid-js';
+import { createSignal, For, onCleanup } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
 import Album from '~/components/Album';
 
 let historyListener: () => void;
 
-export default function Albums() {
+export default function albums() {
     const [albums, setAlbums] = createSignal<api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const searchParams = new URLSearchParams(
@@ -104,7 +104,6 @@ export default function Albums() {
             });
 
             newSearchParams.forEach((value, key) => {
-                console.log(searchParams.get(key), value);
                 if (searchParams.get(key) !== value) {
                     searchParams.set(key, value);
 
@@ -199,12 +198,20 @@ export default function Albums() {
                     )}
                 />
             </header>
+            <div id="albums-header-offset"></div>
             {albums() && (
                 <div class="albums-container">
                     Showing {albums()?.length} albums
                     <div class="albums">
                         <For each={albums()}>
-                            {(album) => <Album album={album} controls={true} />}
+                            {(album) => (
+                                <Album
+                                    album={album}
+                                    controls={true}
+                                    artist={true}
+                                    title={true}
+                                />
+                            )}
                         </For>
                     </div>
                 </div>

@@ -1,0 +1,129 @@
+.album-page-header {
+    padding: 0 50px;
+}
+
+.album-page-album-info {
+    display: flex;
+    flex-direction: row;
+}
+
+.album-page-album-info-artwork {
+    padding: 20px;
+}
+
+.album-page-album-info-details {
+    padding: 20px;
+    align-self: center;
+}
+
+.album-page-album-info-details-album-title {
+    font-weight: bold;
+    font-size: 48px;
+    margin: 10px 0;
+}
+
+.album-page-album-info-details-album-artist {
+    margin: 10px 0;
+    font-weight: bold;
+    font-size: 36px;
+    color: #808080;
+}
+
+.album-page-album-info-details-tracks {
+    margin: 10px 0;
+    font-size: 20px;
+}
+
+.album-page-album-info-details-date {
+    margin: 10px 0;
+    font-size: 20px;
+}
+
+.album-page-album-controls {
+    padding: 20px;
+}
+
+.album-page-album-controls-playback-play-button {
+    width: 130px;
+    height: 40px;
+    border-radius: 10px;
+    border: 0px solid black;
+    font-weight: bold;
+}
+
+.album-page-album-controls-playback-play-button img {
+    width: 12px;
+}
+
+.album-page-tracks {
+    text-align: left;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    padding: 10px 40px;
+}
+
+.album-page-tracks td:first-child,
+.album-page-tracks th:first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    padding-left: 30px;
+}
+
+.album-page-tracks td:last-child,
+.album-page-tracks th:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding-right: 30px;
+}
+
+.album-page-tracks-track:hover,
+.album-page-tracks-track.playing {
+    background-color: #333333;
+}
+
+.album-page-tracks td,
+.album-page-tracks th {
+    padding: 15px 10px;
+}
+
+.album-page-tracks-track-no,
+.album-page-tracks-track-no-header {
+    text-align: center;
+    width: 1%;
+}
+
+.album-page-tracks-track-no-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    min-height: 20px;
+}
+
+.album-page-tracks-track-no {
+    cursor: pointer;
+}
+
+.album-page-tracks-track-no .audio-icon {
+    position: relative;
+    width: 15px;
+    left: 0;
+    top: 0;
+}
+
+.album-page-tracks-track-no .play-button {
+    display: none;
+    width: 12px;
+    cursor: pointer;
+    top: 0;
+}
+
+.album-page-tracks-track:hover .track-no-text,
+.album-page-tracks-track:hover .audio-icon {
+    display: none;
+}
+
+.album-page-tracks-track:hover .play-button {
+    display: inline;
+}
