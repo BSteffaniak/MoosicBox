@@ -86,7 +86,8 @@
     overflow: hidden;
 }
 
-.album-icon-container:hover ~ .album-details .album-title {
+.album-icon-container:hover ~ .album-details .album-title,
+.album-title:hover {
     text-decoration: underline;
 }
 
