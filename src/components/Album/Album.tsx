@@ -82,7 +82,7 @@ type AlbumProps = {
     title: boolean;
     blur: boolean;
     route: boolean;
-    onClick?: (e: Event) => void;
+    onClick?: (e: MouseEvent) => void;
 };
 
 export default function album(
