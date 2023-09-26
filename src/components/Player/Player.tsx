@@ -51,6 +51,7 @@ export default function player() {
     let progressBar: HTMLDivElement | undefined;
     let progressBarTrigger: HTMLDivElement | undefined;
     let playlistSlideout: HTMLDivElement | undefined;
+    let playerRef: HTMLDivElement | undefined;
     const [dragging, setDragging] = createSignal(false);
     const [applyDrag, setApplyDrag] = createSignal(false);
     const [seekPosition, setSeekPosition] = createSignal(currentSeek());
@@ -206,7 +207,10 @@ export default function player() {
     );
 
     const handleClick = (event: MouseEvent) => {
-        if (!playlistSlideout?.contains(event.target as Node)) {
+        if (
+            !playlistSlideout?.contains(event.target as Node) &&
+            !playerRef?.contains(event.target as Node)
+        ) {
             closePlaylist();
         }
     };
@@ -223,7 +227,7 @@ export default function player() {
 
     return (
         <>
-            <div class="player">
+            <div ref={playerRef} class="player">
                 <div class="player-now-playing">
                     <Show when={currentTrack()}>
                         {(currentTrack) => (
@@ -268,29 +272,32 @@ export default function player() {
                                 alt="Previous Track"
                             />
                         </button>
-                        {playing() ? (
-                            <button
-                                class="media-button button"
-                                onClick={() => pause()}
-                            >
-                                <img
-                                    class="pause-button"
-                                    src="/img/pause-button-white.svg"
-                                    alt="Pause"
-                                />
-                            </button>
-                        ) : (
-                            <button
-                                class="media-button button"
-                                onClick={() => play()}
-                            >
-                                <img
-                                    class="play-button"
-                                    src="/img/play-button-white.svg"
-                                    alt="Play"
-                                />
-                            </button>
-                        )}
+                        <button
+                            class="media-button button"
+                            onClick={() => pause()}
+                            style={{
+                                display: playing() ? 'initial' : 'none',
+                            }}
+                        >
+                            <img
+                                class="pause-button"
+                                src="/img/pause-button-white.svg"
+                                alt="Pause"
+                            />
+                        </button>
+                        <button
+                            class="media-button button"
+                            onClick={() => play()}
+                            style={{
+                                display: !playing() ? 'initial' : 'none',
+                            }}
+                        >
+                            <img
+                                class="play-button"
+                                src="/img/play-button-white.svg"
+                                alt="Play"
+                            />
+                        </button>
                         <button
                             class="media-button button"
                             onClick={() => nextTrack()}
