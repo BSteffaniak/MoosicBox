@@ -29,13 +29,16 @@
 .player .player-now-playing {
     display: flex;
     align-items: center;
-    flex: 1;
+    width: 25%;
 }
 
 .player .player-now-playing-details {
     display: flex;
     flex-direction: column;
     text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .player-album-icon {
@@ -43,10 +46,19 @@
 }
 
 .dark .player-now-playing-details-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-now-playing-details-artist {
     margin-top: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-now-playing-details-album {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dark .player-now-playing-details-artist,
@@ -76,8 +88,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 3.0;
     flex-direction: column;
+    width: 50%;
     max-width: 1000px;
 }
 
@@ -92,7 +104,7 @@
 }
 
 .player .player-media-controls-seeker-current-time {
-    width: 100px;
+    width: 65px;
     text-align: right;
     padding-right: 10px;
 }
@@ -147,13 +159,13 @@
 }
 
 .player .player-media-controls-seeker-total-time {
-    width: 100px;
+    width: 65px;
     text-align: left;
     padding-left: 10px;
 }
 
 .player .player-track-options {
-    flex: 1;
+    width: 25%;
 }
 
 .player .player-track-options-buttons {
