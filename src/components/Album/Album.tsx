@@ -62,10 +62,12 @@ function albumImage(props: AlbumProps, blur: boolean) {
                 width: `${props.size}px`,
                 height: `${props.size}px`,
                 filter: blur ? `blur(${props.size / 20}px)` : undefined,
+                cursor: props.onClick ? `pointer` : undefined,
             }}
             src={api.getAlbumArtwork(props.album)}
             alt={`${props.album.title} by ${props.album.artist}`}
             loading="lazy"
+            onClick={props.onClick}
         />
     );
 }
@@ -80,6 +82,7 @@ type AlbumProps = {
     title: boolean;
     blur: boolean;
     route: boolean;
+    onClick?: (e: Event) => void;
 };
 
 export default function album(

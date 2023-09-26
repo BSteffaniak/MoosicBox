@@ -1,5 +1,11 @@
 import './album-page.css';
-import { createSignal, For } from 'solid-js';
+import {
+    createComputed,
+    createSignal,
+    For,
+    onCleanup,
+    onMount,
+} from 'solid-js';
 import { isServer } from 'solid-js/web';
 import * as api from '~/services/api';
 import { useParams } from 'solid-start';
@@ -33,6 +39,69 @@ export default function albumPage() {
         return duration;
     }
 
+    const [showingArtwork, setShowingArtwork] = createSignal(false);
+    const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
+
+    createComputed(() => {
+        setBlurringArtwork(album()?.blur);
+    });
+
+    function toggleBlurringArtwork() {
+        setBlurringArtwork(!blurringArtwork());
+    }
+
+    function showArtwork(): void {
+        setShowingArtwork(true);
+        document.addEventListener('click', handleClick);
+    }
+
+    function hideArtwork(): void {
+        setShowingArtwork(false);
+        document.removeEventListener('click', handleClick);
+    }
+
+    let albumArtworkPreviewerIcon: HTMLImageElement | undefined;
+
+    const handleClick = (event: MouseEvent) => {
+        if (!albumArtworkPreviewerIcon?.contains(event.target as Node)) {
+            hideArtwork();
+        }
+    };
+
+    onMount(() => {
+        if (isServer) return;
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        document.removeEventListener('click', handleClick);
+    });
+
+    function albumArtworkPreviewer() {
+        return (
+            <div class="album-page-artwork-previewer">
+                <div class="album-page-artwork-previewer-content">
+                    <img
+                        ref={albumArtworkPreviewerIcon}
+                        src={api.getAlbumArtwork(album())}
+                        style={{
+                            filter: blurringArtwork()
+                                ? `blur(${window.innerHeight / 30}px)`
+                                : undefined,
+                            cursor: album()?.blur ? 'pointer' : 'initial',
+                        }}
+                        onClick={() => album()?.blur && toggleBlurringArtwork()}
+                    />
+                    {blurringArtwork() && (
+                        <div class="album-page-artwork-previewer-content-blur-notice">
+                            Click to unblur
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <>
             <A href="#" onClick={() => history.back()}>
@@ -49,6 +118,8 @@ export default function albumPage() {
                                         artist={false}
                                         title={false}
                                         size={300}
+                                        route={false}
+                                        onClick={showArtwork}
                                     />
                                 )}
                             </div>
@@ -164,6 +235,7 @@ export default function albumPage() {
                     </table>
                 </div>
             </div>
+            {showingArtwork() && albumArtworkPreviewer()}
         </>
     );
 }
