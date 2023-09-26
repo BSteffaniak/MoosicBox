@@ -47,7 +47,14 @@
     position: relative;
 }
 
+.playlist-tracks-track.playing
+    .playlist-tracks-track-album-artwork-icon
+    .audio-icon {
+    display: inline;
+}
+
 .playlist-tracks-track-album-artwork-icon .audio-icon {
+    display: none;
     position: absolute;
     top: 50%;
     left: 50%;

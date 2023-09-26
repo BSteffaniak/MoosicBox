@@ -5,6 +5,7 @@ import {
     currentTrack,
     playFromPlaylistPosition,
     playlist as playerPlaylist,
+    playing,
     removeTrackFromPlaylist,
 } from '~/services/player';
 import Album from '../Album';
@@ -65,6 +66,11 @@ export default function playlist() {
                             <div
                                 class={`playlist-tracks-track${
                                     currentTrack()?.trackId === track.trackId
+                                        ? ' current'
+                                        : ''
+                                }${
+                                    currentTrack()?.trackId === track.trackId &&
+                                    playing()
                                         ? ' playing'
                                         : ''
                                 }${
