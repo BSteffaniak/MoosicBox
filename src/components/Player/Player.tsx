@@ -349,18 +349,27 @@ export default function player() {
                     </Show>
                     <div class="player-now-playing-details">
                         <div class="player-now-playing-details-title">
-                            <A href={`/albums/${currentTrack()?.albumId}`}>
+                            <A
+                                href={`/albums/${currentTrack()?.albumId}`}
+                                title={currentTrack()?.title}
+                            >
                                 {currentTrack()?.title}
                             </A>
                         </div>
                         <div class="player-now-playing-details-artist">
-                            <A href={`/artists/${currentTrack()?.artistId}`}>
+                            <A
+                                href={`/artists/${currentTrack()?.artistId}`}
+                                title={currentTrack()?.artist}
+                            >
                                 {currentTrack()?.artist}
                             </A>
                         </div>
                         <div class="player-now-playing-details-album">
                             Playing from:{' '}
-                            <A href={`/albums/${currentTrack()?.albumId}`}>
+                            <A
+                                href={`/albums/${currentTrack()?.albumId}`}
+                                title={currentTrack()?.album}
+                            >
                                 {currentTrack()?.album}
                             </A>
                         </div>

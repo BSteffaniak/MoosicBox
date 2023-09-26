@@ -66,6 +66,7 @@ function albumImage(props: AlbumProps, blur: boolean) {
             }}
             src={api.getAlbumArtwork(props.album)}
             alt={`${props.album.title} by ${props.album.artist}`}
+            title={`${props.album.title} by ${props.album.artist}`}
             loading="lazy"
             onClick={props.onClick}
         />
