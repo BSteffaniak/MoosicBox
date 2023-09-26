@@ -116,9 +116,10 @@ export default function playlist() {
                                 {index() !== (currentlyPlayingIndex() ?? 0) && (
                                     <div
                                         class="playlist-tracks-track-remove"
-                                        onClick={() =>
-                                            removeTrackFromPlaylist(index())
-                                        }
+                                        onClick={(e) => {
+                                            removeTrackFromPlaylist(index());
+                                            e.stopImmediatePropagation();
+                                        }}
                                     >
                                         <img
                                             class="cross-icon"
