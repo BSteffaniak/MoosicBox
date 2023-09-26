@@ -13,6 +13,10 @@ import {
     currentTrack,
     currentTrackLength,
     nextTrack,
+    offNextTrack,
+    offPreviousTrack,
+    onNextTrack,
+    onPreviousTrack,
     pause,
     play,
     playing,
@@ -93,6 +97,7 @@ export default function player() {
             clearTimeout(playlistSlideoutTimeout);
         }
         playlistSlideout!.style.display = 'block';
+        scrollPlaylistToNowPlaying(true);
         setTimeout(() => {
             setShowingPlaylist(true);
         }, 0);
@@ -224,6 +229,36 @@ export default function player() {
         if (isServer) return;
         document.removeEventListener('click', handleClick);
     });
+
+    let nextTrackListener: () => void;
+    let previousTrackListener: () => void;
+
+    onMount(() => {
+        onNextTrack(
+            (nextTrackListener = () => {
+                if (!showingPlaylist()) return;
+                scrollPlaylistToNowPlaying();
+            }),
+        );
+        onPreviousTrack(
+            (previousTrackListener = () => {
+                if (!showingPlaylist()) return;
+                scrollPlaylistToNowPlaying();
+            }),
+        );
+    });
+
+    onCleanup(() => {
+        offNextTrack(nextTrackListener);
+        offPreviousTrack(previousTrackListener);
+    });
+
+    function scrollPlaylistToNowPlaying(instant = false) {
+        const element = playlistSlideout?.querySelector(
+            '.playlist-tracks-playing-from',
+        );
+        element?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' });
+    }
 
     return (
         <>
