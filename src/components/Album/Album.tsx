@@ -2,6 +2,7 @@ import { A } from '@solidjs/router';
 import './album.css';
 import * as api from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
+import { createComputed, createSignal } from 'solid-js';
 
 function albumControls(album: api.Album | api.Track) {
     return (
@@ -53,14 +54,14 @@ function albumDetails(
     );
 }
 
-function albumImage(props: AlbumProps) {
+function albumImage(props: AlbumProps, blur: boolean) {
     return (
         <img
             class="album-icon"
             style={{
                 width: `${props.size}px`,
                 height: `${props.size}px`,
-                filter: props.blur ? `blur(${props.size / 20}px)` : undefined,
+                filter: blur ? `blur(${props.size / 20}px)` : undefined,
             }}
             src={api.getAlbumArtwork(props.album)}
             alt={`${props.album.title} by ${props.album.artist}`}
@@ -90,11 +91,15 @@ export default function album(
     props.size = props.size ?? 200;
     props.artist = props.artist ?? false;
     props.title = props.title ?? false;
-    props.blur = props.blur ?? false;
     props.route = props.route ?? true;
-    if (props.album.albumId === 847 || props.album.albumId === 39) {
-        props.blur = true;
-    }
+
+    const [blur, setBlur] = createSignal(false);
+
+    createComputed(() => {
+        setBlur(
+            typeof props.blur === 'boolean' ? props.blur : props.album.blur,
+        );
+    });
 
     return (
         <div class="album">
@@ -104,12 +109,12 @@ export default function album(
             >
                 {props.route ? (
                     <A href={`/albums/${props.album.albumId}`}>
-                        {albumImage(props as AlbumProps)}
+                        {albumImage(props as AlbumProps, blur())}
                         {props.controls && albumControls(props.album)}
                     </A>
                 ) : (
                     <>
-                        {albumImage(props as AlbumProps)}
+                        {albumImage(props as AlbumProps, blur())}
                         {props.controls && albumControls(props.album)}
                     </>
                 )}

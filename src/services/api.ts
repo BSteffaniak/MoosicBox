@@ -47,6 +47,7 @@ export interface Album {
     artist: string;
     artistId: number;
     containsArtwork: boolean;
+    blur: boolean;
     dateReleased: string;
     dateAdded: string;
 }
@@ -61,6 +62,7 @@ export interface Track {
     artist: string;
     artistId: number;
     containsArtwork: boolean;
+    blur: boolean;
 }
 
 export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
