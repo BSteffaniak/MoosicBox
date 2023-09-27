@@ -270,7 +270,10 @@ export default function player() {
 
     onMount(() => {
         playlistSlideoutContentRef!.addEventListener('scroll', () => {
-            if (getCurrentTrack()!.getBoundingClientRect().bottom < 0) {
+            if (
+                getCurrentTrack()!.getBoundingClientRect().top >
+                playlistSlideout!.offsetHeight
+            ) {
                 clearTimeout(backToNowPlayingBottomTimeout);
                 setBackToNowPlayingPosition(BackToNowPlayingPosition.bottom);
                 backToNowPlayingTopRef!.style.opacity = '0';
@@ -278,10 +281,7 @@ export default function player() {
                 setTimeout(() => {
                     backToNowPlayingBottomRef!.style.opacity = '1';
                 }, 0);
-            } else if (
-                getCurrentTrack()!.getBoundingClientRect().top >
-                playlistSlideout!.offsetHeight
-            ) {
+            } else if (getCurrentTrack()!.getBoundingClientRect().bottom < 0) {
                 clearTimeout(backToNowPlayingTopTimeout);
                 setBackToNowPlayingPosition(BackToNowPlayingPosition.top);
                 backToNowPlayingBottomRef!.style.opacity = '0';
