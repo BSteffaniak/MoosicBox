@@ -2,6 +2,14 @@ import { isServer } from 'solid-js/web';
 
 type StartupCallback = () => void | Promise<void>;
 
+declare global {
+    interface Window {
+        startupCallbacks: StartupCallback[];
+    }
+
+    var startupCallbacks: StartupCallback[];
+}
+
 if (isServer) global.startupCallbacks = global.startupCallbacks ?? [];
 else window.startupCallbacks = window.startupCallbacks ?? [];
 
