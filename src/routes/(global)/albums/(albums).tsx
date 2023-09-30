@@ -2,8 +2,8 @@ import './albums.css';
 import { createSignal, For, onCleanup } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import Album from '../../../components/Album';
-import { api, Api } from '../../../services/api';
+import Album from '~/components/Album';
+import { api, Api } from '~/services/api';
 
 let historyListener: () => void;
 

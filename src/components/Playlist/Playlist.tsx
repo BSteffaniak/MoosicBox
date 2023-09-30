@@ -6,9 +6,9 @@ import {
     playlist as playerPlaylist,
     playing,
     removeTrackFromPlaylist,
-} from '../../services/player';
+} from '~/services/player';
 import Album from '../Album';
-import { Api } from '../../services/api';
+import { Api } from '~/services/api';
 import { A } from 'solid-start';
 
 export default function playlist() {

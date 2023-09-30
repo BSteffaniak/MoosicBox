@@ -27,8 +27,8 @@ import {
     setCurrentSeek,
     setCurrentTrack,
     setCurrentTrackLength,
-} from '../../services/player';
-import { toTime } from '../../services/formatting';
+} from '~/services/player';
+import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';

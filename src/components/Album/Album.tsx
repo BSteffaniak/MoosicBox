@@ -1,6 +1,6 @@
 import './album.css';
-import { Api, api } from '../../services/api';
-import { addAlbumToQueue, playAlbum } from '../../services/player';
+import { Api, api } from '~/services/api';
+import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
 

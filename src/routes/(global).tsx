@@ -1,8 +1,8 @@
 import { A, Outlet } from 'solid-start';
 import { onMount } from 'solid-js';
-import Player from '../components/Player';
+import Player from '~/components/Player';
 import './(global)/global.css';
-import { triggerStartup } from '../services/app';
+import { triggerStartup } from '~/services/app';
 
 export default function global() {
     onMount(async () => {

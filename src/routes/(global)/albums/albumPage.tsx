@@ -8,14 +8,14 @@ import {
 import { isServer } from 'solid-js/web';
 import { useParams } from 'solid-start';
 import { A } from '@solidjs/router';
-import Album from '../../../components/Album';
-import { toTime } from '../../../services/formatting';
+import Album from '~/components/Album';
+import { toTime } from '~/services/formatting';
 import {
     currentTrack,
     playAlbum,
     playPlaylist,
-} from '../../../services/player';
-import { Api, api } from '../../../services/api';
+} from '~/services/player';
+import { Api, api } from '~/services/api';
 
 export default function albumPage() {
     const params = useParams();
