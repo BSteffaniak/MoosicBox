@@ -117,3 +117,13 @@
 .album-artist-text:hover {
     text-decoration: underline;
 }
+
+.album-year {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #444;
+}
+
+.dark .album-year {
+    color: #808080;
+}

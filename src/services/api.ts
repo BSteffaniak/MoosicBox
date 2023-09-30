@@ -60,6 +60,7 @@ export namespace Api {
         duration: number;
         album: string;
         albumId: number;
+        dateReleased: string;
         artist: string;
         artistId: number;
         containsArtwork: boolean;

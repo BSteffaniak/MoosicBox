@@ -37,6 +37,7 @@ function albumDetails(
     album: Api.Album | Api.Track,
     showArtist = true,
     showTitle = true,
+    showYear = true,
 ) {
     return (
         <div class="album-details">
@@ -48,6 +49,13 @@ function albumDetails(
             {showArtist && (
                 <div class="album-artist">
                     <span class="album-artist-text">{album.artist}</span>
+                </div>
+            )}
+            {showYear && (
+                <div class="album-year">
+                    <span class="album-year-text">
+                        {album.dateReleased?.substring(0, 4)}
+                    </span>
                 </div>
             )}
         </div>
@@ -80,6 +88,7 @@ type AlbumProps = {
     controls?: boolean;
     size: number;
     artist: boolean;
+    year: boolean;
     title: boolean;
     blur: boolean;
     route: boolean;
@@ -124,7 +133,12 @@ export default function album(
                 )}
             </div>
             {(props.artist || props.title) &&
-                albumDetails(props.album, props.artist, props.title)}
+                albumDetails(
+                    props.album,
+                    props.artist,
+                    props.title,
+                    props.year,
+                )}
         </div>
     );
 }
