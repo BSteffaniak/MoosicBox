@@ -4,6 +4,7 @@ import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
 import Album from '~/components/Album';
 import { api, Api } from '~/services/api';
+import { currentAlbumSearch, setCurrentAlbumSearch } from '~/services/app';
 
 let historyListener: () => void;
 
@@ -60,6 +61,10 @@ export default function albums() {
     async function loadAlbums(
         request: Api.AlbumsRequest | undefined = undefined,
     ) {
+        if (currentAlbumSearch() && !albums()) {
+            setAlbums(currentAlbumSearch());
+            return;
+        }
         if (request?.sources) setAlbumSources(request.sources);
         if (request?.sort) setAlbumSort(request.sort);
         if (typeof request?.filters?.search === 'string')
@@ -73,6 +78,7 @@ export default function albums() {
                 },
             }),
         );
+        setCurrentAlbumSearch(albums());
     }
 
     if (!isServer) {

@@ -1,4 +1,6 @@
 import { isServer } from 'solid-js/web';
+import { Api } from './api';
+import { createSignal } from 'solid-js';
 
 type StartupCallback = () => void | Promise<void>;
 
@@ -34,3 +36,6 @@ export async function triggerStartup() {
         await func();
     }
 }
+
+export const [currentAlbumSearch, setCurrentAlbumSearch] =
+    createSignal<Api.Album[]>();
