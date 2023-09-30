@@ -1,10 +1,10 @@
-import { A } from '@solidjs/router';
 import './album.css';
-import * as api from '~/services/api';
-import { addAlbumToQueue, playAlbum } from '~/services/player';
+import { Api, api } from '../../services/api';
+import { addAlbumToQueue, playAlbum } from '../../services/player';
 import { createComputed, createSignal } from 'solid-js';
+import { A } from 'solid-start';
 
-function albumControls(album: api.Album | api.Track) {
+function albumControls(album: Api.Album | Api.Track) {
     return (
         <div class="album-controls">
             <button
@@ -34,7 +34,7 @@ function albumControls(album: api.Album | api.Track) {
 }
 
 function albumDetails(
-    album: api.Album | api.Track,
+    album: Api.Album | Api.Track,
     showArtist = true,
     showTitle = true,
 ) {
@@ -76,7 +76,7 @@ function albumImage(props: AlbumProps, blur: boolean) {
 type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 type AlbumProps = {
-    album: api.Album | api.Track;
+    album: Api.Album | Api.Track;
     controls?: boolean;
     size: number;
     artist: boolean;

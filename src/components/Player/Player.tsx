@@ -6,6 +6,7 @@ import {
     onCleanup,
     onMount,
 } from 'solid-js';
+import { A, useLocation } from 'solid-start';
 import './Player.css';
 import {
     currentAlbum,
@@ -26,17 +27,17 @@ import {
     setCurrentSeek,
     setCurrentTrack,
     setCurrentTrackLength,
-} from '~/services/player';
-import { A } from '@solidjs/router';
-import { toTime } from '~/services/formatting';
+} from '../../services/player';
+import { toTime } from '../../services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';
-import { useLocation } from 'solid-start';
 
 let mouseX: number;
 
 function eventToSeekPosition(element: HTMLElement): number {
+    if (!element) return 0;
+
     const pos = element.getBoundingClientRect()!;
     const percentage = (mouseX - pos.left) / pos.width;
     return currentTrackLength() * percentage;
@@ -153,7 +154,7 @@ export default function player() {
                     event.preventDefault();
                 }
             };
-            progressBarTrigger!.addEventListener(
+            progressBarTrigger?.addEventListener(
                 'mousedown',
                 dragStartListener,
             );
@@ -164,7 +165,7 @@ export default function player() {
 
     onCleanup(() => {
         if (!isServer) {
-            progressBarTrigger!.removeEventListener(
+            progressBarTrigger?.removeEventListener(
                 'mousedown',
                 dragStartListener,
             );
@@ -231,12 +232,12 @@ export default function player() {
 
     onMount(() => {
         if (isServer) return;
-        document.addEventListener('click', handleClick);
+        window.addEventListener('click', handleClick);
     });
 
     onCleanup(() => {
         if (isServer) return;
-        document.removeEventListener('click', handleClick);
+        window.removeEventListener('click', handleClick);
     });
 
     let nextTrackListener: () => void;
@@ -269,7 +270,9 @@ export default function player() {
     let backToNowPlayingBottomTimeout: NodeJS.Timeout;
 
     onMount(() => {
-        playlistSlideoutContentRef!.addEventListener('scroll', () => {
+        playlistSlideoutContentRef?.addEventListener('scroll', () => {
+            if (!getCurrentTrack()) return;
+
             if (
                 getCurrentTrack()!.getBoundingClientRect().top >
                 playlistSlideout!.offsetHeight

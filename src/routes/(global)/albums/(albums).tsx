@@ -1,14 +1,14 @@
 import './albums.css';
-import * as api from '~/services/api';
 import { createSignal, For, onCleanup } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import Album from '~/components/Album';
+import Album from '../../../components/Album';
+import { api, Api } from '../../../services/api';
 
 let historyListener: () => void;
 
 export default function albums() {
-    const [albums, setAlbums] = createSignal<api.Album[]>();
+    const [albums, setAlbums] = createSignal<Api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const searchParams = new URLSearchParams(
         isServer ? {} : window.location.search,
@@ -26,25 +26,25 @@ export default function albums() {
         history.pushState(null, '', newRelativePathQuery);
     }
 
-    function getAlbumSources(): api.AlbumSource[] | undefined {
+    function getAlbumSources(): Api.AlbumSource[] | undefined {
         return searchParams.get('sources')?.split(',') as
-            | api.AlbumSource[]
+            | Api.AlbumSource[]
             | undefined;
     }
 
-    function getAlbumSort(): api.AlbumSort | undefined {
-        return searchParams.get('sort') as api.AlbumSort | undefined;
+    function getAlbumSort(): Api.AlbumSort | undefined {
+        return searchParams.get('sort') as Api.AlbumSort | undefined;
     }
 
     function getSearchFilter(): string | undefined {
         return searchParams.get('search') as string | undefined;
     }
 
-    function setAlbumSources(sources: api.AlbumSource[]) {
+    function setAlbumSources(sources: Api.AlbumSource[]) {
         setSearchParam('sources', sources.join(','));
     }
 
-    function setAlbumSort(sort: api.AlbumSort) {
+    function setAlbumSort(sort: Api.AlbumSort) {
         setSearchParam('sort', sort);
     }
 
@@ -58,7 +58,7 @@ export default function albums() {
     }
 
     async function loadAlbums(
-        request: api.AlbumsRequest | undefined = undefined,
+        request: Api.AlbumsRequest | undefined = undefined,
     ) {
         if (request?.sources) setAlbumSources(request.sources);
         if (request?.sort) setAlbumSort(request.sort);

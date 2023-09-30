@@ -1,10 +1,13 @@
 import { createSignal } from 'solid-js';
 import { Howl, HowlCallback } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
-import { Album, Track, apiUrl, getAlbumTracks } from './api';
 import { isServer } from 'solid-js/web';
+import { Api, api } from './api';
 
-export type TrackListenerCallback = (track: Track, position: number) => void;
+export type TrackListenerCallback = (
+    track: Api.Track,
+    position: number,
+) => void;
 
 export const [currentPlayerId, setCurrentPlayerId] = createSignal<string>();
 export const [sound, setSound] = createSignal<Howl>();
@@ -27,13 +30,15 @@ export const [currentTrackLength, setCurrentTrackLength] = makePersisted(
     },
 );
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
-    createSignal<Album | Track | undefined>(undefined, { equals: false }),
+    createSignal<Api.Album | Api.Track | undefined>(undefined, {
+        equals: false,
+    }),
     {
         name: `player.v2.currentAlbum`,
     },
 );
 export const [currentTrack, setCurrentTrack] = makePersisted(
-    createSignal<Track | undefined>(undefined, { equals: false }),
+    createSignal<Api.Track | undefined>(undefined, { equals: false }),
     {
         name: `player.v2.currentTrack`,
     },
@@ -43,7 +48,7 @@ export const [playlistPosition, setPlaylistPosition] = makePersisted(
     { name: `player.v1.playlistPosition` },
 );
 export const [playlist, setPlaylist] = makePersisted(
-    createSignal<Track[]>([], { equals: false }),
+    createSignal<Api.Track[]>([], { equals: false }),
     { name: `player.v1.playlist` },
 );
 
@@ -59,8 +64,8 @@ if (!isServer) {
     }
 }
 
-function getTrackUrl(track: Track): string {
-    return `${apiUrl()}/track?trackId=${track.trackId}`;
+function getTrackUrl(track: Api.Track): string {
+    return `${Api.apiUrl()}/track?trackId=${track.trackId}`;
 }
 
 function refreshCurrentSeek() {
@@ -222,10 +227,10 @@ export function stop() {
     console.debug('Track stopped');
 }
 
-export async function playAlbum(album: Album | Track) {
+export async function playAlbum(album: Api.Album | Api.Track) {
     setCurrentAlbum(album);
 
-    const tracks = await getAlbumTracks(album.albumId);
+    const tracks = await api.getAlbumTracks(album.albumId);
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
@@ -233,7 +238,7 @@ export async function playAlbum(album: Album | Track) {
     play();
 }
 
-export async function playPlaylist(tracks: Track[]) {
+export async function playPlaylist(tracks: Api.Track[]) {
     const firstTrack = tracks[0];
     setCurrentAlbum(firstTrack);
 
@@ -243,8 +248,8 @@ export async function playPlaylist(tracks: Track[]) {
     play();
 }
 
-export async function addAlbumToQueue(album: Album | Track) {
-    const tracks = await getAlbumTracks(album.albumId);
+export async function addAlbumToQueue(album: Api.Album | Api.Track) {
+    const tracks = await api.getAlbumTracks(album.albumId);
 
     setPlaylist([...playlist()!, ...tracks]);
 }

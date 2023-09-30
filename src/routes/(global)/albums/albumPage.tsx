@@ -1,4 +1,3 @@
-import './album-page.css';
 import {
     createComputed,
     createSignal,
@@ -7,7 +6,8 @@ import {
     onMount,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { A, useParams } from 'solid-start';
+import { useParams } from 'solid-start';
+import { A } from '@solidjs/router';
 import Album from '../../../components/Album';
 import { toTime } from '../../../services/formatting';
 import {

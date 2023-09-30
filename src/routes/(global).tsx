@@ -1,14 +1,24 @@
+import { A, Outlet } from 'solid-start';
 import { onMount } from 'solid-js';
-import { Outlet } from 'solid-start';
-import { initConnection } from '~/services/api';
-import Player from '~/components/Player';
+import Player from '../components/Player';
 import './(global)/global.css';
+import { triggerStartup } from '../services/app';
 
 export default function global() {
-    onMount(initConnection);
+    onMount(async () => {
+        await triggerStartup();
+    });
     return (
         <div id="root" class="dark">
             <main>
+                <ul>
+                    <li>
+                        <A href="/">Home</A>
+                    </li>
+                    <li>
+                        <A href="/albums">Albums</A>
+                    </li>
+                </ul>
                 <Outlet />
             </main>
             <footer>

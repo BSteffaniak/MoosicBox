@@ -1,5 +1,4 @@
 import './playlist.css';
-import * as api from '~/services/api';
 import { For, createEffect, createSignal, on } from 'solid-js';
 import {
     currentTrack,
@@ -7,12 +6,13 @@ import {
     playlist as playerPlaylist,
     playing,
     removeTrackFromPlaylist,
-} from '~/services/player';
+} from '../../services/player';
 import Album from '../Album';
-import { A } from '@solidjs/router';
+import { Api } from '../../services/api';
+import { A } from 'solid-start';
 
 export default function playlist() {
-    const [playlist, setPlaylist] = createSignal<api.Track[]>([]);
+    const [playlist, setPlaylist] = createSignal<Api.Track[]>([]);
     const [currentlyPlayingIndex, setCurrentlyPlayingIndex] =
         createSignal<number>();
 

@@ -1,5 +1,5 @@
 {
-    "name": "moosicbox",
+    "name": "@moosicbox/moosicbox-ui",
     "scripts": {
         "dev": "sst bind 'solid-start dev --host --port 3000'",
         "build": "solid-start build",
@@ -27,7 +27,7 @@
         "@typescript-eslint/parser": "^6.7.0",
         "@vitest/coverage-c8": "^0.26.3",
         "@vitest/ui": "^0.26.3",
-        "aws-cdk-lib": "2.91.0",
+        "aws-cdk-lib": "2.95.1",
         "constructs": "10.2.69",
         "eslint": "^8.49.0",
         "eslint-config-prettier": "^9.0.0",
@@ -37,12 +37,14 @@
         "jsdom": "^20.0.3",
         "prettier": "^3.0.3",
         "solid-js": "^1.7.11",
-        "solid-start": "^0.3.5",
-        "solid-start-node": "^0.3.5",
-        "solid-start-sst": "^2.24.26",
-        "sst": "^2.24.26",
+        "solid-start": "^0.3.6",
+        "solid-start-node": "^0.3.6",
+        "solid-start-sst": "2.26.8",
+        "solid-start-static": "^0.3.6",
+        "sst": "2.26.8",
         "typescript": "^5.2.2",
         "vite": "^4.4.9",
+        "vite-plugin-solid": "^2.7.0",
         "vitest": "^0.26.3"
     },
     "dependencies": {
@@ -50,5 +52,18 @@
         "@solid-primitives/scheduled": "^1.4.1",
         "@solid-primitives/storage": "^2.1.1",
         "howler": "^2.2.4"
-    }
+    },
+    "description": "",
+    "version": "0.1.0",
+    "main": "index.mjs",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MoosicBox/MoosicBoxUI.git"
+    },
+    "author": "Braden Steffaniak",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/MoosicBox/MoosicBoxUI/issues"
+    },
+    "homepage": "https://github.com/MoosicBox/MoosicBoxUI#readme"
 }
