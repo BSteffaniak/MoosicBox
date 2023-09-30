@@ -5,22 +5,21 @@ import {
     For,
     onCleanup,
     onMount,
+    Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
-import Album from '../../../components/Album';
-import { toTime } from '../../../services/formatting';
-import {
-    currentTrack,
-    playAlbum,
-    playPlaylist,
-} from '../../../services/player';
-import { Api, api } from '../../../services/api';
+import Album from '~/components/Album';
+import { toTime } from '~/services/formatting';
+import { currentTrack, playAlbum, playPlaylist } from '~/services/player';
+import { Api, api } from '~/services/api';
 
 export default function albumPage() {
     const params = useParams();
     const [album, setAlbum] = createSignal<Api.Album>();
     const [tracks, setTracks] = createSignal<Api.Track[]>();
+    const [showingArtwork, setShowingArtwork] = createSignal(false);
+    const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
 
     (async () => {
         if (isServer) return;
@@ -42,9 +41,6 @@ export default function albumPage() {
         return duration;
     }
 
-    const [showingArtwork, setShowingArtwork] = createSignal(false);
-    const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
-
     createComputed(() => {
         setBlurringArtwork(album()?.blur);
     });
@@ -55,12 +51,16 @@ export default function albumPage() {
 
     function showArtwork(): void {
         setShowingArtwork(true);
-        window.addEventListener('click', handleClick);
+        setTimeout(() => {
+            window.addEventListener('click', handleClick);
+        });
     }
 
     function hideArtwork(): void {
         setShowingArtwork(false);
-        window.removeEventListener('click', handleClick);
+        setTimeout(() => {
+            window.removeEventListener('click', handleClick);
+        });
     }
 
     let albumArtworkPreviewerIcon: HTMLImageElement | undefined;
