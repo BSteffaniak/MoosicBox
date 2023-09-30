@@ -18,6 +18,9 @@ export default function global() {
                     <li>
                         <A href="/albums">Albums</A>
                     </li>
+                    <li>
+                        <A href="/artists">Artists</A>
+                    </li>
                 </ul>
                 <Outlet />
             </main>

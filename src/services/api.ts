@@ -35,6 +35,13 @@ export namespace Api {
         players: Player[];
     }
 
+    export interface Artist {
+        artistId: number;
+        title: string;
+        containsArtwork: boolean;
+        blur: boolean;
+    }
+
     export interface Album {
         albumId: number;
         title: string;
@@ -58,6 +65,18 @@ export namespace Api {
         containsArtwork: boolean;
         blur: boolean;
     }
+
+    export type ArtistSort = 'Name';
+
+    export type ArtistsRequest = {
+        sources?: AlbumSource[];
+        sort?: ArtistSort;
+        filters?: ArtistFilters;
+    };
+
+    export type ArtistFilters = {
+        search?: string;
+    };
 
     export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
     export type AlbumSort =
@@ -91,6 +110,7 @@ export interface ApiType {
             | undefined,
     ): string;
     getAlbumTracks(albumId: number): Promise<Api.Track[]>;
+    getArtists(request: Api.ArtistsRequest | undefined): Promise<Api.Artist[]>;
 }
 
 async function getAlbum(id: number): Promise<Api.Album> {
@@ -150,9 +170,27 @@ async function getAlbumTracks(albumId: number): Promise<Api.Track[]> {
     return await response.json();
 }
 
+async function getArtists(
+    request: Api.ArtistsRequest | undefined = undefined,
+): Promise<Api.Artist[]> {
+    const query = new URLSearchParams();
+    if (request?.sources) query.set('sources', request.sources.join(','));
+    if (request?.sort) query.set('sort', request.sort);
+    if (request?.filters?.search) query.set('search', request.filters.search);
+
+    const response = await fetch(`${Api.apiUrl()}/artists?${query}`, {
+        credentials: 'include',
+    });
+
+    const artists: Api.Artist[] = await response.json();
+
+    return artists;
+}
+
 export const api: ApiType = {
     getAlbum,
     getAlbums,
     getAlbumArtwork,
     getAlbumTracks,
+    getArtists,
 };

@@ -37,5 +37,8 @@ export async function triggerStartup() {
     }
 }
 
+export const [currentArtistSearch, setCurrentArtistSearch] =
+    createSignal<Api.Artist[]>();
+
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
