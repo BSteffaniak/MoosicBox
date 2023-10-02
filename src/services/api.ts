@@ -101,7 +101,10 @@ export namespace Api {
 
 export interface ApiType {
     getAlbum(id: number): Promise<Api.Album>;
-    getAlbums(request: Api.AlbumsRequest | undefined): Promise<Api.Album[]>;
+    getAlbums(
+        request: Api.AlbumsRequest | undefined,
+        signal?: AbortSignal,
+    ): Promise<Api.Album[]>;
     getAlbumArtwork(
         album:
             | {
@@ -114,13 +117,14 @@ export interface ApiType {
     getArtists(request: Api.ArtistsRequest | undefined): Promise<Api.Artist[]>;
 }
 
-async function getAlbum(id: number): Promise<Api.Album> {
+async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
     const query = new URLSearchParams({
         albumId: `${id}`,
     });
 
     const response = await fetch(`${Api.apiUrl()}/album?${query}`, {
         credentials: 'include',
+        signal,
     });
 
     return await response.json();
@@ -128,6 +132,7 @@ async function getAlbum(id: number): Promise<Api.Album> {
 
 async function getAlbums(
     request: Api.AlbumsRequest | undefined = undefined,
+    signal?: AbortSignal,
 ): Promise<Api.Album[]> {
     const query = new URLSearchParams({
         playerId: currentPlayerId()!,
@@ -138,6 +143,7 @@ async function getAlbums(
 
     const response = await fetch(`${Api.apiUrl()}/albums?${query}`, {
         credentials: 'include',
+        signal,
     });
 
     const albums: Api.Album[] = await response.json();
@@ -159,12 +165,16 @@ function getAlbumArtwork(
     return '/img/album.svg';
 }
 
-async function getAlbumTracks(albumId: number): Promise<Api.Track[]> {
+async function getAlbumTracks(
+    albumId: number,
+    signal?: AbortSignal,
+): Promise<Api.Track[]> {
     const response = await fetch(
         `${Api.apiUrl()}/album/tracks?albumId=${albumId}`,
         {
             method: 'GET',
             credentials: 'include',
+            signal,
         },
     );
 
@@ -173,6 +183,7 @@ async function getAlbumTracks(albumId: number): Promise<Api.Track[]> {
 
 async function getArtists(
     request: Api.ArtistsRequest | undefined = undefined,
+    signal?: AbortSignal,
 ): Promise<Api.Artist[]> {
     const query = new URLSearchParams();
     if (request?.sources) query.set('sources', request.sources.join(','));
@@ -181,11 +192,23 @@ async function getArtists(
 
     const response = await fetch(`${Api.apiUrl()}/artists?${query}`, {
         credentials: 'include',
+        signal,
     });
 
     const artists: Api.Artist[] = await response.json();
 
     return artists;
+}
+
+export function cancellable<T>(func: (signal: AbortSignal) => Promise<T>): {
+    data: Promise<T>;
+    controller: AbortController;
+    signal: AbortSignal;
+} {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    return { data: func(signal), controller, signal };
 }
 
 export const api: ApiType = {
