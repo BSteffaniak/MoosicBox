@@ -11,12 +11,7 @@ export type TrackListenerCallback = (
 
 export const [currentPlayerId, setCurrentPlayerId] = createSignal<string>();
 export const [sound, setSound] = createSignal<Howl>();
-export const [playing, setPlaying] = makePersisted(
-    createSignal(false, { equals: false }),
-    {
-        name: `player.v1.playing`,
-    },
-);
+export const [playing, setPlaying] = createSignal(false, { equals: false });
 export const [currentSeek, setCurrentSeek] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
     {
