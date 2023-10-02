@@ -3,10 +3,12 @@ import { createSignal, For, onCleanup } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
 import Album from '~/components/Album';
-import { api, Api } from '~/services/api';
+import { api, Api, cancellable } from '~/services/api';
 import { currentAlbumSearch, setCurrentAlbumSearch } from '~/services/app';
 
 let historyListener: () => void;
+
+let controller: AbortController | undefined;
 
 export default function albums() {
     const [albums, setAlbums] = createSignal<Api.Album[]>();
@@ -69,15 +71,27 @@ export default function albums() {
         if (request?.sort) setAlbumSort(request.sort);
         if (typeof request?.filters?.search === 'string')
             setSearchFilter(request.filters.search);
-        setAlbums(
-            await api.getAlbums({
-                sources: getAlbumSources(),
-                sort: getAlbumSort(),
-                filters: {
-                    search: getSearchFilter(),
+
+        if (controller) {
+            controller.abort();
+        }
+
+        const resp = cancellable((signal) =>
+            api.getAlbums(
+                {
+                    sources: getAlbumSources(),
+                    sort: getAlbumSort(),
+                    filters: {
+                        search: getSearchFilter(),
+                    },
                 },
-            }),
+                signal,
+            ),
         );
+
+        controller = resp.controller;
+        setAlbums(await resp.data);
+
         setCurrentAlbumSearch(albums());
     }
 
