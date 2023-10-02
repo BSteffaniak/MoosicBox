@@ -24,6 +24,10 @@
 
 .album-page-album-info-details-album-artist {
     margin: 10px 0;
+}
+
+.album-page-album-info-details-album-artist-text {
+    text-decoration: none;
     font-weight: bold;
     font-size: 36px;
     color: #808080;

@@ -130,7 +130,12 @@ export default function albumPage() {
                                     {album()?.title}
                                 </div>
                                 <div class="album-page-album-info-details-album-artist">
-                                    {album()?.artist}
+                                    <A
+                                        href={`/artists/${album()?.artistId}`}
+                                        class="album-page-album-info-details-album-artist-text"
+                                    >
+                                        {album()?.artist}
+                                    </A>
                                 </div>
                                 <div class="album-page-album-info-details-tracks">
                                     {tracks() && (
