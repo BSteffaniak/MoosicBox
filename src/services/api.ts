@@ -100,7 +100,7 @@ export namespace Api {
 }
 
 export interface ApiType {
-    getAlbum(id: number): Promise<Api.Album>;
+    getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
         signal?: AbortSignal,
@@ -112,9 +112,13 @@ export interface ApiType {
                   containsArtwork: boolean;
               }
             | undefined,
+        signal?: AbortSignal,
     ): string;
-    getAlbumTracks(albumId: number): Promise<Api.Track[]>;
-    getArtists(request: Api.ArtistsRequest | undefined): Promise<Api.Artist[]>;
+    getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
+    getArtists(
+        request: Api.ArtistsRequest | undefined,
+        signal?: AbortSignal,
+    ): Promise<Api.Artist[]>;
 }
 
 async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
@@ -209,6 +213,34 @@ export function cancellable<T>(func: (signal: AbortSignal) => Promise<T>): {
     const signal = controller.signal;
 
     return { data: func(signal), controller, signal };
+}
+
+const abortControllers: { [id: string]: AbortController } = {};
+
+export async function once<T>(
+    id: string,
+    func: (signal: AbortSignal) => Promise<T>,
+): Promise<T> {
+    const controller = abortControllers[id];
+
+    if (controller) {
+        controller.abort();
+    }
+
+    const resp = cancellable(func);
+    abortControllers[id] = resp.controller;
+
+    let data: T;
+
+    try {
+        data = await resp.data;
+    } catch (e) {
+        throw e;
+    } finally {
+        delete abortControllers[id];
+    }
+
+    return data;
 }
 
 export const api: ApiType = {
