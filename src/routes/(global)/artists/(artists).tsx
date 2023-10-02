@@ -4,6 +4,7 @@ import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
 import { api, Api, once } from '~/services/api';
 import { currentArtistSearch, setCurrentArtistSearch } from '~/services/app';
+import Artist from '~/components/Artist';
 
 let historyListener: () => void;
 
@@ -190,7 +191,13 @@ export default function artists() {
                     {artists()?.length === 1 ? '' : 's'}
                     <div class="artists">
                         <For each={artists()}>
-                            {(artist) => <div>{artist.title}</div>}
+                            {(artist) => (
+                                <Artist
+                                    artist={artist}
+                                    size={200}
+                                    title={true}
+                                />
+                            )}
                         </For>
                     </div>
                 </div>
