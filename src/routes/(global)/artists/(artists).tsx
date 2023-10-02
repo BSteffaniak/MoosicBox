@@ -2,7 +2,7 @@ import './artists.css';
 import { createSignal, For, onCleanup } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
-import { api, Api } from '~/services/api';
+import { api, Api, once } from '~/services/api';
 import { currentArtistSearch, setCurrentArtistSearch } from '~/services/app';
 
 let historyListener: () => void;
@@ -68,15 +68,22 @@ export default function artists() {
         if (request?.sort) setArtistSort(request.sort);
         if (typeof request?.filters?.search === 'string')
             setSearchFilter(request.filters.search);
+
         setArtists(
-            await api.getArtists({
-                sources: getArtistSources(),
-                sort: getArtistSort(),
-                filters: {
-                    search: getSearchFilter(),
-                },
-            }),
+            await once('artists', (signal) =>
+                api.getArtists(
+                    {
+                        sources: getArtistSources(),
+                        sort: getArtistSort(),
+                        filters: {
+                            search: getSearchFilter(),
+                        },
+                    },
+                    signal,
+                ),
+            ),
         );
+
         setCurrentArtistSearch(artists());
     }
 
