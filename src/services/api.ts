@@ -38,7 +38,7 @@ export namespace Api {
     export interface Artist {
         artistId: number;
         title: string;
-        containsArtwork: boolean;
+        containsCover: boolean;
         blur: boolean;
     }
 
@@ -100,6 +100,19 @@ export namespace Api {
 }
 
 export interface ApiType {
+    getArtist(artistId: number, signal?: AbortSignal): Promise<Api.Artist>;
+    getArtistCover(
+        artist:
+            | {
+                  artistId: number;
+                  containsCover: boolean;
+              }
+            | undefined,
+    ): string;
+    getArtistAlbums(
+        artistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Album[]>;
     getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
@@ -119,6 +132,52 @@ export interface ApiType {
         request: Api.ArtistsRequest | undefined,
         signal?: AbortSignal,
     ): Promise<Api.Artist[]>;
+}
+
+async function getArtist(
+    artistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Artist> {
+    const query = new URLSearchParams({
+        artistId: `${artistId}`,
+    });
+
+    const response = await fetch(`${Api.apiUrl()}/artist?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+function getAlbumArtwork(
+    album:
+        | {
+              albumId: number;
+              containsArtwork: boolean;
+          }
+        | undefined,
+): string {
+    if (album?.containsArtwork) {
+        return `${Api.apiUrl()}/albums/${album.albumId}/300x300`;
+    }
+    return '/img/album.svg';
+}
+
+async function getArtistAlbums(
+    artistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Album[]> {
+    const query = new URLSearchParams({
+        artistId: `${artistId}`,
+    });
+
+    const response = await fetch(`${Api.apiUrl()}/artist/albums?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
 }
 
 async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
@@ -155,16 +214,16 @@ async function getAlbums(
     return albums;
 }
 
-function getAlbumArtwork(
-    album:
+function getArtistCover(
+    artist:
         | {
-              albumId: number;
-              containsArtwork: boolean;
+              artistId: number;
+              containsCover: boolean;
           }
         | undefined,
 ): string {
-    if (album?.containsArtwork) {
-        return `${Api.apiUrl()}/albums/${album.albumId}/300x300`;
+    if (artist?.containsCover) {
+        return `${Api.apiUrl()}/artists/${artist.artistId}/300x300`;
     }
     return '/img/album.svg';
 }
@@ -244,6 +303,9 @@ export async function once<T>(
 }
 
 export const api: ApiType = {
+    getArtist,
+    getArtistCover,
+    getArtistAlbums,
     getAlbum,
     getAlbums,
     getAlbumArtwork,
