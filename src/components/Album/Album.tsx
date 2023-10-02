@@ -98,7 +98,7 @@ type AlbumProps = {
 export default function album(
     props: PartialBy<
         AlbumProps,
-        'size' | 'artist' | 'title' | 'blur' | 'route'
+        'size' | 'artist' | 'title' | 'blur' | 'route' | 'year'
     >,
 ) {
     props.size = props.size ?? 200;
