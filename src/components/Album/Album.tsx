@@ -48,7 +48,12 @@ function albumDetails(
             )}
             {showArtist && (
                 <div class="album-artist">
-                    <span class="album-artist-text">{album.artist}</span>
+                    <A
+                        href={`/artists/${album.artistId}`}
+                        class="album-artist-text"
+                    >
+                        {album.artist}
+                    </A>
                 </div>
             )}
             {showYear && (

@@ -106,7 +106,8 @@
     color: #444;
 }
 
-.dark .album-artist {
+.dark .album-artist-text {
+    text-decoration: none;
     color: #808080;
 }
 
