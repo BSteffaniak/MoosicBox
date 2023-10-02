@@ -5,7 +5,6 @@ import {
     For,
     onCleanup,
     onMount,
-    Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
