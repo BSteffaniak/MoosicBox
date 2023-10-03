@@ -1,5 +1,5 @@
 import './artist-page.css';
-import { createSignal, For, Show } from 'solid-js';
+import { createEffect, createSignal, For, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
@@ -11,11 +11,11 @@ export default function albumPage() {
     const [artist, setArtist] = createSignal<Api.Artist>();
     const [albums, setAlbums] = createSignal<Api.Album[]>();
 
-    (async () => {
+    createEffect(async () => {
         if (isServer) return;
         setArtist(await api.getArtist(parseInt(params.artistId)));
         setAlbums(await api.getArtistAlbums(parseInt(params.artistId)));
-    })();
+    });
 
     return (
         <>
