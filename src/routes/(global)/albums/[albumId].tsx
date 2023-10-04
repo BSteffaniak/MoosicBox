@@ -10,7 +10,12 @@ import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
 import { toTime } from '~/services/formatting';
-import { currentTrack, playAlbum, playPlaylist } from '~/services/player';
+import {
+    addAlbumToQueue,
+    currentTrack,
+    playAlbum,
+    playPlaylist,
+} from '~/services/player';
 import { Api, api } from '~/services/api';
 
 export default function albumPage() {
@@ -169,6 +174,21 @@ export default function albumPage() {
                                         alt="Play"
                                     />{' '}
                                     Play
+                                </button>
+                                <button
+                                    class="album-page-album-controls-playback-options-button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        addAlbumToQueue(album()!);
+                                        return false;
+                                    }}
+                                >
+                                    <img
+                                        src="/img/more-options.svg"
+                                        alt="Options"
+                                    />{' '}
+                                    Options
                                 </button>
                             </div>
                             <div class="album-page-album-controls-options"></div>

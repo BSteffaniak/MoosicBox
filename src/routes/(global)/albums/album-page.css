@@ -47,16 +47,43 @@
     padding: 20px;
 }
 
+.album-page-album-controls-playback {
+    display: flex;
+    flex-direction: row;
+}
+
 .album-page-album-controls-playback-play-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 130px;
     height: 40px;
     border-radius: 10px;
     border: 0px solid black;
     font-weight: bold;
+    margin-right: 10px;
 }
 
 .album-page-album-controls-playback-play-button img {
     width: 12px;
+    padding-right: 5px;
+}
+
+.album-page-album-controls-playback-options-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    height: 40px;
+    border-radius: 10px;
+    border: 0px solid black;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.album-page-album-controls-playback-options-button img {
+    width: 18px;
+    padding-right: 5px;
 }
 
 .album-page-tracks {
