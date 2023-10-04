@@ -247,7 +247,13 @@ export default function albumPage() {
                                                 {track.title}
                                             </td>
                                             <td class="album-page-tracks-track-artist">
-                                                {track.artist}
+                                                <A
+                                                    href={`/artists/${album()
+                                                        ?.artistId}`}
+                                                    class="album-page-tracks-track-artist-text"
+                                                >
+                                                    {track.artist}
+                                                </A>
                                             </td>
                                             <td class="album-page-tracks-track-time">
                                                 {toTime(

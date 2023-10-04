@@ -159,6 +159,10 @@
     display: inline;
 }
 
+.album-page-tracks-track-artist-text {
+    text-decoration: none;
+}
+
 .album-page-artwork-previewer {
     background-color: rgba(0, 0, 0, 0.3);
     position: fixed;
