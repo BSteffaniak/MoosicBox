@@ -180,7 +180,7 @@ export async function previousTrack() {
         );
     } else {
         console.debug('Setting track position to 0');
-        sound()!.seek(0);
+        seek(0);
     }
 }
 
