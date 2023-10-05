@@ -4,6 +4,7 @@ import Player from '~/components/Player';
 import './(global)/global.css';
 import { triggerStartup } from '~/services/app';
 import { Api } from '~/services/api';
+import '~/services/ws';
 
 export default function global() {
     onMount(async () => {

@@ -10,12 +10,26 @@ function getDefaultApiUrl(): string {
 }
 
 export namespace Api {
-    export const [apiUrl, setApiUrl] = makePersisted(
+    const onApiUrlUpdatedListeners: ((url: string) => void)[] = [];
+    export function onApiUrlUpdated(listener: (url: string) => void): void {
+        onApiUrlUpdatedListeners.push(listener);
+    }
+    const [_apiUrl, _setApiUrl] = makePersisted(
         createSignal(getDefaultApiUrl()),
         {
             name: 'apiUrl',
         },
     );
+    export function apiUrl(): ReturnType<typeof _apiUrl> {
+        return _apiUrl();
+    }
+    export function setApiUrl(
+        url: string,
+    ): void {
+        _setApiUrl(url);
+
+        onApiUrlUpdatedListeners.forEach((func) => func(url));
+    }
 
     export interface PingResponse {
         alive: boolean;
