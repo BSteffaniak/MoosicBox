@@ -5,6 +5,7 @@ import {
     For,
     onCleanup,
     onMount,
+    Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
@@ -118,45 +119,56 @@ export default function albumPage() {
                 <div class="album-page">
                     <div class="album-page-header">
                         <div class="album-page-album-info">
-                            <div class="album-page-album-info-artwork">
-                                {album() && (
-                                    <Album
-                                        album={album()!}
-                                        artist={false}
-                                        title={false}
-                                        size={300}
-                                        route={false}
-                                        onClick={showArtwork}
-                                    />
+                            <Show when={album()}>
+                                {(album) => (
+                                    <>
+                                        <div class="album-page-album-info-artwork">
+                                            <Album
+                                                album={album()}
+                                                artist={false}
+                                                title={false}
+                                                size={300}
+                                                route={false}
+                                                onClick={showArtwork}
+                                            />
+                                        </div>
+                                        <div class="album-page-album-info-details">
+                                            <div class="album-page-album-info-details-album-title">
+                                                {album().title}
+                                            </div>
+                                            <div class="album-page-album-info-details-album-artist">
+                                                <A
+                                                    href={`/artists/${
+                                                        album().artistId
+                                                    }`}
+                                                    class="album-page-album-info-details-album-artist-text"
+                                                >
+                                                    {album().artist}
+                                                </A>
+                                            </div>
+                                            <div class="album-page-album-info-details-tracks">
+                                                <Show when={tracks()}>
+                                                    {(tracks) => (
+                                                        <>
+                                                            {tracks().length}{' '}
+                                                            tracks (
+                                                            {toTime(
+                                                                Math.round(
+                                                                    albumDuration(),
+                                                                ),
+                                                            )}
+                                                            )
+                                                        </>
+                                                    )}
+                                                </Show>
+                                            </div>
+                                            <div class="album-page-album-info-details-release-date">
+                                                {album().dateReleased}
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
-                            </div>
-                            <div class="album-page-album-info-details">
-                                <div class="album-page-album-info-details-album-title">
-                                    {album()?.title}
-                                </div>
-                                <div class="album-page-album-info-details-album-artist">
-                                    <A
-                                        href={`/artists/${album()?.artistId}`}
-                                        class="album-page-album-info-details-album-artist-text"
-                                    >
-                                        {album()?.artist}
-                                    </A>
-                                </div>
-                                <div class="album-page-album-info-details-tracks">
-                                    {tracks() && (
-                                        <>
-                                            {tracks()?.length} tracks (
-                                            {toTime(
-                                                Math.round(albumDuration()),
-                                            )}
-                                            )
-                                        </>
-                                    )}
-                                </div>
-                                <div class="album-page-album-info-details-release-date">
-                                    {album()?.dateReleased}
-                                </div>
-                            </div>
+                            </Show>
                         </div>
                         <div class="album-page-album-controls">
                             <div class="album-page-album-controls-playback">
