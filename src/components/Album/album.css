@@ -98,6 +98,7 @@
 
 .album-title-text {
     cursor: pointer;
+    text-decoration: none;
 }
 
 .album-artist {

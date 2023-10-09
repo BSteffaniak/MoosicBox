@@ -38,12 +38,22 @@ function albumDetails(
     showArtist = true,
     showTitle = true,
     showYear = true,
+    route = true,
 ) {
     return (
         <div class="album-details">
             {showTitle && (
                 <div class="album-title">
-                    <span class="album-title-text">{album.title}</span>
+                    {route ? (
+                        <A
+                            href={`/albums/${album.albumId}`}
+                            class="album-title-text"
+                        >
+                            {album.title}
+                        </A>
+                    ) : (
+                        <span class="album-title-text">{album.title}</span>
+                    )}
                 </div>
             )}
             {showArtist && (
@@ -143,6 +153,7 @@ export default function album(
                     props.artist,
                     props.title,
                     props.year,
+                    props.route,
                 )}
         </div>
     );
