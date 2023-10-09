@@ -10,7 +10,7 @@ import {
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
-import { toTime } from '~/services/formatting';
+import { displayDate, toTime } from '~/services/formatting';
 import {
     addAlbumToQueue,
     currentTrack,
@@ -163,7 +163,10 @@ export default function albumPage() {
                                                 </Show>
                                             </div>
                                             <div class="album-page-album-info-details-release-date">
-                                                {album().dateReleased}
+                                                {displayDate(
+                                                    album().dateReleased,
+                                                    'LLLL dd, yyyy',
+                                                )}
                                             </div>
                                         </div>
                                     </>

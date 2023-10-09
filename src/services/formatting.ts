@@ -1,3 +1,5 @@
+import { format, parseISO } from 'date-fns';
+
 function zeroPad(num: number, places: number) {
     return String(num).padStart(places, '0');
 }
@@ -12,4 +14,8 @@ export function toTime(seconds: number) {
     }
 
     return minutesAndSeconds;
+}
+
+export function displayDate(date: string, dateFormat: string): string {
+    return format(parseISO(date), dateFormat);
 }
