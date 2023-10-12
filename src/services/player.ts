@@ -78,30 +78,34 @@ let seekHandle: NodeJS.Timeout;
 let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
 
+if (!isServer && navigator?.mediaSession) {
+    navigator.mediaSession.setActionHandler('play', () => play());
+    navigator.mediaSession.setActionHandler('pause', () => pause());
+    navigator.mediaSession.setActionHandler('stop', () => stop());
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+    navigator.mediaSession.setActionHandler('previoustrack', () =>
+        previousTrack(),
+    );
+}
+
 function setTrack() {
     if (!sound()) {
         const track = playlist()![playlistPosition()];
+        console.debug('Setting track to', track);
         setSound(
             new Howl({
                 src: [getTrackUrl(track)],
+                format: 'flac',
                 html5: true,
             }),
         );
-        if (navigator && navigator.mediaSession) {
-            navigator.mediaSession.setActionHandler('play', () => play());
-            navigator.mediaSession.setActionHandler('pause', () => pause());
-            navigator.mediaSession.setActionHandler('stop', () => stop());
-            navigator.mediaSession.setActionHandler('nexttrack', () =>
-                nextTrack(),
-            );
-            navigator.mediaSession.setActionHandler('previoustrack', () =>
-                previousTrack(),
-            );
-        }
         sound()!.pannerAttr({ panningModel: 'equalpower' });
         setCurrentTrack(track);
+        setCurrentTrackLength(Math.round(track.duration));
     }
 }
+
+let ended: boolean = true;
 
 export function play() {
     setTrack();
@@ -109,15 +113,24 @@ export function play() {
     sound()!.on(
         'end',
         (endHandle = (id: number) => {
-            console.debug('Track ended', sound(), id);
-            setCurrentSeek(undefined);
-            clearInterval(seekHandle);
+            if (ended) {
+                console.debug(
+                    'End called after track already ended',
+                    id,
+                    sound(),
+                    sound()?.duration(),
+                );
+                return;
+            }
+            console.debug('Track ended', id, sound(), sound()?.duration());
+            ended = true;
             nextTrack();
         }),
     );
     sound()!.on(
         'load',
         (loadHandle = () => {
+            ended = false;
             console.debug('Track loaded', sound(), sound()!.duration());
             setCurrentTrackLength(Math.round(sound()!.duration()));
         }),
@@ -213,7 +226,11 @@ export async function nextTrack() {
 }
 
 export function stop() {
-    sound()?.stop();
+    sound()?.off('end', endHandle);
+    sound()?.off('load', loadHandle);
+    if (!ended) {
+        sound()?.stop();
+    }
     sound()?.unload();
     setSound(undefined);
     setCurrentSeek(undefined);
