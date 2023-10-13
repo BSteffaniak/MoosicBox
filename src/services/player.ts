@@ -235,6 +235,8 @@ export function stop() {
     setSound(undefined);
     setCurrentSeek(undefined);
     clearInterval(seekHandle);
+    setCurrentTrack(undefined);
+    setCurrentTrackLength(0);
     setPlaying(false);
     console.debug('Track stopped');
 }
