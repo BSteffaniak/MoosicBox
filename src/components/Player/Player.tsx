@@ -340,43 +340,48 @@ export default function player() {
                 <div class="player-now-playing">
                     <Show when={currentTrack()}>
                         {(currentTrack) => (
-                            <div class="player-album-icon">
-                                <Album
-                                    album={currentTrack()}
-                                    size={70}
-                                    artist={false}
-                                    title={false}
-                                />
-                            </div>
+                            <>
+                                <div class="player-album-icon">
+                                    <Album
+                                        album={currentTrack()}
+                                        size={70}
+                                        artist={false}
+                                        title={false}
+                                    />
+                                </div>
+                                <div class="player-now-playing-details">
+                                    <div class="player-now-playing-details-title">
+                                        <A
+                                            href={`/albums/${currentTrack()
+                                                ?.albumId}`}
+                                            title={currentTrack().title}
+                                        >
+                                            {currentTrack().title}
+                                        </A>
+                                    </div>
+                                    <div class="player-now-playing-details-artist">
+                                        <A
+                                            href={`/artists/${currentTrack()
+                                                ?.artistId}`}
+                                            title={currentTrack().artist}
+                                        >
+                                            {currentTrack().artist}
+                                        </A>
+                                    </div>
+                                    <div class="player-now-playing-details-album">
+                                        Playing from:{' '}
+                                        <A
+                                            href={`/albums/${currentTrack()
+                                                ?.albumId}`}
+                                            title={currentTrack().album}
+                                        >
+                                            {currentTrack().album}
+                                        </A>
+                                    </div>
+                                </div>
+                            </>
                         )}
                     </Show>
-                    <div class="player-now-playing-details">
-                        <div class="player-now-playing-details-title">
-                            <A
-                                href={`/albums/${currentTrack()?.albumId}`}
-                                title={currentTrack()?.title}
-                            >
-                                {currentTrack()?.title}
-                            </A>
-                        </div>
-                        <div class="player-now-playing-details-artist">
-                            <A
-                                href={`/artists/${currentTrack()?.artistId}`}
-                                title={currentTrack()?.artist}
-                            >
-                                {currentTrack()?.artist}
-                            </A>
-                        </div>
-                        <div class="player-now-playing-details-album">
-                            Playing from:{' '}
-                            <A
-                                href={`/albums/${currentTrack()?.albumId}`}
-                                title={currentTrack()?.album}
-                            >
-                                {currentTrack()?.album}
-                            </A>
-                        </div>
-                    </div>
                 </div>
                 <div class="player-media-controls">
                     <div class="player-media-controls-track">
