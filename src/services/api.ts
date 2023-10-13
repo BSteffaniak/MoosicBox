@@ -23,9 +23,7 @@ export namespace Api {
     export function apiUrl(): ReturnType<typeof _apiUrl> {
         return _apiUrl();
     }
-    export function setApiUrl(
-        url: string,
-    ): void {
+    export function setApiUrl(url: string): void {
         _setApiUrl(url);
 
         onApiUrlUpdatedListeners.forEach((func) => func(url));
