@@ -75,7 +75,7 @@ function newClient(): Promise<WebSocket> {
         let opened = false;
 
         client.addEventListener('error', (e: Event) => {
-            console.error(e);
+            console.error("WebSocket client error", e);
             if (!opened) {
                 client.close();
                 reject();
