@@ -231,6 +231,9 @@ export default function albumPage() {
                                                     ? ' playing'
                                                     : ''
                                             }`}
+                                            onDblClick={() =>
+                                                playAlbumFrom(track)
+                                            }
                                         >
                                             <td
                                                 class="album-page-tracks-track-no"
