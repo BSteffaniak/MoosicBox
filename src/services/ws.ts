@@ -19,7 +19,6 @@ enum InboundMessageType {
 
 enum OutboundMessageType {
     PING = 'PING',
-    GET_CONNECTION_ID = 'GET_CONNECTION_ID',
     SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
 }
 
@@ -43,11 +42,6 @@ interface ConnectionsDataMessage extends InboundMessage {
 interface PingMessage extends OutboundMessage {
     connectionId: string;
     type: OutboundMessageType.PING;
-}
-
-interface GetConnectionIdMessage extends OutboundMessage {
-    connectionId?: string;
-    type: OutboundMessageType.GET_CONNECTION_ID;
 }
 
 interface SyncConnectionDataMessage extends OutboundMessage {
@@ -75,14 +69,6 @@ function syncConnectionData() {
         type: OutboundMessageType.SYNC_CONNECTION_DATA,
         payload: { playing: true },
     });
-}
-
-function getConnectionId() {
-    const message: GetConnectionIdMessage = {
-        connectionId,
-        type: OutboundMessageType.GET_CONNECTION_ID,
-    };
-    ws.send(JSON.stringify(message));
 }
 
 function send<T extends OutboundMessage>(value: Omit<T, 'connectionId'>) {
@@ -120,8 +106,6 @@ function newClient(): Promise<WebSocket> {
 
                 ws = client;
                 resolve(client);
-
-                getConnectionId();
             }
         });
 
