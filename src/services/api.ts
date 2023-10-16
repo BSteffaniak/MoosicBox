@@ -209,9 +209,7 @@ async function getAlbums(
     request: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Album[]> {
-    const query = new URLSearchParams({
-        playerId: currentPlayerId()!,
-    });
+    const query = new URLSearchParams();
     if (request?.sources) query.set('sources', request.sources.join(','));
     if (request?.sort) query.set('sort', request.sort);
     if (request?.filters?.search) query.set('search', request.filters.search);
