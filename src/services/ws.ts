@@ -11,58 +11,81 @@ let wsUrl: string;
 let connectionId: string;
 export let connectionPromise: Promise<WebSocket>;
 
-enum InputMessageType {
+enum InboundMessageType {
     CONNECT = 'CONNECT',
     CONNECTION_ID = 'CONNECTION_ID',
+    CONNECTIONS_DATA = 'CONNECTIONS_DATA',
 }
 
-enum OutputMessageType {
-    GET_CONNECTION_ID = 'GET_CONNECTION_ID',
+enum OutboundMessageType {
     PING = 'PING',
+    GET_CONNECTION_ID = 'GET_CONNECTION_ID',
+    SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
 }
 
-interface ConnectMessage extends InputMessage {
+interface ConnectMessage extends InboundMessage {
     connectionId?: string;
-    type: InputMessageType.CONNECT;
+    type: InboundMessageType.CONNECT;
 }
 
-interface ConnectionIdMessage extends InputMessage {
+interface ConnectionIdMessage extends InboundMessage {
     connectionId: string;
-    type: InputMessageType.CONNECT;
+    type: InboundMessageType.CONNECT;
 }
 
-interface PingMessage extends OutputMessage {
+interface ConnectionsDataMessage extends InboundMessage {
+    type: InboundMessageType.CONNECTIONS_DATA;
+    payload: {
+        playing: boolean;
+    };
+}
+
+interface PingMessage extends OutboundMessage {
     connectionId: string;
-    type: OutputMessageType.PING;
+    type: OutboundMessageType.PING;
 }
 
-interface GetConnectionIdMessage extends OutputMessage {
+interface GetConnectionIdMessage extends OutboundMessage {
     connectionId?: string;
-    type: OutputMessageType.GET_CONNECTION_ID;
+    type: OutboundMessageType.GET_CONNECTION_ID;
 }
 
-interface InputMessage {
-    type: InputMessageType;
+interface SyncConnectionDataMessage extends OutboundMessage {
+    type: OutboundMessageType.SYNC_CONNECTION_DATA;
+    connectionId: string;
+    payload: {
+        playing: boolean;
+    };
 }
 
-interface OutputMessage {
-    type: OutputMessageType;
+interface InboundMessage {
+    type: InboundMessageType;
+}
+
+interface OutboundMessage {
+    type: OutboundMessageType;
 }
 
 function ping() {
-    console.log('Sending ping');
-    send<PingMessage>({type: OutputMessageType.PING});
+    send<PingMessage>({ type: OutboundMessageType.PING });
+}
+
+function syncConnectionData() {
+    send<SyncConnectionDataMessage>({
+        type: OutboundMessageType.SYNC_CONNECTION_DATA,
+        payload: { playing: true },
+    });
 }
 
 function getConnectionId() {
     const message: GetConnectionIdMessage = {
         connectionId,
-        type: OutputMessageType.GET_CONNECTION_ID,
+        type: OutboundMessageType.GET_CONNECTION_ID,
     };
     ws.send(JSON.stringify(message));
 }
 
-function send<T extends OutputMessage>(value: Omit<T, 'connectionId'>) {
+function send<T extends OutboundMessage>(value: Omit<T, 'connectionId'>) {
     if (!connectionId) throw new Error('No connectionId');
     ws.send(JSON.stringify({ connectionId, ...value }));
 }
@@ -75,7 +98,7 @@ function newClient(): Promise<WebSocket> {
         let opened = false;
 
         client.addEventListener('error', (e: Event) => {
-            console.error("WebSocket client error", e);
+            console.error('WebSocket client error', e);
             if (!opened) {
                 client.close();
                 reject();
@@ -103,19 +126,26 @@ function newClient(): Promise<WebSocket> {
         });
 
         client.addEventListener('message', (event: MessageEvent<string>) => {
-            const data = JSON.parse(event.data) as InputMessage;
-            console.log('Received message', data);
+            const data = JSON.parse(event.data) as InboundMessage;
+            console.debug('Received message', data);
             switch (data.type) {
-                case InputMessageType.CONNECT: {
+                case InboundMessageType.CONNECT: {
                     const message = data as ConnectMessage;
+                    console.debug('Client connected', message);
                     if (message.connectionId) {
                         connectionId = message.connectionId;
                     }
                     break;
                 }
-                case InputMessageType.CONNECTION_ID: {
+                case InboundMessageType.CONNECTION_ID: {
                     const message = data as ConnectionIdMessage;
                     connectionId = message.connectionId;
+                    syncConnectionData();
+                    break;
+                }
+                case InboundMessageType.CONNECTIONS_DATA: {
+                    const message = data as ConnectionsDataMessage;
+                    console.log(message.payload);
                     break;
                 }
             }
@@ -130,7 +160,9 @@ function newClient(): Promise<WebSocket> {
 
                 const now = Date.now();
                 if (lastConnectionAttemptTime + 5000 > now) {
-                    console.log(`Debouncing connection retry attempt. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`);
+                    console.log(
+                        `Debouncing connection retry attempt. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
+                    );
                     await sleep(CONNECTION_RETRY_DEBOUNCE);
                 }
                 lastConnectionAttemptTime = now;
@@ -157,7 +189,11 @@ async function attemptConnection(): Promise<WebSocket> {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        console.log(`Attempting connection${attemptNumber > 0 ? `, Attempt ${attemptNumber + 1}` : ''}`);
+        console.log(
+            `Attempting connection${
+                attemptNumber > 0 ? `, Attempt ${attemptNumber + 1}` : ''
+            }`,
+        );
 
         try {
             const ws = await newClient();
