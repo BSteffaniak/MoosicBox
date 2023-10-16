@@ -12,6 +12,10 @@ import {
     Title,
 } from 'solid-start';
 import { ErrorBoundary } from 'solid-start/error-boundary';
+import { player as howlerPlayer } from '~/services/howler-player';
+import { player } from './services/player';
+
+Object.assign(player, howlerPlayer);
 
 export default function Root() {
     return (

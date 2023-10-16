@@ -1,8 +1,8 @@
 import { createSignal } from 'solid-js';
-import { Howl, HowlCallback } from 'howler';
+import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import { Api, api } from './api';
+import { Api } from './api';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -48,244 +48,6 @@ export const [playlist, setPlaylist] = makePersisted(
 );
 
 if (!isServer) {
-    window.onbeforeunload = () => {
-        refreshCurrentSeek();
-    };
-
-    if (import.meta.hot) {
-        import.meta.hot.on('vite:beforeUpdate', () => {
-            refreshCurrentSeek();
-        });
-    }
-}
-
-function getTrackUrl(track: Api.Track): string {
-    return `${Api.apiUrl()}/track?trackId=${track.trackId}`;
-}
-
-function refreshCurrentSeek() {
-    const seek = sound()?.seek();
-    if (typeof seek === 'number') {
-        const roundedSeek = Math.round(seek);
-        if (currentSeek() !== roundedSeek) {
-            console.debug(`Setting currentSeek to ${roundedSeek}`);
-            setCurrentSeek(roundedSeek);
-        }
-    }
-}
-
-let seekHandle: NodeJS.Timeout;
-let endHandle: HowlCallback;
-let loadHandle: HowlCallback;
-
-if (!isServer && navigator?.mediaSession) {
-    navigator.mediaSession.setActionHandler('play', () => play());
-    navigator.mediaSession.setActionHandler('pause', () => pause());
-    navigator.mediaSession.setActionHandler('stop', () => stop());
-    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-    navigator.mediaSession.setActionHandler('previoustrack', () =>
-        previousTrack(),
-    );
-}
-
-function setTrack() {
-    if (!sound()) {
-        const track = playlist()![playlistPosition()];
-        console.debug('Setting track to', track);
-        setSound(
-            new Howl({
-                src: [getTrackUrl(track)],
-                format: 'flac',
-                html5: true,
-            }),
-        );
-        sound()!.pannerAttr({ panningModel: 'equalpower' });
-        setCurrentTrack(track);
-        setCurrentTrackLength(Math.round(track.duration));
-    }
-}
-
-let ended: boolean = true;
-
-export function play() {
-    setTrack();
-
-    sound()!.on(
-        'end',
-        (endHandle = (id: number) => {
-            if (ended) {
-                console.debug(
-                    'End called after track already ended',
-                    id,
-                    sound(),
-                    sound()?.duration(),
-                );
-                return;
-            }
-            console.debug('Track ended', id, sound(), sound()?.duration());
-            ended = true;
-            nextTrack();
-        }),
-    );
-    sound()!.on(
-        'load',
-        (loadHandle = () => {
-            ended = false;
-            console.debug('Track loaded', sound(), sound()!.duration());
-            setCurrentTrackLength(Math.round(sound()!.duration()));
-        }),
-    );
-
-    sound()!.play();
-
-    if (typeof currentSeek() === 'number') {
-        console.debug(`Setting initial seek to ${currentSeek()}`);
-        sound()!.seek(currentSeek());
-    }
-
-    seekHandle = setInterval(() => {
-        refreshCurrentSeek();
-    }, 200);
-
-    setPlaying(true);
-    console.debug('Playing', sound());
-}
-
-export function seek(seek: number) {
-    console.debug('Track seeked');
-    if (typeof seek === 'number') {
-        console.debug(`Setting seek to ${seek}`);
-        setCurrentSeek(seek);
-        sound()?.seek(seek);
-    }
-}
-
-export function pause() {
-    sound()?.pause();
-    setPlaying(false);
-    clearInterval(seekHandle);
-    console.debug('Paused');
-}
-
-let previousTrackListeners: TrackListenerCallback[] = [];
-export function onPreviousTrack(
-    callback: TrackListenerCallback,
-): TrackListenerCallback {
-    previousTrackListeners.push(callback);
-    return callback;
-}
-export function offPreviousTrack(callback: TrackListenerCallback): void {
-    previousTrackListeners = previousTrackListeners.filter(
-        (c) => c !== callback,
-    );
-}
-
-export async function previousTrack() {
-    if ((sound()?.seek() ?? 0) < 5) {
-        console.debug('Playing previous track');
-        setPlaylistPosition((value) => (value > 0 ? value - 1 : value));
-        const shouldPlay = playing();
-        stop();
-        if (shouldPlay) play();
-        else setTrack();
-        previousTrackListeners.forEach((callback) =>
-            callback(currentTrack()!, playlistPosition()!),
-        );
-    } else {
-        console.debug('Setting track position to 0');
-        seek(0);
-    }
-}
-
-let nextTrackListeners: TrackListenerCallback[] = [];
-export function onNextTrack(
-    callback: TrackListenerCallback,
-): TrackListenerCallback {
-    nextTrackListeners.push(callback);
-    return callback;
-}
-export function offNextTrack(callback: TrackListenerCallback): void {
-    nextTrackListeners = nextTrackListeners.filter((c) => c !== callback);
-}
-
-export async function nextTrack() {
-    if (playlistPosition() < playlist()!.length - 1) {
-        console.debug('Playing next track');
-        setPlaylistPosition((value) => value + 1);
-        const shouldPlay = playing();
-        stop();
-        if (shouldPlay) play();
-        else setTrack();
-        nextTrackListeners.forEach((callback) =>
-            callback(currentTrack()!, playlistPosition()!),
-        );
-    } else {
-        console.debug('No next track to play');
-        stop();
-    }
-}
-
-export function stop() {
-    sound()?.off('end', endHandle);
-    sound()?.off('load', loadHandle);
-    if (!ended) {
-        sound()?.stop();
-    }
-    sound()?.unload();
-    setSound(undefined);
-    setCurrentSeek(undefined);
-    clearInterval(seekHandle);
-    setCurrentTrack(undefined);
-    setCurrentTrackLength(0);
-    setPlaying(false);
-    console.debug('Track stopped');
-}
-
-export async function playAlbum(album: Api.Album | Api.Track) {
-    setCurrentAlbum(album);
-
-    const tracks = await api.getAlbumTracks(album.albumId);
-
-    setPlaylistPosition(0);
-    setPlaylist(tracks);
-    stop();
-    play();
-}
-
-export async function playPlaylist(tracks: Api.Track[]) {
-    const firstTrack = tracks[0];
-    setCurrentAlbum(firstTrack);
-
-    setPlaylistPosition(0);
-    setPlaylist(tracks);
-    stop();
-    play();
-}
-
-export async function addAlbumToQueue(album: Api.Album | Api.Track) {
-    const tracks = await api.getAlbumTracks(album.albumId);
-
-    setPlaylist([...playlist()!, ...tracks]);
-}
-
-export function removeTrackFromPlaylist(index: number) {
-    console.debug('Removing track from playlist', index);
-    if (index < playlistPosition()) {
-        setPlaylistPosition(playlistPosition() - 1);
-    }
-    setPlaylist([...playlist()!.filter((_, i) => i !== index)]);
-}
-
-export function playFromPlaylistPosition(index: number) {
-    console.debug('Playing from playlist position', index);
-    setPlaylistPosition(index);
-    const shouldPlay = playing();
-    stop();
-    if (shouldPlay) play();
-    else setTrack();
-}
-
-if (!isServer) {
     document.body.onkeydown = function (e) {
         const target = e.target as HTMLElement;
 
@@ -302,3 +64,99 @@ if (!isServer) {
         }
     };
 }
+
+export interface PlayerType {
+    play(): void;
+    playAlbum(album: Api.Album | Api.Track): Promise<void>;
+    playPlaylist(tracks: Api.Track[]): void;
+    playFromPlaylistPosition(index: number): void;
+    addAlbumToQueue(album: Api.Album | Api.Track): Promise<void>;
+    removeTrackFromPlaylist(index: number): void;
+    pause(): void;
+    stop(): void;
+    seek(seek: number): void;
+    previousTrack(): boolean;
+    nextTrack(): boolean;
+}
+
+export function play() {
+    player.play();
+}
+
+export function seek(seek: number) {
+    player.seek(seek);
+}
+
+export function pause() {
+    player.pause();
+}
+
+let previousTrackListeners: TrackListenerCallback[] = [];
+export function onPreviousTrack(
+    callback: TrackListenerCallback,
+): TrackListenerCallback {
+    previousTrackListeners.push(callback);
+    return callback;
+}
+export function offPreviousTrack(callback: TrackListenerCallback): void {
+    previousTrackListeners = previousTrackListeners.filter(
+        (c) => c !== callback,
+    );
+}
+
+export function previousTrack(): boolean {
+    if (player.previousTrack()) {
+        previousTrackListeners.forEach((callback) =>
+            callback(currentTrack()!, playlistPosition()!),
+        );
+        return true;
+    }
+    return false;
+}
+
+let nextTrackListeners: TrackListenerCallback[] = [];
+export function onNextTrack(
+    callback: TrackListenerCallback,
+): TrackListenerCallback {
+    nextTrackListeners.push(callback);
+    return callback;
+}
+export function offNextTrack(callback: TrackListenerCallback): void {
+    nextTrackListeners = nextTrackListeners.filter((c) => c !== callback);
+}
+
+export function nextTrack(): boolean {
+    if (player.nextTrack()) {
+        nextTrackListeners.forEach((callback) =>
+            callback(currentTrack()!, playlistPosition()!),
+        );
+        return true;
+    }
+    return false;
+}
+
+export function stop() {
+    player.stop();
+}
+
+export async function playAlbum(album: Api.Album | Api.Track) {
+    await player.playAlbum(album);
+}
+
+export function playPlaylist(tracks: Api.Track[]) {
+    player.playPlaylist(tracks);
+}
+
+export async function addAlbumToQueue(album: Api.Album | Api.Track) {
+    player.addAlbumToQueue(album);
+}
+
+export function removeTrackFromPlaylist(index: number) {
+    player.removeTrackFromPlaylist(index);
+}
+
+export function playFromPlaylistPosition(index: number) {
+    player.playFromPlaylistPosition(index);
+}
+
+export const player: PlayerType = {} as PlayerType;
