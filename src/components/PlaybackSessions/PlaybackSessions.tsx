@@ -16,8 +16,20 @@ export default function playbackSessionsFunc() {
     );
 
     function deleteSession(sessionId: number) {
+        if (sessionId === playerState.currentPlaybackSession?.id) {
+            setPlayerState(
+                produce((state) => {
+                    state.currentPlaybackSession;
+                    state.playbackSessions.find((s) => s.id === sessionId);
+                    setSessions(sessions().filter((s) => s.id !== sessionId));
+                    const newSession = sessions()[0];
+                    if (newSession) {
+                        updateSession(state, newSession, true);
+                    }
+                }),
+            );
+        }
         ws.deleteSession(sessionId);
-        setSessions(sessions().filter((s) => s.id !== sessionId));
     }
 
     function activateSession(session: Api.PlaybackSession) {
