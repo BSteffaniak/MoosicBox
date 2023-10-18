@@ -17,6 +17,7 @@ enum InboundMessageType {
     CONNECTION_ID = 'CONNECTION_ID',
     CONNECTIONS_DATA = 'CONNECTIONS_DATA',
     SESSIONS = 'SESSIONS',
+    SESSION_UPDATED = 'SESSION_UPDATED',
 }
 
 enum OutboundMessageType {
@@ -48,6 +49,11 @@ interface ConnectionsDataMessage extends InboundMessage {
 interface SessionsMessage extends InboundMessage {
     type: InboundMessageType.SESSIONS;
     payload: Api.PlaybackSession[];
+}
+
+interface SessionUpdatedMessage extends InboundMessage {
+    type: InboundMessageType.SESSION_UPDATED;
+    payload: PartialUpdateSession;
 }
 
 interface PingMessage extends OutboundMessage {
@@ -146,11 +152,11 @@ export function activateSession(sessionId: number) {
 }
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-export type UpdateSessionRequest = PartialBy<
+export type PartialUpdateSession = PartialBy<
     Api.PlaybackSession,
     'name' | 'active' | 'playing' | 'position' | 'seek' | 'playlist'
 >;
-export function updateSession(session: UpdateSessionRequest) {
+export function updateSession(session: PartialUpdateSession) {
     send<UpdateSessionMessage>({
         type: OutboundMessageType.UPDATE_SESSION,
         payload: {
@@ -174,8 +180,8 @@ export function deleteSession(sessionId: number) {
     });
 }
 
-function send<T extends OutboundMessage>(value: Omit<T, 'connectionId'>) {
-    ws.send(JSON.stringify({ connectionId, ...value }));
+function send<T extends OutboundMessage>(value: T) {
+    ws.send(JSON.stringify(value));
 }
 
 function newClient(): Promise<WebSocket> {
@@ -247,6 +253,20 @@ function newClient(): Promise<WebSocket> {
                     } else {
                         player.setCurrentPlaybackSession(message.payload[0]);
                     }
+                    break;
+                }
+                case InboundMessageType.SESSION_UPDATED: {
+                    const message = data as SessionUpdatedMessage;
+                    console.debug('received session update', message.payload);
+                    player
+                        .playbackSessions()
+                        ?.filter((s) => s.id === message.payload.id)
+                        ?.forEach((s) => Object.assign(s, message.payload));
+
+                    player.setPlaybackSessions(player.playbackSessions());
+                    player.setCurrentPlaybackSession(
+                        player.currentPlaybackSession(),
+                    );
                     break;
                 }
             }

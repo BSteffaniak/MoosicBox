@@ -6,7 +6,7 @@ import { Api } from './api';
 import {
     PartialBy,
     PlaybackAction,
-    UpdateSessionRequest,
+    PartialUpdateSession,
     playbackAction,
     updateSession,
 } from './ws';
@@ -338,7 +338,7 @@ export const player: PlayerType = {} as PlayerType;
 
 function updateCurrentPlaybackSession(
     request: Omit<
-        PartialBy<UpdateSessionRequest, 'id' | 'playlist'>,
+        PartialBy<PartialUpdateSession, 'id' | 'playlist'>,
         'playlist'
     > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
 ) {
@@ -354,7 +354,7 @@ function updateCurrentPlaybackSession(
 
         _setCurrentPlaybackSession(session);
         _setPlaybackSessions(_playbackSessions());
-        updateSession(request as UpdateSessionRequest);
+        updateSession(request as PartialUpdateSession);
     }
 }
 
@@ -369,6 +369,7 @@ onCurrentPlaybackSessionChanged((value) => {
             const track = value.playlist.tracks[value.position];
 
             if (track) {
+                setCurrentTrack(track);
                 setCurrentTrackLength(Math.round(track.duration));
             }
         }
