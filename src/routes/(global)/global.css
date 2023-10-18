@@ -121,12 +121,17 @@ p {
     background-color: rgba(0, 0, 0, .15);
     overscroll-behavior: contain;
 }
-
 .playback-sessions-modal-header {
     display: flex;
     flex-direction: row;
+    align-items: center;
     height: 70px;
     padding-bottom: 10px;
+}
+
+.playback-sessions-modal-header-new-button {
+    height: 25px;
+    margin-left: 10px;
 }
 
 .playback-sessions-modal-content {

@@ -27,6 +27,7 @@ enum OutboundMessageType {
     SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
     PLAYBACK_ACTION = 'PLAYBACK_ACTION',
     GET_SESSIONS = 'GET_SESSIONS',
+    CREATE_SESSION = 'CREATE_SESSION',
     UPDATE_SESSION = 'UPDATE_SESSION',
     DELETE_SESSION = 'DELETE_SESSION',
 }
@@ -87,6 +88,24 @@ interface GetSessionsMessage extends OutboundMessage {
     type: OutboundMessageType.GET_SESSIONS;
 }
 
+export interface CreateSessionRequest {
+    name: string;
+    playlist: CreateSessionPlaylistRequest;
+}
+
+export interface CreateSessionPlaylistRequest {
+    tracks: Api.Track[];
+}
+
+export interface CreateSession {
+    name: string;
+    playlist: CreateSessionPlaylist;
+}
+
+export interface CreateSessionPlaylist {
+    tracks: number[];
+}
+
 export interface UpdateSession {
     id: number;
     name?: string;
@@ -100,6 +119,11 @@ export interface UpdateSession {
 interface UpdateSessionPlaylist {
     id: number;
     tracks: number[];
+}
+
+interface CreateSessionMessage extends OutboundMessage {
+    type: OutboundMessageType.CREATE_SESSION;
+    payload: CreateSession;
 }
 
 interface UpdateSessionMessage extends OutboundMessage {
@@ -150,6 +174,19 @@ function getSessions() {
 
 export function activateSession(sessionId: number) {
     updateSession({ id: sessionId, active: true });
+}
+
+export function createSession(session: CreateSessionRequest) {
+    send<CreateSessionMessage>({
+        type: OutboundMessageType.CREATE_SESSION,
+        payload: {
+            ...session,
+            playlist: {
+                ...session.playlist,
+                tracks: session.playlist.tracks.map((t) => t.trackId),
+            },
+        },
+    });
 }
 
 export function updateSession(session: PartialUpdateSession) {

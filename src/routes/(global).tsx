@@ -10,6 +10,7 @@ import {
 import { Api } from '~/services/api';
 import '~/services/ws';
 import PlaybackSessions from '~/components/PlaybackSessions';
+import { createSession } from '~/services/ws';
 
 export default function global() {
     onMount(async () => {
@@ -20,6 +21,15 @@ export default function global() {
 
     function saveApiUrl() {
         Api.setApiUrl(apiUrlInput.value);
+    }
+
+    function createNewSession() {
+        createSession({
+            name: 'New Session',
+            playlist: {
+                tracks: [],
+            },
+        });
     }
 
     return (
@@ -57,6 +67,12 @@ export default function global() {
                         >
                             <div class="playback-sessions-modal-header">
                                 <h1>Playback Sessions</h1>
+                                <button
+                                    class="playback-sessions-modal-header-new-button"
+                                    onClick={() => createNewSession()}
+                                >
+                                    New
+                                </button>
                                 <div
                                     class="playback-sessions-modal-close"
                                     onClick={(e) => {
