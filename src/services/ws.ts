@@ -1,3 +1,4 @@
+import { produce } from 'solid-js/store';
 import { Api } from './api';
 import { onStartup } from './app';
 import * as player from './player';
@@ -244,7 +245,9 @@ function newClient(): Promise<WebSocket> {
                 case InboundMessageType.SESSIONS: {
                     const message = data as SessionsMessage;
                     console.debug('received sessions', message.payload);
-                    player.setPlaybackSessions(message.payload);
+                    player.setPlayerState({
+                        playbackSessions: message.payload,
+                    });
                     const existing = message.payload.find(
                         (p) => p.id === player.currentPlaybackSession()?.id,
                     );
@@ -257,16 +260,37 @@ function newClient(): Promise<WebSocket> {
                 }
                 case InboundMessageType.SESSION_UPDATED: {
                     const message = data as SessionUpdatedMessage;
-                    console.debug('received session update', message.payload);
-                    player
-                        .playbackSessions()
-                        ?.filter((s) => s.id === message.payload.id)
-                        ?.forEach((s) => Object.assign(s, message.payload));
-
-                    player.setPlaybackSessions(player.playbackSessions());
-                    player.setCurrentPlaybackSession(
-                        player.currentPlaybackSession(),
+                    console.debug('Received session update', message.payload);
+                    player.setPlayerState(
+                        produce((state) => {
+                            state.playbackSessions
+                                ?.filter((s) => s.id === message.payload.id)
+                                ?.forEach((s) =>
+                                    Object.assign(s, message.payload),
+                                );
+                        }),
                     );
+
+                    if (
+                        player.currentPlaybackSession()?.id ===
+                        message.payload.id
+                    ) {
+                        if (typeof message.payload.position !== 'undefined') {
+                            player.setPlaylistPosition(
+                                message.payload.position,
+                            );
+                        }
+                        if (typeof message.payload.seek !== 'undefined') {
+                            player.setCurrentSeek(message.payload.seek);
+                        }
+                        if (typeof message.payload.playlist !== 'undefined') {
+                            player.setPlaylist(message.payload.playlist.tracks);
+                        }
+                        if (typeof message.payload.playing !== 'undefined') {
+                            player.setPlaying(message.payload.playing);
+                        }
+                    }
+
                     break;
                 }
             }

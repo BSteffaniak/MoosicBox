@@ -1,26 +1,17 @@
 import './playback-sessions.css';
-import { For, createEffect, createSignal, on } from 'solid-js';
+import { For, createSignal } from 'solid-js';
 import { Api } from '~/services/api';
 import {
     currentPlaybackSession,
-    playbackSessions,
+    playerState,
     setCurrentPlaybackSession,
 } from '~/services/player';
 import Album from '../Album';
 import * as ws from '~/services/ws';
 
 export default function playbackSessionsFunc() {
-    const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>([], {
-        equals: false,
-    });
-
-    createEffect(
-        on(
-            () => playbackSessions(),
-            (value) => {
-                setSessions(value);
-            },
-        ),
+    const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>(
+        playerState.playbackSessions,
     );
 
     function deleteSession(sessionId: number) {
@@ -36,7 +27,7 @@ export default function playbackSessionsFunc() {
     return (
         <div class="playback-sessions">
             <div class="playback-sessions-list">
-                <For each={sessions()}>
+                <For each={playerState.playbackSessions}>
                     {(session) => (
                         <div
                             class={`playback-sessions-list-session${

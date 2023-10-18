@@ -10,6 +10,7 @@ import {
     playbackAction,
     updateSession,
 } from './ws';
+import { createStore, produce } from 'solid-js/store';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -44,8 +45,39 @@ function createListener<CallbackType extends BaseCallbackType>(): {
     return { on, off, listeners, trigger: trigger as CallbackType };
 }
 
+interface PlayerState {
+    playing: boolean;
+    currentPlaybackSession: Api.PlaybackSession | undefined;
+    playbackSessions: Api.PlaybackSession[];
+}
+
+export const [playerState, setPlayerState] = createStore<PlayerState>({
+    playing: false,
+    currentPlaybackSession: undefined,
+    playbackSessions: [],
+});
+
 export const [sound, setSound] = createSignal<Howl>();
-export const [playing, setPlaying] = createSignal(false, { equals: false });
+export const [_playing, _setPlaying] = createSignal(false, { equals: false });
+const onPlayingChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _playing>,
+            old: ReturnType<typeof _playing>,
+        ) => boolean | void
+    >();
+export const onPlayingChanged = onPlayingChangedListener.on;
+export const offPlayingChanged = onPlayingChangedListener.off;
+export const playing = _playing;
+export const setPlaying = (value: Parameters<typeof _setPlaying>[0]) => {
+    const old = _playing();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setPlaying(value);
+    onPlayingChangedListener.trigger(value, old);
+};
+
 export const [_currentPlaybackSession, _setCurrentPlaybackSession] =
     createSignal<Api.PlaybackSession | undefined>(undefined, { equals: false });
 const onCurrentPlaybackSessionChangedListener =
@@ -68,33 +100,7 @@ export const setCurrentPlaybackSession = (
         value = value(old);
     }
     _setCurrentPlaybackSession(value);
-    if (value?.id !== old?.id) {
-        onCurrentPlaybackSessionChangedListener.trigger(value, old);
-    }
-};
-
-export const [_playbackSessions, _setPlaybackSessions] = createSignal<
-    Api.PlaybackSession[]
->([], { equals: false });
-const onPlaybackSessionsChangedListener =
-    createListener<
-        (
-            value: ReturnType<typeof _playbackSessions>,
-            old: ReturnType<typeof _playbackSessions>,
-        ) => boolean | void
-    >();
-export const onPlaybackSessionsChanged = onPlaybackSessionsChangedListener.on;
-export const offPlaybackSessionsChanged = onPlaybackSessionsChangedListener.off;
-export const playbackSessions = _playbackSessions;
-export const setPlaybackSessions = (
-    value: Parameters<typeof _setPlaybackSessions>[0],
-) => {
-    const old = _playbackSessions();
-    if (typeof value === 'function') {
-        value = value(old);
-    }
-    _setPlaybackSessions(value);
-    onPlaybackSessionsChangedListener.trigger(value, old);
+    onCurrentPlaybackSessionChangedListener.trigger(value, old);
 };
 
 export const [_currentSeek, _setCurrentSeek] = makePersisted(
@@ -343,23 +349,51 @@ function updateCurrentPlaybackSession(
     > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
 ) {
     const session = currentPlaybackSession();
-
     if (session) {
-        request.id = session.id;
-        const { playlist } = session;
-        if (playlist && request.playlist) {
-            request.playlist.id = playlist.id;
-        }
-        Object.assign(session, request);
-
-        _setCurrentPlaybackSession(session);
-        _setPlaybackSessions(_playbackSessions());
-        updateSession(request as PartialUpdateSession);
+        updatePlaybackSession(session.id, request);
     }
 }
 
-onCurrentPlaybackSessionChanged((value) => {
+function updatePlaybackSession(
+    id: number,
+    request: Omit<
+        PartialBy<PartialUpdateSession, 'id' | 'playlist'>,
+        'playlist'
+    > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
+) {
+    setPlayerState(
+        produce((state) => {
+            const current = state.currentPlaybackSession;
+            const session =
+                current?.id === id
+                    ? current
+                    : state.playbackSessions.find((s) => s.id === id);
+            if (session) {
+                Object.assign(session, request);
+                const index = state.playbackSessions.findIndex(
+                    (s) => s.id === session!.id,
+                );
+                if (index !== -1) {
+                    state.playbackSessions[index] = session;
+                }
+
+                request.id = session.id;
+                const { playlist } = session;
+                if (playlist && request.playlist) {
+                    request.playlist.id = playlist.id;
+                }
+                updateSession(request as PartialUpdateSession);
+            }
+        }),
+    );
+}
+
+onCurrentPlaybackSessionChanged((value, old) => {
     console.debug('session changed to', value);
+
+    if (old && playing()) {
+        updatePlaybackSession(old.id, { playing: false });
+    }
     if (value) {
         setPlaying(false);
         _setPlaylist(value.playlist.tracks);
@@ -378,10 +412,16 @@ onCurrentPlaybackSessionChanged((value) => {
 
 onPlay(() => {
     playbackAction(PlaybackAction.PLAY);
+    updateCurrentPlaybackSession({
+        playing: true,
+    });
 });
 
 onPause(() => {
     playbackAction(PlaybackAction.PAUSE);
+    updateCurrentPlaybackSession({
+        playing: false,
+    });
 });
 
 onNextTrack(() => {
