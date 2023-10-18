@@ -204,6 +204,20 @@ export const setPlaylist: typeof _setPlaylist = (
 };
 
 if (!isServer) {
+    window.onbeforeunload = () => {
+        if (playing()) {
+            pause();
+        }
+    };
+
+    if (import.meta.hot) {
+        import.meta.hot.on('vite:beforeUpdate', () => {
+            if (playing()) {
+                pause();
+            }
+        });
+    }
+
     document.body.onkeydown = function (e) {
         const target = e.target as HTMLElement;
 
