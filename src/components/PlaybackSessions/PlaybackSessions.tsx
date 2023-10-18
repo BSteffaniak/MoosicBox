@@ -1,13 +1,10 @@
 import './playback-sessions.css';
 import { For, createSignal } from 'solid-js';
 import { Api } from '~/services/api';
-import {
-    currentPlaybackSession,
-    playerState,
-    setCurrentPlaybackSession,
-} from '~/services/player';
+import { playerState, setPlayerState, updateSession } from '~/services/player';
 import Album from '../Album';
 import * as ws from '~/services/ws';
+import { produce } from 'solid-js/store';
 
 export default function playbackSessionsFunc() {
     const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>(
@@ -20,8 +17,12 @@ export default function playbackSessionsFunc() {
     }
 
     function activateSession(session: Api.PlaybackSession) {
-        if (session.id === currentPlaybackSession()?.id) return;
-        setCurrentPlaybackSession(session);
+        if (session.id === playerState.currentPlaybackSession?.id) return;
+        setPlayerState(
+            produce((state) => {
+                updateSession(state, session, true);
+            }),
+        );
     }
 
     return (
@@ -31,7 +32,8 @@ export default function playbackSessionsFunc() {
                     {(session) => (
                         <div
                             class={`playback-sessions-list-session${
-                                currentPlaybackSession()?.id === session.id
+                                playerState.currentPlaybackSession?.id ===
+                                session.id
                                     ? ' active'
                                     : ''
                             }`}
@@ -52,7 +54,7 @@ export default function playbackSessionsFunc() {
                                         (session.position ?? 0)}{' '}
                                     tracks queued
                                 </h3>
-                                {currentPlaybackSession()?.id ===
+                                {playerState.currentPlaybackSession?.id ===
                                     session.id && (
                                     <>
                                         <img

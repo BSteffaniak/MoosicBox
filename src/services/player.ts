@@ -1,16 +1,11 @@
+import * as ws from './ws';
 import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
 import { Api } from './api';
-import {
-    PartialBy,
-    PlaybackAction,
-    PartialUpdateSession,
-    playbackAction,
-    updateSession,
-} from './ws';
 import { createStore, produce } from 'solid-js/store';
+import { PartialBy, PartialUpdateSession } from './types';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -76,31 +71,6 @@ export const setPlaying = (value: Parameters<typeof _setPlaying>[0]) => {
     }
     _setPlaying(value);
     onPlayingChangedListener.trigger(value, old);
-};
-
-export const [_currentPlaybackSession, _setCurrentPlaybackSession] =
-    createSignal<Api.PlaybackSession | undefined>(undefined, { equals: false });
-const onCurrentPlaybackSessionChangedListener =
-    createListener<
-        (
-            value: ReturnType<typeof _currentPlaybackSession>,
-            old: ReturnType<typeof _currentPlaybackSession>,
-        ) => boolean | void
-    >();
-export const onCurrentPlaybackSessionChanged =
-    onCurrentPlaybackSessionChangedListener.on;
-export const offCurrentPlaybackSessionChanged =
-    onCurrentPlaybackSessionChangedListener.off;
-export const currentPlaybackSession = _currentPlaybackSession;
-export const setCurrentPlaybackSession = (
-    value: Parameters<typeof _setCurrentPlaybackSession>[0],
-) => {
-    const old = _currentPlaybackSession();
-    if (typeof value === 'function') {
-        value = value(old);
-    }
-    _setCurrentPlaybackSession(value);
-    onCurrentPlaybackSessionChangedListener.trigger(value, old);
 };
 
 export const [_currentSeek, _setCurrentSeek] = makePersisted(
@@ -362,7 +332,7 @@ function updateCurrentPlaybackSession(
         'playlist'
     > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
 ) {
-    const session = currentPlaybackSession();
+    const session = playerState.currentPlaybackSession;
     if (session) {
         updatePlaybackSession(session.id, request);
     }
@@ -396,13 +366,79 @@ function updatePlaybackSession(
                 if (playlist && request.playlist) {
                     request.playlist.id = playlist.id;
                 }
-                updateSession(request as PartialUpdateSession);
+                ws.updateSession(request as PartialUpdateSession);
             }
         }),
     );
 }
 
-onCurrentPlaybackSessionChanged((value, old) => {
+const onCurrentPlaybackSessionChangedListener =
+    createListener<
+        (
+            value: PlayerState['currentPlaybackSession'],
+            old: PlayerState['currentPlaybackSession'],
+        ) => boolean | void
+    >();
+export const onCurrentPlaybackSessionChanged =
+    onCurrentPlaybackSessionChangedListener.on;
+export const offCurrentPlaybackSessionChanged =
+    onCurrentPlaybackSessionChangedListener.off;
+
+export function updateSessionPartial(
+    state: PlayerState,
+    session: PartialUpdateSession,
+) {
+    state.playbackSessions.forEach((s) => {
+        if (s.id === session.id) {
+            Object.assign(s, session);
+        }
+    });
+
+    if (state.currentPlaybackSession) {
+        Object.assign(state.currentPlaybackSession, session);
+    }
+}
+
+export function updateSession(
+    state: PlayerState,
+    session: Api.PlaybackSession,
+    setAsCurrent = false,
+) {
+    state.playbackSessions.forEach((s) => {
+        if (s.id === session.id) {
+            Object.assign(s, session);
+        }
+    });
+
+    if (setAsCurrent || session.id === state.currentPlaybackSession?.id) {
+        const old = state.currentPlaybackSession;
+        state.currentPlaybackSession = session;
+
+        console.debug('session changed to', session, 'from', old);
+
+        if (old && old.id !== session.id && playing()) {
+            updatePlaybackSession(old.id, { playing: false });
+
+            setPlaying(false);
+        }
+
+        _setPlaylist(session.playlist.tracks);
+        _setCurrentSeek(session.seek);
+        _setPlaylistPosition(session.position ?? 0);
+
+        if (typeof session.position === 'number') {
+            const track = session.playlist.tracks[session.position];
+
+            if (track) {
+                setCurrentTrack(track);
+                setCurrentTrackLength(Math.round(track.duration));
+            }
+        }
+
+        onCurrentPlaybackSessionChangedListener.trigger(session, old);
+    }
+}
+/*onCurrentPlaybackSessionChanged((value, old) => {
     console.debug('session changed to', value);
 
     if (old && playing()) {
@@ -422,31 +458,31 @@ onCurrentPlaybackSessionChanged((value, old) => {
             }
         }
     }
-});
+});*/
 
 onPlay(() => {
-    playbackAction(PlaybackAction.PLAY);
+    ws.playbackAction(ws.PlaybackAction.PLAY);
     updateCurrentPlaybackSession({
         playing: true,
     });
 });
 
 onPause(() => {
-    playbackAction(PlaybackAction.PAUSE);
+    ws.playbackAction(ws.PlaybackAction.PAUSE);
     updateCurrentPlaybackSession({
         playing: false,
     });
 });
 
 onNextTrack(() => {
-    playbackAction(PlaybackAction.NEXT_TRACK);
+    ws.playbackAction(ws.PlaybackAction.NEXT_TRACK);
     updateCurrentPlaybackSession({
         position: playlistPosition(),
     });
 });
 
 onPreviousTrack(() => {
-    playbackAction(PlaybackAction.PREVIOUS_TRACK);
+    ws.playbackAction(ws.PlaybackAction.PREVIOUS_TRACK);
     updateCurrentPlaybackSession({
         position: playlistPosition(),
     });

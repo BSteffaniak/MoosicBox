@@ -2,6 +2,7 @@ import { produce } from 'solid-js/store';
 import { Api } from './api';
 import { onStartup } from './app';
 import * as player from './player';
+import { PartialUpdateSession } from './types';
 
 Api.onApiUrlUpdated((url) => {
     wsUrl = `ws${url.slice(4)}/ws`;
@@ -58,7 +59,6 @@ interface SessionUpdatedMessage extends InboundMessage {
 }
 
 interface PingMessage extends OutboundMessage {
-    connectionId: string;
     type: OutboundMessageType.PING;
 }
 
@@ -152,11 +152,6 @@ export function activateSession(sessionId: number) {
     updateSession({ id: sessionId, active: true });
 }
 
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-export type PartialUpdateSession = PartialBy<
-    Api.PlaybackSession,
-    'name' | 'active' | 'playing' | 'position' | 'seek' | 'playlist'
->;
 export function updateSession(session: PartialUpdateSession) {
     send<UpdateSessionMessage>({
         type: OutboundMessageType.UPDATE_SESSION,
@@ -245,17 +240,24 @@ function newClient(): Promise<WebSocket> {
                 case InboundMessageType.SESSIONS: {
                     const message = data as SessionsMessage;
                     console.debug('received sessions', message.payload);
-                    player.setPlayerState({
-                        playbackSessions: message.payload,
-                    });
-                    const existing = message.payload.find(
-                        (p) => p.id === player.currentPlaybackSession()?.id,
+                    player.setPlayerState(
+                        produce((state) => {
+                            state.playbackSessions = message.payload;
+                            const existing = message.payload.find(
+                                (p) =>
+                                    p.id === state.currentPlaybackSession?.id,
+                            );
+                            if (existing) {
+                                player.updateSession(state, existing);
+                            } else {
+                                player.updateSession(
+                                    state,
+                                    message.payload[0],
+                                    true,
+                                );
+                            }
+                        }),
                     );
-                    if (existing) {
-                        player.setCurrentPlaybackSession(existing);
-                    } else {
-                        player.setCurrentPlaybackSession(message.payload[0]);
-                    }
                     break;
                 }
                 case InboundMessageType.SESSION_UPDATED: {
@@ -263,16 +265,12 @@ function newClient(): Promise<WebSocket> {
                     console.debug('Received session update', message.payload);
                     player.setPlayerState(
                         produce((state) => {
-                            state.playbackSessions
-                                ?.filter((s) => s.id === message.payload.id)
-                                ?.forEach((s) =>
-                                    Object.assign(s, message.payload),
-                                );
+                            player.updateSessionPartial(state, message.payload);
                         }),
                     );
 
                     if (
-                        player.currentPlaybackSession()?.id ===
+                        player.playerState.currentPlaybackSession?.id ===
                         message.payload.id
                     ) {
                         if (typeof message.payload.position !== 'undefined') {
