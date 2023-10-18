@@ -452,27 +452,6 @@ export function updateSession(
         onCurrentPlaybackSessionChangedListener.trigger(session, old);
     }
 }
-/*onCurrentPlaybackSessionChanged((value, old) => {
-    console.debug('session changed to', value);
-
-    if (old && playing()) {
-        updatePlaybackSession(old.id, { playing: false });
-    }
-    if (value) {
-        setPlaying(false);
-        _setPlaylist(value.playlist.tracks);
-        _setCurrentSeek(value.seek);
-        _setPlaylistPosition(value.position ?? 0);
-        if (typeof value.position === 'number') {
-            const track = value.playlist.tracks[value.position];
-
-            if (track) {
-                setCurrentTrack(track);
-                setCurrentTrackLength(Math.round(track.duration));
-            }
-        }
-    }
-});*/
 
 onPlay(() => {
     ws.playbackAction(ws.PlaybackAction.PLAY);
