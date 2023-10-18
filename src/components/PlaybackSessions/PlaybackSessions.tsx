@@ -1,10 +1,14 @@
 import './playback-sessions.css';
-import { For, createSignal } from 'solid-js';
+import { For, Index, createSignal } from 'solid-js';
 import { Api } from '~/services/api';
 import { playerState, setPlayerState, updateSession } from '~/services/player';
 import Album from '../Album';
 import * as ws from '~/services/ws';
 import { produce } from 'solid-js/store';
+
+const queuedTracksCache: {
+    [id: number]: { position?: number; tracks: Api.Track[] };
+} = {};
 
 export default function playbackSessionsFunc() {
     const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>(
@@ -23,6 +27,22 @@ export default function playbackSessionsFunc() {
                 updateSession(state, session, true);
             }),
         );
+    }
+
+    function queuedTracks(session: Api.PlaybackSession) {
+        const cache = queuedTracksCache[session.id];
+
+        if (cache?.position === session.position) {
+            return cache.tracks;
+        }
+
+        const tracks = session.playlist.tracks.slice(
+            session.position ?? 0,
+            session.playlist.tracks.length,
+        );
+        queuedTracksCache[session.id] = { position: session.position, tracks };
+
+        return tracks;
     }
 
     return (
@@ -50,12 +70,8 @@ export default function playbackSessionsFunc() {
                                     {session.name}
                                 </h2>
                                 <h3 class="playback-sessions-list-session-header-session-tracks-queued">
-                                    {session.playlist.tracks.length -
-                                        (session.position ?? 0)}{' '}
-                                    track
-                                    {session.playlist.tracks.length -
-                                        (session.position ?? 0) ===
-                                    1
+                                    {queuedTracks(session).length} track
+                                    {queuedTracks(session).length === 1
                                         ? ''
                                         : 's'}{' '}
                                     queued
@@ -91,18 +107,16 @@ export default function playbackSessionsFunc() {
                             </div>
                             <div class="playback-sessions-playlist-tracks-container">
                                 <div class="playback-sessions-playlist-tracks">
-                                    <For each={session.playlist.tracks}>
+                                    <Index each={queuedTracks(session)}>
                                         {(track, index) =>
-                                            index() < (session.position ?? 0) ||
-                                            index() - (session.position ?? 0) >=
-                                                4 ? (
+                                            index >= 4 ? (
                                                 <></>
                                             ) : (
                                                 <div class="playback-sessions-playlist-tracks-track">
                                                     <div class="playback-sessions-playlist-tracks-track-album-artwork">
                                                         <div class="playback-sessions-playlist-tracks-track-album-artwork-icon">
                                                             <Album
-                                                                album={track}
+                                                                album={track()}
                                                                 size={40}
                                                                 route={false}
                                                             />
@@ -110,20 +124,18 @@ export default function playbackSessionsFunc() {
                                                     </div>
                                                     <div class="playback-sessions-playlist-tracks-track-details">
                                                         <div class="playback-sessions-playlist-tracks-track-details-title">
-                                                            {track.title}
+                                                            {track().title}
                                                         </div>
                                                         <div class="playback-sessions-playlist-tracks-track-details-artist">
-                                                            {track.artist}
+                                                            {track().artist}
                                                         </div>
                                                     </div>
                                                 </div>
                                             )
                                         }
-                                    </For>
+                                    </Index>
                                 </div>
-                                {session.playlist.tracks.length -
-                                    (session.position ?? 0) >=
-                                    3 && (
+                                {queuedTracks(session).length >= 3 && (
                                     <div class="playback-sessions-playlist-tracks-overlay"></div>
                                 )}
                             </div>

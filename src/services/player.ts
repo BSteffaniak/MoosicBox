@@ -361,19 +361,12 @@ function updatePlaybackSession(
                     ? current
                     : state.playbackSessions.find((s) => s.id === id);
             if (session) {
-                Object.assign(session, request);
-                const index = state.playbackSessions.findIndex(
-                    (s) => s.id === session!.id,
-                );
-                if (index !== -1) {
-                    state.playbackSessions[index] = session;
-                }
-
                 request.id = session.id;
                 const { playlist } = session;
                 if (playlist && request.playlist) {
                     request.playlist.id = playlist.id;
                 }
+                updateSessionPartial(state, request as PartialUpdateSession);
                 ws.updateSession(request as PartialUpdateSession);
             }
         }),
@@ -402,7 +395,7 @@ export function updateSessionPartial(
         }
     });
 
-    if (state.currentPlaybackSession) {
+    if (state.currentPlaybackSession?.id == session.id) {
         Object.assign(state.currentPlaybackSession, session);
     }
 }
