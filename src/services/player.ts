@@ -214,10 +214,10 @@ if (!isServer) {
 }
 
 export interface PlayerType {
-    play(): void;
-    playAlbum(album: Api.Album | Api.Track): Promise<void>;
-    playPlaylist(tracks: Api.Track[]): void;
-    playFromPlaylistPosition(index: number): void;
+    play(): boolean | void;
+    playAlbum(album: Api.Album | Api.Track): Promise<boolean | void>;
+    playPlaylist(tracks: Api.Track[]): boolean | void;
+    playFromPlaylistPosition(index: number): boolean | void;
     addAlbumToQueue(album: Api.Album | Api.Track): Promise<void>;
     removeTrackFromPlaylist(index: number): void;
     pause(): void;
@@ -232,7 +232,7 @@ export const onPlay = playListener.on;
 export const offPlay = playListener.off;
 
 export function play() {
-    player.play();
+    if (player.play() === false) return;
     playListener.trigger();
 }
 
@@ -385,6 +385,11 @@ export const onCurrentPlaybackSessionChanged =
 export const offCurrentPlaybackSessionChanged =
     onCurrentPlaybackSessionChangedListener.off;
 
+const onUpdateSessionPartialListener =
+    createListener<(value: PartialUpdateSession) => boolean | void>();
+export const onUpdateSessionPartial = onUpdateSessionPartialListener.on;
+export const offUpdateSessionPartial = onUpdateSessionPartialListener.off;
+
 export function updateSessionPartial(
     state: PlayerState,
     session: PartialUpdateSession,
@@ -395,9 +400,43 @@ export function updateSessionPartial(
         }
     });
 
-    if (state.currentPlaybackSession?.id == session.id) {
+    if (state.currentPlaybackSession?.id === session.id) {
         Object.assign(state.currentPlaybackSession, session);
+
+        if (state.currentPlaybackSession?.id === session.id) {
+            if (typeof session.position !== 'undefined') {
+                _setPlaylistPosition(session.position);
+            }
+            if (typeof session.seek !== 'undefined') {
+                _setCurrentSeek(session.seek);
+            }
+            if (typeof session.playlist !== 'undefined') {
+                _setPlaylist(session.playlist.tracks);
+            }
+            if (typeof session.playing !== 'undefined') {
+                if (!session.playing && playing()) {
+                    pause();
+                }
+            }
+
+            if (typeof playlistPosition() === 'number') {
+                const track =
+                    state.currentPlaybackSession.playlist.tracks[
+                        playlistPosition()!
+                    ];
+
+                if (track) {
+                    setCurrentTrack(track);
+                    setCurrentTrackLength(Math.round(track.duration));
+                }
+            } else {
+                setCurrentTrack(undefined);
+                setCurrentTrackLength(0);
+            }
+        }
     }
+
+    onUpdateSessionPartialListener.trigger(session);
 }
 
 export function updateSession(
@@ -424,14 +463,18 @@ export function updateSession(
             setPlaying(false);
         }
 
+        if (!playing() && session.playing) {
+            setPlaying(true);
+        }
+
         _setPlaylist(session.playlist.tracks);
         _setCurrentSeek(session.seek);
         _setPlaylistPosition(
             session.playlist.tracks.length > 0 ? session.position : undefined,
         );
 
-        if (typeof session.position === 'number') {
-            const track = session.playlist.tracks[session.position];
+        if (typeof playlistPosition() === 'number') {
+            const track = session.playlist.tracks[playlistPosition()!];
 
             if (track) {
                 setCurrentTrack(track);
@@ -447,12 +490,10 @@ export function updateSession(
 }
 
 onPlay(() => {
-    if (playing()) {
-        ws.playbackAction(ws.PlaybackAction.PLAY);
-        updateCurrentPlaybackSession({
-            playing: true,
-        });
-    }
+    ws.playbackAction(ws.PlaybackAction.PLAY);
+    updateCurrentPlaybackSession({
+        playing: true,
+    });
 });
 
 onPause(() => {
@@ -493,7 +534,7 @@ onAddAlbumToQueue(() => {
 });
 
 onPlayAlbum(() => {
-    console.debug('playing album');
+    console.debug('playing album', _playlist());
     updateCurrentPlaybackSession({
         position: playlistPosition(),
         playlist: { tracks: _playlist() },

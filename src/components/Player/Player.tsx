@@ -1,5 +1,6 @@
 import {
     Show,
+    createComputed,
     createEffect,
     createSignal,
     on,
@@ -20,7 +21,8 @@ import {
     onPreviousTrack,
     pause,
     play,
-    playing,
+    playing as playerPlaying,
+    playerState,
     previousTrack,
     seek,
     setCurrentAlbum,
@@ -74,6 +76,14 @@ export default function player() {
     const [applyDrag, setApplyDrag] = createSignal(false);
     const [seekPosition, setSeekPosition] = createSignal(currentSeek());
     const [showingPlaylist, setShowingPlaylist] = createSignal(false);
+    const [playing, setPlaying] = createSignal(playerPlaying());
+
+    createComputed(() => {
+        setPlaying(
+            playerPlaying() ||
+                (playerState.currentPlaybackSession?.playing ?? false),
+        );
+    });
 
     function speedyProgressTransition() {
         progressBar?.classList.add('no-transition');

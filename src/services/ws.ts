@@ -252,7 +252,6 @@ function newClient(): Promise<WebSocket> {
 
         client.addEventListener('message', (event: MessageEvent<string>) => {
             const data = JSON.parse(event.data) as InboundMessage;
-            console.debug('Received message', data);
             switch (data.type) {
                 case InboundMessageType.CONNECT: {
                     const message = data as ConnectMessage;
@@ -290,15 +289,15 @@ function newClient(): Promise<WebSocket> {
                                 typeof player.currentPlaybackSessionId() ===
                                 'number'
                             ) {
-                                player.updateSession(
-                                    state,
+                                const session =
                                     message.payload.find(
                                         (s) =>
                                             s.id ===
                                             player.currentPlaybackSessionId(),
-                                    ) ?? message.payload[0],
-                                    true,
-                                );
+                                    ) ?? message.payload[0];
+                                if (session) {
+                                    player.updateSession(state, session, true);
+                                }
                             } else {
                                 player.updateSession(
                                     state,
@@ -318,26 +317,6 @@ function newClient(): Promise<WebSocket> {
                             player.updateSessionPartial(state, message.payload);
                         }),
                     );
-
-                    if (
-                        player.playerState.currentPlaybackSession?.id ===
-                        message.payload.id
-                    ) {
-                        if (typeof message.payload.position !== 'undefined') {
-                            player.setPlaylistPosition(
-                                message.payload.position,
-                            );
-                        }
-                        if (typeof message.payload.seek !== 'undefined') {
-                            player.setCurrentSeek(message.payload.seek);
-                        }
-                        if (typeof message.payload.playlist !== 'undefined') {
-                            player.setPlaylist(message.payload.playlist.tracks);
-                        }
-                        if (typeof message.payload.playing !== 'undefined') {
-                            player.setPlaying(message.payload.playing);
-                        }
-                    }
 
                     break;
                 }

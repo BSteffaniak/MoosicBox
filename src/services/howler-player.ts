@@ -16,6 +16,9 @@ import {
     setPlaying,
     setPlaylist,
     setPlaylistPosition,
+    play as playerPlay,
+    onUpdateSessionPartial,
+    playerState,
 } from './player';
 
 export type TrackListenerCallback = (
@@ -78,18 +81,28 @@ function setTrack(): boolean {
     return true;
 }
 
-onCurrentPlaybackSessionChanged(() => {
-    console.debug('session changed');
-    loaded = false;
-    sound()?.unload();
-    setSound(undefined);
+onCurrentPlaybackSessionChanged((value, old) => {
+    if (value?.id !== old?.id) {
+        console.debug('session changed');
+        stopHowl();
+    }
+});
+onUpdateSessionPartial((value) => {
+    if (
+        value.id === playerState.currentPlaybackSession?.id &&
+        value.playing &&
+        !playing()
+    ) {
+        console.debug('stopping howl');
+        stopHowl();
+    }
 });
 
 let ended: boolean = true;
 let loaded = false;
 
-function play() {
-    if (!setTrack()) return;
+function play(): boolean {
+    if (!setTrack()) return false;
 
     const initialSeek = currentSeek();
 
@@ -113,10 +126,15 @@ function play() {
     );
     sound()!.on(
         'load',
-        (loadHandle = () => {
+        (loadHandle = (...args) => {
             ended = false;
             loaded = true;
-            console.debug('Track loaded', sound(), sound()!.duration());
+            console.debug(
+                'Track loaded',
+                sound(),
+                sound()!.duration(),
+                ...args,
+            );
             setCurrentTrackLength(Math.round(sound()!.duration()));
             if (typeof initialSeek === 'number') {
                 console.debug(`Setting initial seek to ${initialSeek}`);
@@ -139,6 +157,8 @@ function play() {
 
     setPlaying(true);
     console.debug('Playing', sound());
+
+    return true;
 }
 
 function seek(seek: number) {
@@ -192,14 +212,19 @@ function nextTrack(): boolean {
     }
 }
 
-function stop() {
+function stopHowl() {
     sound()?.off('end', endHandle);
     sound()?.off('load', loadHandle);
     if (!ended) {
         sound()?.stop();
     }
+    loaded = false;
     sound()?.unload();
     setSound(undefined);
+}
+
+function stop() {
+    stopHowl();
     setCurrentSeek(undefined);
     clearInterval(seekHandle);
     setCurrentTrack(undefined);
@@ -208,7 +233,7 @@ function stop() {
     console.debug('Track stopped');
 }
 
-async function playAlbum(album: Api.Album | Api.Track) {
+async function playAlbum(album: Api.Album | Api.Track): Promise<boolean> {
     setCurrentAlbum(album);
 
     const tracks = await api.getAlbumTracks(album.albumId);
@@ -216,17 +241,17 @@ async function playAlbum(album: Api.Album | Api.Track) {
     setPlaylistPosition(0);
     setPlaylist(tracks);
     stop();
-    play();
+    return playerPlay()!;
 }
 
-function playPlaylist(tracks: Api.Track[]) {
+function playPlaylist(tracks: Api.Track[]): boolean {
     const firstTrack = tracks[0];
     setCurrentAlbum(firstTrack);
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
     stop();
-    play();
+    return playerPlay()!;
 }
 
 async function addAlbumToQueue(album: Api.Album | Api.Track) {
