@@ -56,9 +56,13 @@ function refreshCurrentSeek() {
     }
 }
 
-function setTrack() {
+function setTrack(): boolean {
     if (!sound()) {
-        const track = playlist()![playlistPosition()];
+        if (typeof playlistPosition() === 'undefined') {
+            console.debug('No track to play');
+            return false;
+        }
+        const track = playlist()![playlistPosition()!];
         console.debug('Setting track to', track);
         setSound(
             new Howl({
@@ -71,6 +75,7 @@ function setTrack() {
         setCurrentTrack(track);
         setCurrentTrackLength(Math.round(track.duration));
     }
+    return true;
 }
 
 onCurrentPlaybackSessionChanged(() => {
@@ -84,7 +89,7 @@ let ended: boolean = true;
 let loaded = false;
 
 function play() {
-    setTrack();
+    if (!setTrack()) return;
 
     const initialSeek = currentSeek();
 
@@ -155,7 +160,7 @@ function pause() {
 function previousTrack(): boolean {
     if ((sound()?.seek() ?? 0) < 5) {
         console.debug('Playing previous track');
-        setPlaylistPosition((value) => (value > 0 ? value - 1 : value));
+        setPlaylistPosition((value) => (value! > 0 ? value! - 1 : value!));
         const shouldPlay = playing();
         stop();
         if (shouldPlay) play();
@@ -169,9 +174,12 @@ function previousTrack(): boolean {
 }
 
 function nextTrack(): boolean {
-    if (playlistPosition() < playlist()!.length - 1) {
+    if (
+        typeof playlistPosition() === 'number' &&
+        playlistPosition()! < playlist()!.length - 1
+    ) {
         console.debug('Playing next track');
-        setPlaylistPosition((value) => value + 1);
+        setPlaylistPosition((value) => value! + 1);
         const shouldPlay = playing();
         stop();
         if (shouldPlay) play();
@@ -229,8 +237,8 @@ async function addAlbumToQueue(album: Api.Album | Api.Track) {
 
 function removeTrackFromPlaylist(index: number) {
     console.debug('Removing track from playlist', index);
-    if (index < playlistPosition()) {
-        setPlaylistPosition(playlistPosition() - 1);
+    if (index < playlistPosition()!) {
+        setPlaylistPosition(playlistPosition()! - 1);
     }
     setPlaylist([...playlist()!.filter((_, i) => i !== index)]);
 }

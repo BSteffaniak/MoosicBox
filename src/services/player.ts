@@ -132,7 +132,7 @@ export const [currentTrack, setCurrentTrack] = makePersisted(
 );
 
 export const [_playlistPosition, _setPlaylistPosition] = makePersisted(
-    createSignal<number>(0, { equals: false }),
+    createSignal<number | undefined>(undefined, { equals: false }),
     { name: `player.v1.playlistPosition` },
 );
 const onPlaylistPositionChangedListener =
@@ -145,7 +145,7 @@ const onPlaylistPositionChangedListener =
 export const onPlaylistPositionChanged = onPlaylistPositionChangedListener.on;
 export const offPlaylistPositionChanged = onPlaylistPositionChangedListener.off;
 export const playlistPosition = _playlistPosition;
-export const setPlaylistPosition: typeof _setPlaylistPosition = (
+export const setPlaylistPosition = (
     value: Parameters<typeof _setPlaylistPosition>[0],
 ) => {
     const old = _playlistPosition();
@@ -433,7 +433,9 @@ export function updateSession(
 
         _setPlaylist(session.playlist.tracks);
         _setCurrentSeek(session.seek);
-        _setPlaylistPosition(session.position ?? 0);
+        _setPlaylistPosition(
+            session.playlist.tracks.length > 0 ? session.position : undefined,
+        );
 
         if (typeof session.position === 'number') {
             const track = session.playlist.tracks[session.position];
@@ -442,6 +444,9 @@ export function updateSession(
                 setCurrentTrack(track);
                 setCurrentTrackLength(Math.round(track.duration));
             }
+        } else {
+            setCurrentTrack(undefined);
+            setCurrentTrackLength(0);
         }
 
         onCurrentPlaybackSessionChangedListener.trigger(session, old);
