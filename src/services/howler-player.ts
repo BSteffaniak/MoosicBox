@@ -197,7 +197,6 @@ function stop() {
     setCurrentTrack(undefined);
     setCurrentTrackLength(0);
     setPlaying(false);
-    console.trace();
     console.debug('Track stopped');
 }
 

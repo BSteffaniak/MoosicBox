@@ -19,7 +19,6 @@ export default function global() {
     let apiUrlInput: HTMLInputElement;
 
     function saveApiUrl() {
-        console.log(apiUrlInput.value);
         Api.setApiUrl(apiUrlInput.value);
     }
 

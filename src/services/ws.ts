@@ -274,14 +274,14 @@ function newClient(): Promise<WebSocket> {
 
         client.addEventListener('close', async () => {
             if (opened) {
-                console.log('Closed');
+                console.debug('Closed WebSocket connection');
                 opened = false;
                 client.close();
                 clearInterval(pingInterval);
 
                 const now = Date.now();
                 if (lastConnectionAttemptTime + 5000 > now) {
-                    console.log(
+                    console.debug(
                         `Debouncing connection retry attempt. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
                     );
                     await sleep(CONNECTION_RETRY_DEBOUNCE);
@@ -310,7 +310,7 @@ async function attemptConnection(): Promise<WebSocket> {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        console.log(
+        console.debug(
             `Attempting connection${
                 attemptNumber > 0 ? `, Attempt ${attemptNumber + 1}` : ''
             }`,
@@ -320,7 +320,7 @@ async function attemptConnection(): Promise<WebSocket> {
             const ws = await newClient();
             getSessions();
 
-            console.log('Successfully connected client');
+            console.debug('Successfully connected client');
 
             return ws;
         } catch (e: unknown) {
@@ -331,8 +331,8 @@ async function attemptConnection(): Promise<WebSocket> {
                 break;
             }
 
-            console.error(e);
-            console.log(
+            console.error('WebSocket connection failed', e);
+            console.debug(
                 `Failed to connect. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
             );
             await sleep(CONNECTION_RETRY_DEBOUNCE);
