@@ -512,7 +512,7 @@ onPlaylistChanged((value, old) => {
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
     updateCurrentPlaybackSession({
-        seek: value,
+        seek: value ?? 0,
     });
 });
 
