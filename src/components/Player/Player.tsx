@@ -40,7 +40,10 @@ function eventToSeekPosition(element: HTMLElement): number {
     if (!element) return 0;
 
     const pos = element.getBoundingClientRect()!;
-    const percentage = (mouseX - pos.left) / pos.width;
+    const percentage = Math.min(
+        100,
+        Math.max(0, (mouseX - pos.left) / pos.width),
+    );
     return currentTrackLength() * percentage;
 }
 
