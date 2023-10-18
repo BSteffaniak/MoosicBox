@@ -249,6 +249,19 @@ function newClient(): Promise<WebSocket> {
                             );
                             if (existing) {
                                 player.updateSession(state, existing);
+                            } else if (
+                                typeof player.currentPlaybackSessionId() ===
+                                'number'
+                            ) {
+                                player.updateSession(
+                                    state,
+                                    message.payload.find(
+                                        (s) =>
+                                            s.id ===
+                                            player.currentPlaybackSessionId(),
+                                    ) ?? message.payload[0],
+                                    true,
+                                );
                             } else {
                                 player.updateSession(
                                     state,

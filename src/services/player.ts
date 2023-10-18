@@ -52,6 +52,14 @@ export const [playerState, setPlayerState] = createStore<PlayerState>({
     playbackSessions: [],
 });
 
+export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
+    makePersisted(
+        createSignal<number | undefined>(undefined, { equals: false }),
+        {
+            name: `player.v1.currentPlaybackSessionId`,
+        },
+    );
+
 export const [sound, setSound] = createSignal<Howl>();
 export const [_playing, _setPlaying] = createSignal(false, { equals: false });
 const onPlayingChangedListener =
@@ -413,6 +421,7 @@ export function updateSession(
     if (setAsCurrent || session.id === state.currentPlaybackSession?.id) {
         const old = state.currentPlaybackSession;
         state.currentPlaybackSession = session;
+        setCurrentPlaybackSessionId(session.id);
 
         console.debug('session changed to', session, 'from', old);
 
