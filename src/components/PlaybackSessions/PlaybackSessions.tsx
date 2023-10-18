@@ -32,7 +32,12 @@ export default function playbackSessionsFunc() {
     function queuedTracks(session: Api.PlaybackSession) {
         const cache = queuedTracksCache[session.id];
 
-        if (cache?.position === session.position) {
+        if (
+            cache?.position === session.position &&
+            cache?.tracks.every(
+                (t, i) => session.playlist.tracks[i]?.trackId === t.trackId,
+            )
+        ) {
             return cache.tracks;
         }
 
