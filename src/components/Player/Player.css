@@ -169,6 +169,8 @@
 }
 
 .player .player-track-options-buttons {
+    display: flex;
+    justify-content: end;
     text-align: right;
     padding-right: 20px;
 }
@@ -212,9 +214,16 @@
     transition: none !important;
 }
 
-.show-playlist-icon {
+.show-playback-sessions-icon {
     width: 25px;
     cursor: pointer;
+    margin: 0 10px;
+}
+
+.show-playlist-icon {
+    width: 32px;
+    cursor: pointer;
+    margin: 0 10px;
 }
 
 .playlist-slideout {

@@ -1,7 +1,6 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
 import { createSignal } from 'solid-js';
-import { currentPlayerId } from './player';
 
 function getDefaultApiUrl(): string {
     if (isServer) return 'http://localhost:8000';
@@ -77,6 +76,21 @@ export namespace Api {
         artistId: number;
         containsArtwork: boolean;
         blur: boolean;
+    }
+
+    export interface PlaybackSession {
+        id: number;
+        name: string;
+        active: boolean;
+        playing: boolean;
+        position?: number;
+        seek?: number;
+        playlist: PlaybackSessionPlaylist;
+    }
+
+    export interface PlaybackSessionPlaylist {
+        id: number;
+        tracks: Track[];
     }
 
     export type ArtistSort = 'Name';

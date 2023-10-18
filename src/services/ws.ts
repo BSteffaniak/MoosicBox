@@ -1,5 +1,6 @@
 import { Api } from './api';
 import { onStartup } from './app';
+import * as player from './player';
 
 Api.onApiUrlUpdated((url) => {
     wsUrl = `ws${url.slice(4)}/ws`;
@@ -15,11 +16,16 @@ enum InboundMessageType {
     CONNECT = 'CONNECT',
     CONNECTION_ID = 'CONNECTION_ID',
     CONNECTIONS_DATA = 'CONNECTIONS_DATA',
+    SESSIONS = 'SESSIONS',
 }
 
 enum OutboundMessageType {
     PING = 'PING',
     SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
+    PLAYBACK_ACTION = 'PLAYBACK_ACTION',
+    GET_SESSIONS = 'GET_SESSIONS',
+    UPDATE_SESSION = 'UPDATE_SESSION',
+    DELETE_SESSION = 'DELETE_SESSION',
 }
 
 interface ConnectMessage extends InboundMessage {
@@ -39,6 +45,11 @@ interface ConnectionsDataMessage extends InboundMessage {
     };
 }
 
+interface SessionsMessage extends InboundMessage {
+    type: InboundMessageType.SESSIONS;
+    payload: Api.PlaybackSession[];
+}
+
 interface PingMessage extends OutboundMessage {
     connectionId: string;
     type: OutboundMessageType.PING;
@@ -46,10 +57,52 @@ interface PingMessage extends OutboundMessage {
 
 interface SyncConnectionDataMessage extends OutboundMessage {
     type: OutboundMessageType.SYNC_CONNECTION_DATA;
-    connectionId: string;
     payload: {
         playing: boolean;
     };
+}
+
+export enum PlaybackAction {
+    PLAY = 'PLAY',
+    PAUSE = 'PAUSE',
+    NEXT_TRACK = 'NEXT_TRACK',
+    PREVIOUS_TRACK = 'PREVIOUS_TRACK',
+}
+
+interface PlaybackActionMessage extends OutboundMessage {
+    type: OutboundMessageType.PLAYBACK_ACTION;
+    payload: {
+        action: PlaybackAction;
+    };
+}
+
+interface GetSessionsMessage extends OutboundMessage {
+    type: OutboundMessageType.GET_SESSIONS;
+}
+
+export interface UpdateSession {
+    id: number;
+    name?: string;
+    active?: boolean;
+    playing?: boolean;
+    position?: number;
+    seek?: number;
+    playlist?: UpdateSessionPlaylist;
+}
+
+interface UpdateSessionPlaylist {
+    id: number;
+    tracks: number[];
+}
+
+interface UpdateSessionMessage extends OutboundMessage {
+    type: OutboundMessageType.UPDATE_SESSION;
+    payload: UpdateSession;
+}
+
+interface DeleteSessionMessage extends OutboundMessage {
+    type: OutboundMessageType.DELETE_SESSION;
+    payload: { sessionId: number };
 }
 
 interface InboundMessage {
@@ -67,12 +120,61 @@ function ping() {
 function syncConnectionData() {
     send<SyncConnectionDataMessage>({
         type: OutboundMessageType.SYNC_CONNECTION_DATA,
-        payload: { playing: true },
+        payload: {
+            playing: player.playing(),
+        },
+    });
+}
+
+export function playbackAction(action: PlaybackAction) {
+    send<PlaybackActionMessage>({
+        type: OutboundMessageType.PLAYBACK_ACTION,
+        payload: {
+            action,
+        },
+    });
+}
+
+function getSessions() {
+    send<GetSessionsMessage>({
+        type: OutboundMessageType.GET_SESSIONS,
+    });
+}
+
+export function activateSession(sessionId: number) {
+    updateSession({ id: sessionId, active: true });
+}
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type UpdateSessionRequest = PartialBy<
+    Api.PlaybackSession,
+    'name' | 'active' | 'playing' | 'position' | 'seek' | 'playlist'
+>;
+export function updateSession(session: UpdateSessionRequest) {
+    send<UpdateSessionMessage>({
+        type: OutboundMessageType.UPDATE_SESSION,
+        payload: {
+            ...session,
+            playlist: session.playlist
+                ? {
+                      ...session.playlist,
+                      tracks: session.playlist.tracks.map((t) => t.trackId),
+                  }
+                : undefined,
+        },
+    });
+}
+
+export function deleteSession(sessionId: number) {
+    send<DeleteSessionMessage>({
+        type: OutboundMessageType.DELETE_SESSION,
+        payload: {
+            sessionId,
+        },
     });
 }
 
 function send<T extends OutboundMessage>(value: Omit<T, 'connectionId'>) {
-    if (!connectionId) throw new Error('No connectionId');
     ws.send(JSON.stringify({ connectionId, ...value }));
 }
 
@@ -125,11 +227,26 @@ function newClient(): Promise<WebSocket> {
                     const message = data as ConnectionIdMessage;
                     connectionId = message.connectionId;
                     syncConnectionData();
+                    console.debug('received connection id', connectionId);
                     break;
                 }
                 case InboundMessageType.CONNECTIONS_DATA: {
                     const message = data as ConnectionsDataMessage;
-                    console.log(message.payload);
+                    console.debug('received connections data', message.payload);
+                    break;
+                }
+                case InboundMessageType.SESSIONS: {
+                    const message = data as SessionsMessage;
+                    console.debug('received sessions', message.payload);
+                    player.setPlaybackSessions(message.payload);
+                    const existing = message.payload.find(
+                        (p) => p.id === player.currentPlaybackSession()?.id,
+                    );
+                    if (existing) {
+                        player.setCurrentPlaybackSession(existing);
+                    } else {
+                        player.setCurrentPlaybackSession(message.payload[0]);
+                    }
                     break;
                 }
             }
@@ -181,6 +298,7 @@ async function attemptConnection(): Promise<WebSocket> {
 
         try {
             const ws = await newClient();
+            getSessions();
 
             console.log('Successfully connected client');
 
@@ -193,6 +311,7 @@ async function attemptConnection(): Promise<WebSocket> {
                 break;
             }
 
+            console.error(e);
             console.log(
                 `Failed to connect. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
             );

@@ -3,6 +3,13 @@ import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
 import { Api } from './api';
+import {
+    PartialBy,
+    PlaybackAction,
+    UpdateSessionRequest,
+    playbackAction,
+    updateSession,
+} from './ws';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -10,7 +17,7 @@ export type TrackListenerCallback = (
 ) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type BaseCallbackType = (...args: any) => any;
+type BaseCallbackType = (...args: any) => boolean | void;
 function createListener<CallbackType extends BaseCallbackType>(): {
     on: (callback: CallbackType) => CallbackType;
     off: (callback: CallbackType) => void;
@@ -27,7 +34,11 @@ function createListener<CallbackType extends BaseCallbackType>(): {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const trigger = (...args: any) => {
-        listeners.forEach((callback) => callback(...args));
+        for (const listener of listeners) {
+            if (listener(...args) === false) {
+                break;
+            }
+        }
     };
 
     return { on, off, listeners, trigger: trigger as CallbackType };
@@ -35,12 +46,86 @@ function createListener<CallbackType extends BaseCallbackType>(): {
 
 export const [sound, setSound] = createSignal<Howl>();
 export const [playing, setPlaying] = createSignal(false, { equals: false });
-export const [currentSeek, setCurrentSeek] = makePersisted(
+export const [_currentPlaybackSession, _setCurrentPlaybackSession] =
+    createSignal<Api.PlaybackSession | undefined>(undefined, { equals: false });
+const onCurrentPlaybackSessionChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _currentPlaybackSession>,
+            old: ReturnType<typeof _currentPlaybackSession>,
+        ) => boolean | void
+    >();
+export const onCurrentPlaybackSessionChanged =
+    onCurrentPlaybackSessionChangedListener.on;
+export const offCurrentPlaybackSessionChanged =
+    onCurrentPlaybackSessionChangedListener.off;
+export const currentPlaybackSession = _currentPlaybackSession;
+export const setCurrentPlaybackSession = (
+    value: Parameters<typeof _setCurrentPlaybackSession>[0],
+) => {
+    const old = _currentPlaybackSession();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setCurrentPlaybackSession(value);
+    if (value?.id !== old?.id) {
+        onCurrentPlaybackSessionChangedListener.trigger(value, old);
+    }
+};
+
+export const [_playbackSessions, _setPlaybackSessions] = createSignal<
+    Api.PlaybackSession[]
+>([], { equals: false });
+const onPlaybackSessionsChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _playbackSessions>,
+            old: ReturnType<typeof _playbackSessions>,
+        ) => boolean | void
+    >();
+export const onPlaybackSessionsChanged = onPlaybackSessionsChangedListener.on;
+export const offPlaybackSessionsChanged = onPlaybackSessionsChangedListener.off;
+export const playbackSessions = _playbackSessions;
+export const setPlaybackSessions = (
+    value: Parameters<typeof _setPlaybackSessions>[0],
+) => {
+    const old = _playbackSessions();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setPlaybackSessions(value);
+    onPlaybackSessionsChangedListener.trigger(value, old);
+};
+
+export const [_currentSeek, _setCurrentSeek] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
     {
         name: `player.v1.currentSeek`,
     },
 );
+const onCurrentSeekChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _currentSeek>,
+            old: ReturnType<typeof _currentSeek>,
+        ) => boolean | void
+    >();
+export const onCurrentSeekChanged = onCurrentSeekChangedListener.on;
+export const offCurrentSeekChanged = onCurrentSeekChangedListener.off;
+export const currentSeek = _currentSeek;
+export const setCurrentSeek = (
+    value: Parameters<typeof _setCurrentSeek>[0],
+) => {
+    const old = _currentSeek();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setCurrentSeek(value);
+    if (value !== old) {
+        onCurrentSeekChangedListener.trigger(value, old);
+    }
+};
+
 export const [currentTrackLength, setCurrentTrackLength] = makePersisted(
     createSignal<number>(0, { equals: false }),
     {
@@ -61,14 +146,56 @@ export const [currentTrack, setCurrentTrack] = makePersisted(
         name: `player.v2.currentTrack`,
     },
 );
-export const [playlistPosition, setPlaylistPosition] = makePersisted(
+
+export const [_playlistPosition, _setPlaylistPosition] = makePersisted(
     createSignal<number>(0, { equals: false }),
     { name: `player.v1.playlistPosition` },
 );
-export const [playlist, setPlaylist] = makePersisted(
+const onPlaylistPositionChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _playlistPosition>,
+            old: ReturnType<typeof _playlistPosition>,
+        ) => boolean | void
+    >();
+export const onPlaylistPositionChanged = onPlaylistPositionChangedListener.on;
+export const offPlaylistPositionChanged = onPlaylistPositionChangedListener.off;
+export const playlistPosition = _playlistPosition;
+export const setPlaylistPosition: typeof _setPlaylistPosition = (
+    value: Parameters<typeof _setPlaylistPosition>[0],
+) => {
+    const old = _playlistPosition();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setPlaylistPosition(value);
+    onPlaylistPositionChangedListener.trigger(value, old);
+};
+
+const [_playlist, _setPlaylist] = makePersisted(
     createSignal<Api.Track[]>([], { equals: false }),
     { name: `player.v1.playlist` },
 );
+const onPlaylistChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _playlist>,
+            old: ReturnType<typeof _playlist>,
+        ) => boolean | void
+    >();
+export const onPlaylistChanged = onPlaylistChangedListener.on;
+export const offPlaylistChanged = onPlaylistChangedListener.off;
+export const playlist = _playlist;
+export const setPlaylist: typeof _setPlaylist = (
+    value: Parameters<typeof _setPlaylist>[0],
+) => {
+    const old = _playlist();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setPlaylist(value);
+    onPlaylistChangedListener.trigger(value, old);
+};
 
 if (!isServer) {
     document.body.onkeydown = function (e) {
@@ -208,3 +335,103 @@ export function playFromPlaylistPosition(index: number) {
 }
 
 export const player: PlayerType = {} as PlayerType;
+
+function updateCurrentPlaybackSession(
+    request: Omit<
+        PartialBy<UpdateSessionRequest, 'id' | 'playlist'>,
+        'playlist'
+    > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
+) {
+    const session = currentPlaybackSession();
+
+    if (session) {
+        request.id = session.id;
+        const { playlist } = session;
+        if (playlist && request.playlist) {
+            request.playlist.id = playlist.id;
+        }
+        Object.assign(session, request);
+
+        _setCurrentPlaybackSession(session);
+        _setPlaybackSessions(_playbackSessions());
+        updateSession(request as UpdateSessionRequest);
+    }
+}
+
+onCurrentPlaybackSessionChanged((value) => {
+    console.debug('session changed to', value);
+    if (value) {
+        setPlaying(false);
+        _setPlaylist(value.playlist.tracks);
+        _setCurrentSeek(value.seek);
+        _setPlaylistPosition(value.position ?? 0);
+        if (typeof value.position === 'number') {
+            const track = value.playlist.tracks[value.position];
+
+            if (track) {
+                setCurrentTrackLength(Math.round(track.duration));
+            }
+        }
+    }
+});
+
+onPlay(() => {
+    playbackAction(PlaybackAction.PLAY);
+});
+
+onPause(() => {
+    playbackAction(PlaybackAction.PAUSE);
+});
+
+onNextTrack(() => {
+    playbackAction(PlaybackAction.NEXT_TRACK);
+    updateCurrentPlaybackSession({
+        position: playlistPosition(),
+    });
+});
+
+onPreviousTrack(() => {
+    playbackAction(PlaybackAction.PREVIOUS_TRACK);
+    updateCurrentPlaybackSession({
+        position: playlistPosition(),
+    });
+});
+
+onPlayPlaylist(() => {
+    console.debug('playing playlist');
+    updateCurrentPlaybackSession({
+        position: playlistPosition(),
+        playlist: { tracks: _playlist() },
+    });
+});
+
+onAddAlbumToQueue(() => {
+    console.debug('album added to queue');
+    updateCurrentPlaybackSession({
+        position: playlistPosition(),
+        playlist: { tracks: _playlist() },
+    });
+});
+
+onPlayAlbum(() => {
+    console.debug('playing album');
+    updateCurrentPlaybackSession({
+        position: playlistPosition(),
+        playlist: { tracks: _playlist() },
+    });
+});
+
+onPlaylistChanged((value, old) => {
+    console.debug('playlist changed from', old, 'to', value);
+});
+
+onCurrentSeekChanged((value, old) => {
+    console.debug('current seek changed from', old, 'to', value);
+    updateCurrentPlaybackSession({
+        seek: value,
+    });
+});
+
+onPlaylistPositionChanged((value, old) => {
+    console.debug('playlist position changed from', old, 'to', value);
+});

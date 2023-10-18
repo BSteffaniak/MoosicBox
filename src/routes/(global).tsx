@@ -1,10 +1,15 @@
 import { A, Outlet } from 'solid-start';
-import { onMount } from 'solid-js';
+import { Show, onMount } from 'solid-js';
 import Player from '~/components/Player';
 import './(global)/global.css';
-import { triggerStartup } from '~/services/app';
+import {
+    setShowPlaybackSessions,
+    showPlaybackSessions,
+    triggerStartup,
+} from '~/services/app';
 import { Api } from '~/services/api';
 import '~/services/ws';
+import PlaybackSessions from '~/components/PlaybackSessions';
 
 export default function global() {
     onMount(async () => {
@@ -42,6 +47,37 @@ export default function global() {
                     </li>
                 </ul>
                 <Outlet />
+                <Show when={showPlaybackSessions()}>
+                    <div
+                        class="playback-sessions-modal-container"
+                        onClick={() => setShowPlaybackSessions(false)}
+                    >
+                        <div
+                            class="playback-sessions-modal"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div class="playback-sessions-modal-header">
+                                <h1>Playback Sessions</h1>
+                                <div
+                                    class="playback-sessions-modal-close"
+                                    onClick={(e) => {
+                                        setShowPlaybackSessions(false);
+                                        e.stopImmediatePropagation();
+                                    }}
+                                >
+                                    <img
+                                        class="cross-icon"
+                                        src="/img/cross-white.svg"
+                                        alt="Close playlist sessions modal"
+                                    />
+                                </div>
+                            </div>
+                            <div class="playback-sessions-modal-content">
+                                <PlaybackSessions />
+                            </div>
+                        </div>
+                    </div>
+                </Show>
             </main>
             <footer>
                 <div class="footer-player-container">

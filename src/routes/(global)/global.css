@@ -11,9 +11,10 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  html, body {
-    background: #181a1b;
-  }
+    html,
+    body {
+        background: #181a1b;
+    }
 }
 
 a {
@@ -98,7 +99,7 @@ p {
 }
 
 *::-webkit-scrollbar {
-    width: 12px;
+    width: 15px;
 }
 
 *::-webkit-scrollbar-track {
@@ -109,4 +110,59 @@ p {
     background-color: #181a1b;
     border-radius: 20px;
     border: 3px solid #181a1b;
+}
+
+.playback-sessions-modal-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, .15);
+    overscroll-behavior: contain;
+}
+
+.playback-sessions-modal-header {
+    display: flex;
+    flex-direction: row;
+    height: 70px;
+    padding-bottom: 10px;
+}
+
+.playback-sessions-modal-content {
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100% - 100px);
+}
+
+.playback-sessions-modal {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 80vw;
+    height: 80vh;
+    max-width: 1200px;
+    max-height: 1000px;
+    transform: translate(-50%, -50%);
+    background-color: #080a0b;
+    padding: 3% 5%;
+    border-radius: 15px;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 12px 12px rgba(6, 8, 9, .3);
+}
+
+.playback-sessions-modal-close {
+    display: flex;
+    margin-left: auto;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+}
+
+.playback-sessions-modal-close .cross-icon {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 34px;
 }

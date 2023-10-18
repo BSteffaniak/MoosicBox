@@ -5,6 +5,7 @@ import { Api, api } from './api';
 import {
     PlayerType,
     currentSeek,
+    onCurrentPlaybackSessionChanged,
     playing,
     playlist,
     playlistPosition,
@@ -29,16 +30,6 @@ let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
 
 if (!isServer) {
-    window.onbeforeunload = () => {
-        refreshCurrentSeek();
-    };
-
-    if (import.meta.hot) {
-        import.meta.hot.on('vite:beforeUpdate', () => {
-            refreshCurrentSeek();
-        });
-    }
-
     if (navigator?.mediaSession) {
         navigator.mediaSession.setActionHandler('play', () => play());
         navigator.mediaSession.setActionHandler('pause', () => pause());
@@ -82,10 +73,20 @@ function setTrack() {
     }
 }
 
+onCurrentPlaybackSessionChanged(() => {
+    console.debug('session changed');
+    loaded = false;
+    sound()?.unload();
+    setSound(undefined);
+});
+
 let ended: boolean = true;
+let loaded = false;
 
 function play() {
     setTrack();
+
+    const initialSeek = currentSeek();
 
     sound()!.on(
         'end',
@@ -101,6 +102,7 @@ function play() {
             }
             console.debug('Track ended', id, sound(), sound()?.duration());
             ended = true;
+            loaded = false;
             nextTrack();
         }),
     );
@@ -108,19 +110,25 @@ function play() {
         'load',
         (loadHandle = () => {
             ended = false;
+            loaded = true;
             console.debug('Track loaded', sound(), sound()!.duration());
             setCurrentTrackLength(Math.round(sound()!.duration()));
+            if (typeof initialSeek === 'number') {
+                console.debug(`Setting initial seek to ${initialSeek}`);
+                sound()!.seek(initialSeek);
+            }
         }),
     );
 
     sound()!.play();
 
-    if (typeof currentSeek() === 'number') {
-        console.debug(`Setting initial seek to ${currentSeek()}`);
-        sound()!.seek(currentSeek());
+    if (loaded && typeof initialSeek === 'number') {
+        console.debug(`Setting initial seek to ${initialSeek}`);
+        sound()!.seek(initialSeek);
     }
 
     seekHandle = setInterval(() => {
+        if (!loaded) return;
         refreshCurrentSeek();
     }, 200);
 
@@ -189,6 +197,7 @@ function stop() {
     setCurrentTrack(undefined);
     setCurrentTrackLength(0);
     setPlaying(false);
+    console.trace();
     console.debug('Track stopped');
 }
 

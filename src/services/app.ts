@@ -42,3 +42,6 @@ export const [currentArtistSearch, setCurrentArtistSearch] =
 
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
+
+export const [showPlaybackSessions, setShowPlaybackSessions] =
+    createSignal(false);
