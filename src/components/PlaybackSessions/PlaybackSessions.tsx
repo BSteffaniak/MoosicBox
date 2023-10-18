@@ -52,7 +52,13 @@ export default function playbackSessionsFunc() {
                                 <h3 class="playback-sessions-list-session-header-session-tracks-queued">
                                     {session.playlist.tracks.length -
                                         (session.position ?? 0)}{' '}
-                                    tracks queued
+                                    track
+                                    {session.playlist.tracks.length -
+                                        (session.position ?? 0) ===
+                                    1
+                                        ? ''
+                                        : 's'}{' '}
+                                    queued
                                 </h3>
                                 {playerState.currentPlaybackSession?.id ===
                                     session.id && (
