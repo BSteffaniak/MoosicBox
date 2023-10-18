@@ -454,10 +454,12 @@ export function updateSession(
 }
 
 onPlay(() => {
-    ws.playbackAction(ws.PlaybackAction.PLAY);
-    updateCurrentPlaybackSession({
-        playing: true,
-    });
+    if (playing()) {
+        ws.playbackAction(ws.PlaybackAction.PLAY);
+        updateCurrentPlaybackSession({
+            playing: true,
+        });
+    }
 });
 
 onPause(() => {
