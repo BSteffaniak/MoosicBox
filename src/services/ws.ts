@@ -315,6 +315,23 @@ function newClient(): Promise<WebSocket> {
                     player.setPlayerState(
                         produce((state) => {
                             player.updateSessionPartial(state, message.payload);
+                            const session = message.payload;
+                            if (typeof session.position !== 'undefined') {
+                                if (player.playing()) {
+                                    player.stop();
+                                    player.play();
+                                }
+                            }
+                            if (typeof session.seek !== 'undefined') {
+                                if (player.playing()) {
+                                    player.seek(session.seek);
+                                }
+                            }
+                            if (typeof session.playing !== 'undefined') {
+                                if (!session.playing && player.playing()) {
+                                    player.pause();
+                                }
+                            }
                         }),
                     );
 

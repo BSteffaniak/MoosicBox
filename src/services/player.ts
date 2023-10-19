@@ -413,11 +413,6 @@ export function updateSessionPartial(
             if (typeof session.playlist !== 'undefined') {
                 _setPlaylist(session.playlist.tracks);
             }
-            if (typeof session.playing !== 'undefined') {
-                if (!session.playing && playing()) {
-                    pause();
-                }
-            }
 
             if (typeof playlistPosition() === 'number') {
                 const track =
