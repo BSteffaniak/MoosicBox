@@ -203,7 +203,7 @@ if (!isServer) {
             !(target instanceof HTMLInputElement) &&
             (e.key == ' ' || e.code == 'Space')
         ) {
-            if (playing()) {
+            if (playerState.currentPlaybackSession?.playing || playing()) {
                 pause();
             } else {
                 play();
