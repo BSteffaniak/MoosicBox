@@ -178,7 +178,7 @@ function pause() {
 }
 
 function previousTrack(): boolean {
-    if ((sound()?.seek() ?? 0) < 5) {
+    if ((currentSeek() ?? 0) < 5) {
         console.debug('Playing previous track');
         setPlaylistPosition((value) => (value! > 0 ? value! - 1 : value!));
         const shouldPlay = playing();
