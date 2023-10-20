@@ -182,6 +182,16 @@ export const setPlaylist: typeof _setPlaylist = (
 };
 
 if (!isServer) {
+    if (navigator?.mediaSession) {
+        navigator.mediaSession.setActionHandler('play', () => play());
+        navigator.mediaSession.setActionHandler('pause', () => pause());
+        navigator.mediaSession.setActionHandler('stop', () => stop());
+        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+        navigator.mediaSession.setActionHandler('previoustrack', () =>
+            previousTrack(),
+        );
+    }
+
     window.onbeforeunload = () => {
         if (playing()) {
             pause();

@@ -1,6 +1,5 @@
 import { createSignal } from 'solid-js';
 import { Howl, HowlCallback } from 'howler';
-import { isServer } from 'solid-js/web';
 import { Api, api } from './api';
 import {
     PlayerType,
@@ -31,18 +30,6 @@ export const [sound, setSound] = createSignal<Howl>();
 let seekHandle: NodeJS.Timeout;
 let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
-
-if (!isServer) {
-    if (navigator?.mediaSession) {
-        navigator.mediaSession.setActionHandler('play', () => play());
-        navigator.mediaSession.setActionHandler('pause', () => pause());
-        navigator.mediaSession.setActionHandler('stop', () => stop());
-        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-        navigator.mediaSession.setActionHandler('previoustrack', () =>
-            previousTrack(),
-        );
-    }
-}
 
 function getTrackUrl(track: Api.Track): string {
     return `${Api.apiUrl()}/track?trackId=${track.trackId}`;
