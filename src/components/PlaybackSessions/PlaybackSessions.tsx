@@ -116,9 +116,9 @@ export default function playbackSessionsFunc() {
                                     }}
                                 >
                                     <img
-                                        class="cross-icon"
-                                        src="/img/cross-white.svg"
-                                        alt="Close playlist sessions modal"
+                                        class="trash-icon"
+                                        src="/img/trash-white.svg"
+                                        alt="Delete playback session"
                                     />
                                 </div>
                             </div>

@@ -81,8 +81,8 @@
     user-select: none;
 }
 
-.playback-sessions-list-session-header-delete-session .cross-icon {
-    width: 34px;
+.playback-sessions-list-session-header-delete-session .trash-icon {
+    width: 24px;
 }
 
 .playback-sessions-list-session.active .playback-sessions-list-session-header,
