@@ -23,12 +23,20 @@ export const [connectionId, setConnectionId] = makePersisted(
     },
 );
 
-export const [connectionName, setConnectionName] = makePersisted(
+export const [_connectionName, _setConnectionName] = makePersisted(
     createSignal<string>('New Connection', { equals: false }),
     {
         name: `ws.v1.connectionName`,
     },
 );
+const onConnectionNameChangedListener = createListener<(value: string) => boolean | void>();
+export const onConnectionNameChanged = onConnectionNameChangedListener.on;
+export const offConnectionNameChanged = onConnectionNameChangedListener.off;
+export const connectionName = _connectionName;
+export const setConnectionName = (name: string) => {
+    _setConnectionName(name);
+    onConnectionNameChangedListener.trigger(name);
+};
 
 const onConnectListener = createListener<(value: string) => boolean | void>();
 export const onConnect = onConnectListener.on;

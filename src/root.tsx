@@ -18,16 +18,17 @@ import {
     connectionId,
     connectionName,
     onConnect,
+    onConnectionNameChanged,
     registerConnection,
 } from './services/ws';
 import { Api } from './services/api';
 
 Object.assign(player, howlerPlayer);
 
-onConnect(() => {
+function updateConnection(connectionId: string, name: string) {
     registerConnection({
-        connectionId: connectionId()!,
-        name: connectionName(),
+        connectionId,
+        name,
         players: [
             {
                 type: Api.PlayerType.HOWLER,
@@ -35,6 +36,13 @@ onConnect(() => {
             },
         ],
     });
+}
+
+onConnect(() => {
+    updateConnection(connectionId()!, connectionName());
+});
+onConnectionNameChanged((name) => {
+    updateConnection(connectionId()!, name);
 });
 
 export default function rootPage() {
