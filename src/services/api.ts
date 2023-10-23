@@ -1,6 +1,7 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
 import { createSignal } from 'solid-js';
+import { createListener } from './util';
 
 function getDefaultApiUrl(): string {
     if (isServer) return 'http://localhost:8000';
@@ -9,10 +10,9 @@ function getDefaultApiUrl(): string {
 }
 
 export namespace Api {
-    const onApiUrlUpdatedListeners: ((url: string) => void)[] = [];
-    export function onApiUrlUpdated(listener: (url: string) => void): void {
-        onApiUrlUpdatedListeners.push(listener);
-    }
+    const onApiUrlUpdatedListeners = createListener<(url: string) => void>();
+    export const onApiUrlUpdated = onApiUrlUpdatedListeners.on;
+    export const offApiUrlUpdated = onApiUrlUpdatedListeners.off;
     const [_apiUrl, _setApiUrl] = makePersisted(
         createSignal(getDefaultApiUrl()),
         {
@@ -25,7 +25,7 @@ export namespace Api {
     export function setApiUrl(url: string): void {
         _setApiUrl(url);
 
-        onApiUrlUpdatedListeners.forEach((func) => func(url));
+        onApiUrlUpdatedListeners.trigger(url);
     }
 
     export enum PlayerType {
