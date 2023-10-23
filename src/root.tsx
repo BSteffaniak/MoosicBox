@@ -37,11 +37,11 @@ onConnect(() => {
     });
 });
 
-export default function Root() {
+export default function rootPage() {
     return (
         <Html lang="en">
             <Head>
-                <Title>SolidStart - With Vitest</Title>
+                <Title>MoosicBox</Title>
                 <Meta charset="utf-8" />
                 <Meta
                     name="viewport"
