@@ -28,22 +28,19 @@ export namespace Api {
         onApiUrlUpdatedListeners.forEach((func) => func(url));
     }
 
-    export interface PingResponse {
-        alive: boolean;
+    export enum PlayerType {
+        HOWLER = 'HOWLER',
     }
 
     export interface Player {
-        playerId: string;
-        isPlaying: boolean;
+        playerId: number;
+        name: string;
+        type: PlayerType;
     }
 
-    export interface ConnectionResponse {
-        clientId: string;
-        players: string[];
-    }
-
-    export interface StatusResponse {
-        players: Player[];
+    export interface Connection {
+        connectionId: string;
+        name: string;
     }
 
     export interface Artist {
@@ -79,7 +76,7 @@ export namespace Api {
     }
 
     export interface PlaybackSession {
-        id: number;
+        sessionId: number;
         name: string;
         active: boolean;
         playing: boolean;
@@ -89,7 +86,7 @@ export namespace Api {
     }
 
     export interface PlaybackSessionPlaylist {
-        id: number;
+        sessionPlaylistId: number;
         tracks: Track[];
     }
 

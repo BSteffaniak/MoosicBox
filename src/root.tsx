@@ -14,8 +14,28 @@ import {
 import { ErrorBoundary } from 'solid-start/error-boundary';
 import { player as howlerPlayer } from '~/services/howler-player';
 import { player } from './services/player';
+import {
+    connectionId,
+    connectionName,
+    onConnect,
+    registerConnection,
+} from './services/ws';
+import { Api } from './services/api';
 
 Object.assign(player, howlerPlayer);
+
+onConnect(() => {
+    registerConnection({
+        connectionId: connectionId()!,
+        name: connectionName(),
+        players: [
+            {
+                type: Api.PlayerType.HOWLER,
+                name: 'web',
+            },
+        ],
+    });
+});
 
 export default function Root() {
     return (

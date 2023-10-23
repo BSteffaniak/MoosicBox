@@ -1,8 +1,11 @@
+import * as player from './player';
 import { produce } from 'solid-js/store';
 import { Api } from './api';
 import { onStartup } from './app';
-import * as player from './player';
 import { PartialUpdateSession } from './types';
+import { createListener } from './util';
+import { makePersisted } from '@solid-primitives/storage';
+import { createSignal } from 'solid-js';
 
 Api.onApiUrlUpdated((url) => {
     wsUrl = `ws${url.slice(4)}/ws`;
@@ -11,15 +14,39 @@ Api.onApiUrlUpdated((url) => {
 
 let ws: WebSocket;
 let wsUrl: string;
-let connectionId: string;
 export let connectionPromise: Promise<WebSocket>;
 
+export const [connectionId, setConnectionId] = makePersisted(
+    createSignal<string | undefined>(undefined, { equals: false }),
+    {
+        name: `ws.v1.connectionId`,
+    },
+);
+
+export const [connectionName, setConnectionName] = makePersisted(
+    createSignal<string>('New Connection', { equals: false }),
+    {
+        name: `ws.v1.connectionName`,
+    },
+);
+
+const onConnectListener = createListener<(value: string) => boolean | void>();
+export const onConnect = onConnectListener.on;
+export const offConnect = onConnectListener.off;
+
+onConnect((id) => {
+    if (!connectionId()) {
+        setConnectionId(id);
+    }
+    getSessions();
+});
+
 enum InboundMessageType {
-    CONNECT = 'CONNECT',
     CONNECTION_ID = 'CONNECTION_ID',
     CONNECTIONS_DATA = 'CONNECTIONS_DATA',
     SESSIONS = 'SESSIONS',
     SESSION_UPDATED = 'SESSION_UPDATED',
+    CONNECTIONS = 'CONNECTIONS',
 }
 
 enum OutboundMessageType {
@@ -30,28 +57,23 @@ enum OutboundMessageType {
     CREATE_SESSION = 'CREATE_SESSION',
     UPDATE_SESSION = 'UPDATE_SESSION',
     DELETE_SESSION = 'DELETE_SESSION',
-}
-
-interface ConnectMessage extends InboundMessage {
-    connectionId?: string;
-    type: InboundMessageType.CONNECT;
+    REGISTER_CONNECTION = 'REGISTER_CONNECTION',
+    REGISTER_PLAYERS = 'REGISTER_PLAYERS',
 }
 
 interface ConnectionIdMessage extends InboundMessage {
     connectionId: string;
-    type: InboundMessageType.CONNECT;
-}
-
-interface ConnectionsDataMessage extends InboundMessage {
-    type: InboundMessageType.CONNECTIONS_DATA;
-    payload: {
-        playing: boolean;
-    };
+    type: InboundMessageType.CONNECTION_ID;
 }
 
 interface SessionsMessage extends InboundMessage {
     type: InboundMessageType.SESSIONS;
     payload: Api.PlaybackSession[];
+}
+
+interface ConnectionsMessage extends InboundMessage {
+    type: InboundMessageType.CONNECTIONS;
+    payload: Api.Connection[];
 }
 
 interface SessionUpdatedMessage extends InboundMessage {
@@ -63,11 +85,18 @@ interface PingMessage extends OutboundMessage {
     type: OutboundMessageType.PING;
 }
 
-interface SyncConnectionDataMessage extends OutboundMessage {
-    type: OutboundMessageType.SYNC_CONNECTION_DATA;
-    payload: {
-        playing: boolean;
-    };
+export type RegisterConnection = Omit<Api.Connection, 'players'> & {
+    players: RegisterPlayer[];
+};
+interface RegisterConnectionMessage extends OutboundMessage {
+    type: OutboundMessageType.REGISTER_CONNECTION;
+    payload: RegisterConnection;
+}
+
+export type RegisterPlayer = Omit<Api.Player, 'playerId'>;
+interface RegisterPlayersMessage extends OutboundMessage {
+    type: OutboundMessageType.REGISTER_PLAYERS;
+    payload: RegisterPlayer[];
 }
 
 export enum PlaybackAction {
@@ -107,7 +136,7 @@ export interface CreateSessionPlaylist {
 }
 
 export interface UpdateSession {
-    id: number;
+    sessionId: number;
     name?: string;
     active?: boolean;
     playing?: boolean;
@@ -117,7 +146,7 @@ export interface UpdateSession {
 }
 
 interface UpdateSessionPlaylist {
-    id: number;
+    sessionPlaylistId: number;
     tracks: number[];
 }
 
@@ -148,12 +177,17 @@ function ping() {
     send<PingMessage>({ type: OutboundMessageType.PING });
 }
 
-function syncConnectionData() {
-    send<SyncConnectionDataMessage>({
-        type: OutboundMessageType.SYNC_CONNECTION_DATA,
-        payload: {
-            playing: player.playing(),
-        },
+export function registerConnection(connection: RegisterConnection) {
+    send<RegisterConnectionMessage>({
+        type: OutboundMessageType.REGISTER_CONNECTION,
+        payload: connection,
+    });
+}
+
+export function registerPlayers(players: RegisterPlayer[]) {
+    send<RegisterPlayersMessage>({
+        type: OutboundMessageType.REGISTER_PLAYERS,
+        payload: players,
     });
 }
 
@@ -173,7 +207,7 @@ function getSessions() {
 }
 
 export function activateSession(sessionId: number) {
-    updateSession({ id: sessionId, active: true });
+    updateSession({ sessionId, active: true });
 }
 
 export function createSession(session: CreateSessionRequest) {
@@ -253,35 +287,22 @@ function newClient(): Promise<WebSocket> {
         client.addEventListener('message', (event: MessageEvent<string>) => {
             const data = JSON.parse(event.data) as InboundMessage;
             switch (data.type) {
-                case InboundMessageType.CONNECT: {
-                    const message = data as ConnectMessage;
-                    console.debug('Client connected', message);
-                    if (message.connectionId) {
-                        connectionId = message.connectionId;
-                    }
-                    break;
-                }
                 case InboundMessageType.CONNECTION_ID: {
                     const message = data as ConnectionIdMessage;
-                    connectionId = message.connectionId;
-                    syncConnectionData();
-                    console.debug('received connection id', connectionId);
-                    break;
-                }
-                case InboundMessageType.CONNECTIONS_DATA: {
-                    const message = data as ConnectionsDataMessage;
-                    console.debug('received connections data', message.payload);
+                    console.debug('Client connected', message);
+                    onConnectListener.trigger(message.connectionId);
                     break;
                 }
                 case InboundMessageType.SESSIONS: {
                     const message = data as SessionsMessage;
-                    console.debug('received sessions', message.payload);
+                    console.debug('Received sessions', message.payload);
                     player.setPlayerState(
                         produce((state) => {
                             state.playbackSessions = message.payload;
                             const existing = message.payload.find(
                                 (p) =>
-                                    p.id === state.currentPlaybackSession?.id,
+                                    p.sessionId ===
+                                    state.currentPlaybackSession?.sessionId,
                             );
                             if (existing) {
                                 player.updateSession(state, existing);
@@ -292,7 +313,7 @@ function newClient(): Promise<WebSocket> {
                                 const session =
                                     message.payload.find(
                                         (s) =>
-                                            s.id ===
+                                            s.sessionId ===
                                             player.currentPlaybackSessionId(),
                                     ) ?? message.payload[0];
                                 if (session) {
@@ -307,6 +328,11 @@ function newClient(): Promise<WebSocket> {
                             }
                         }),
                     );
+                    break;
+                }
+                case InboundMessageType.CONNECTIONS: {
+                    const message = data as ConnectionsMessage;
+                    console.debug('Received connections', message.payload);
                     break;
                 }
                 case InboundMessageType.SESSION_UPDATED: {
@@ -386,7 +412,6 @@ async function attemptConnection(): Promise<WebSocket> {
 
         try {
             const ws = await newClient();
-            getSessions();
 
             console.debug('Successfully connected client');
 

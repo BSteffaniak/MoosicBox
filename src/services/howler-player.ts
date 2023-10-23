@@ -69,14 +69,14 @@ function setTrack(): boolean {
 }
 
 onCurrentPlaybackSessionChanged((value, old) => {
-    if (value?.id !== old?.id) {
+    if (value?.sessionId !== old?.sessionId) {
         console.debug('session changed');
         stopHowl();
     }
 });
 onUpdateSessionPartial((value) => {
     if (
-        value.id === playerState.currentPlaybackSession?.id &&
+        value.sessionId === playerState.currentPlaybackSession?.sessionId &&
         value.playing &&
         !playing()
     ) {

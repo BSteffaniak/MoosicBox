@@ -16,12 +16,16 @@ export default function playbackSessionsFunc() {
     );
 
     function deleteSession(sessionId: number) {
-        if (sessionId === playerState.currentPlaybackSession?.id) {
+        if (sessionId === playerState.currentPlaybackSession?.sessionId) {
             setPlayerState(
                 produce((state) => {
                     state.currentPlaybackSession;
-                    state.playbackSessions.find((s) => s.id === sessionId);
-                    setSessions(sessions().filter((s) => s.id !== sessionId));
+                    state.playbackSessions.find(
+                        (s) => s.sessionId === sessionId,
+                    );
+                    setSessions(
+                        sessions().filter((s) => s.sessionId !== sessionId),
+                    );
                     const newSession = sessions()[0];
                     if (newSession) {
                         updateSession(state, newSession, true);
@@ -33,7 +37,8 @@ export default function playbackSessionsFunc() {
     }
 
     function activateSession(session: Api.PlaybackSession) {
-        if (session.id === playerState.currentPlaybackSession?.id) return;
+        if (session.sessionId === playerState.currentPlaybackSession?.sessionId)
+            return;
         setPlayerState(
             produce((state) => {
                 updateSession(state, session, true);
@@ -42,7 +47,7 @@ export default function playbackSessionsFunc() {
     }
 
     function queuedTracks(session: Api.PlaybackSession) {
-        const cache = queuedTracksCache[session.id];
+        const cache = queuedTracksCache[session.sessionId];
 
         if (
             cache?.position === session.position &&
@@ -57,7 +62,10 @@ export default function playbackSessionsFunc() {
             session.position ?? 0,
             session.playlist.tracks.length,
         );
-        queuedTracksCache[session.id] = { position: session.position, tracks };
+        queuedTracksCache[session.sessionId] = {
+            position: session.position,
+            tracks,
+        };
 
         return tracks;
     }
@@ -69,8 +77,8 @@ export default function playbackSessionsFunc() {
                     {(session) => (
                         <div
                             class={`playback-sessions-list-session${
-                                playerState.currentPlaybackSession?.id ===
-                                session.id
+                                playerState.currentPlaybackSession
+                                    ?.sessionId === session.sessionId
                                     ? ' active'
                                     : ''
                             }`}
@@ -93,8 +101,8 @@ export default function playbackSessionsFunc() {
                                         : 's'}{' '}
                                     queued
                                 </h3>
-                                {playerState.currentPlaybackSession?.id ===
-                                    session.id && (
+                                {playerState.currentPlaybackSession
+                                    ?.sessionId === session.sessionId && (
                                     <>
                                         <img
                                             class="playback-sessions-list-session-header-checkmark-icon"
@@ -111,7 +119,7 @@ export default function playbackSessionsFunc() {
                                 <div
                                     class="playback-sessions-list-session-header-delete-session"
                                     onClick={(e) => {
-                                        deleteSession(session.id);
+                                        deleteSession(session.sessionId);
                                         e.stopImmediatePropagation();
                                     }}
                                 >

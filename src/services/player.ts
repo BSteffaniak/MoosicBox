@@ -319,35 +319,40 @@ export const player: PlayerType = {} as PlayerType;
 
 function updateCurrentPlaybackSession(
     request: Omit<
-        PartialBy<PartialUpdateSession, 'id' | 'playlist'>,
+        PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
         'playlist'
-    > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
+    > & {
+        playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'sessionPlaylistId'>;
+    },
 ) {
     const session = playerState.currentPlaybackSession;
     if (session) {
-        updatePlaybackSession(session.id, request);
+        updatePlaybackSession(session.sessionId, request);
     }
 }
 
 function updatePlaybackSession(
     id: number,
     request: Omit<
-        PartialBy<PartialUpdateSession, 'id' | 'playlist'>,
+        PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
         'playlist'
-    > & { playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'id'> },
+    > & {
+        playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'sessionPlaylistId'>;
+    },
 ) {
     setPlayerState(
         produce((state) => {
             const current = state.currentPlaybackSession;
             const session =
-                current?.id === id
+                current?.sessionId === id
                     ? current
-                    : state.playbackSessions.find((s) => s.id === id);
+                    : state.playbackSessions.find((s) => s.sessionId === id);
             if (session) {
-                request.id = session.id;
+                request.sessionId = session.sessionId;
                 const { playlist } = session;
                 if (playlist && request.playlist) {
-                    request.playlist.id = playlist.id;
+                    request.playlist.sessionPlaylistId =
+                        playlist.sessionPlaylistId;
                 }
                 updateSessionPartial(state, request as PartialUpdateSession);
                 ws.updateSession(request as PartialUpdateSession);
@@ -378,15 +383,15 @@ export function updateSessionPartial(
     session: PartialUpdateSession,
 ) {
     state.playbackSessions.forEach((s) => {
-        if (s.id === session.id) {
+        if (s.sessionId === session.sessionId) {
             Object.assign(s, session);
         }
     });
 
-    if (state.currentPlaybackSession?.id === session.id) {
+    if (state.currentPlaybackSession?.sessionId === session.sessionId) {
         Object.assign(state.currentPlaybackSession, session);
 
-        if (state.currentPlaybackSession?.id === session.id) {
+        if (state.currentPlaybackSession?.sessionId === session.sessionId) {
             if (typeof session.position !== 'undefined') {
                 _setPlaylistPosition(session.position);
             }
@@ -423,20 +428,23 @@ export function updateSession(
     setAsCurrent = false,
 ) {
     state.playbackSessions.forEach((s) => {
-        if (s.id === session.id) {
+        if (s.sessionId === session.sessionId) {
             Object.assign(s, session);
         }
     });
 
-    if (setAsCurrent || session.id === state.currentPlaybackSession?.id) {
+    if (
+        setAsCurrent ||
+        session.sessionId === state.currentPlaybackSession?.sessionId
+    ) {
         const old = state.currentPlaybackSession;
         state.currentPlaybackSession = session;
-        setCurrentPlaybackSessionId(session.id);
+        setCurrentPlaybackSessionId(session.sessionId);
 
         console.debug('session changed to', session, 'from', old);
 
-        if (old && old.id !== session.id && playing()) {
-            updatePlaybackSession(old.id, { playing: false });
+        if (old && old.sessionId !== session.sessionId && playing()) {
+            updatePlaybackSession(old.sessionId, { playing: false });
 
             setPlaying(false);
         }
