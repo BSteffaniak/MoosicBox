@@ -13,7 +13,8 @@
         "pretty": "prettier --check \"**/*.{js,cjs,mjs,jsx,ts,tsx}\"",
         "pretty:write": "prettier --write \"**/*.{js,cjs,mjs,jsx,ts,tsx}\"",
         "lint": "eslint --ext .ts,.tsx .",
-        "lint:write": "eslint --fix"
+        "lint:write": "eslint --fix",
+        "validate": "pnpm run pretty && pnpm run lint && tsc --noEmit"
     },
     "type": "module",
     "devDependencies": {
