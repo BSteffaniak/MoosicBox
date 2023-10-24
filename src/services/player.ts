@@ -542,6 +542,13 @@ onPause(() => {
     });
 });
 
+onStop(() => {
+    ws.playbackAction(ws.PlaybackAction.STOP);
+    updateCurrentPlaybackSession({
+        playing: false,
+    });
+});
+
 onNextTrack(() => {
     ws.playbackAction(ws.PlaybackAction.NEXT_TRACK);
     updateCurrentPlaybackSession({

@@ -128,6 +128,7 @@ interface RegisterPlayersMessage extends OutboundMessage {
 export enum PlaybackAction {
     PLAY = 'PLAY',
     PAUSE = 'PAUSE',
+    STOP = 'STOP',
     NEXT_TRACK = 'NEXT_TRACK',
     PREVIOUS_TRACK = 'PREVIOUS_TRACK',
 }
