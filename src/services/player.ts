@@ -15,14 +15,16 @@ export type TrackListenerCallback = (
 
 interface PlayerState {
     playing: boolean;
-    currentPlaybackSession: Api.PlaybackSession | undefined;
+    currentPlaybackSession?: Api.PlaybackSession;
     playbackSessions: Api.PlaybackSession[];
+    currentTrack?: Api.Track;
 }
 
 export const [playerState, setPlayerState] = createStore<PlayerState>({
     playing: false,
     currentPlaybackSession: undefined,
     playbackSessions: [],
+    currentTrack: undefined,
 });
 
 export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
@@ -122,12 +124,6 @@ export const [currentAlbum, setCurrentAlbum] = makePersisted(
     }),
     {
         name: `player.v2.currentAlbum`,
-    },
-);
-export const [currentTrack, setCurrentTrack] = makePersisted(
-    createSignal<Api.Track | undefined>(undefined, { equals: false }),
-    {
-        name: `player.v2.currentTrack`,
     },
 );
 
@@ -293,7 +289,10 @@ export const offPreviousTrack = prevTrackListener.off;
 
 export function previousTrack(): boolean {
     if (player.previousTrack()) {
-        prevTrackListener.trigger(currentTrack()!, playlistPosition()!);
+        prevTrackListener.trigger(
+            playerState.currentTrack!,
+            playlistPosition()!,
+        );
         return true;
     }
     return false;
@@ -305,7 +304,10 @@ export const offNextTrack = nextTrackListener.off;
 
 export function nextTrack(): boolean {
     if (player.nextTrack()) {
-        nextTrackListener.trigger(currentTrack()!, playlistPosition()!);
+        nextTrackListener.trigger(
+            playerState.currentTrack!,
+            playlistPosition()!,
+        );
         return true;
     }
     return false;
@@ -458,26 +460,32 @@ export function updateSessionPartial(
                 }
             }
 
+            let updatedPlaylist = false;
+
             if (typeof session.position !== 'undefined') {
                 _setPlaylistPosition(session.position);
+                updatedPlaylist = true;
             }
             if (typeof session.playlist !== 'undefined') {
                 _setPlaylist(session.playlist.tracks);
+                updatedPlaylist = true;
             }
 
-            if (typeof playlistPosition() === 'number') {
-                const track =
-                    state.currentPlaybackSession.playlist.tracks[
-                        playlistPosition()!
-                    ];
+            if (updatedPlaylist) {
+                if (typeof playlistPosition() === 'number') {
+                    const track =
+                        state.currentPlaybackSession.playlist.tracks[
+                            playlistPosition()!
+                        ];
 
-                if (track) {
-                    setCurrentTrack(track);
-                    setCurrentTrackLength(Math.round(track.duration));
+                    if (track) {
+                        state.currentTrack = track;
+                        setCurrentTrackLength(Math.round(track.duration));
+                    }
+                } else {
+                    state.currentTrack = undefined;
+                    setCurrentTrackLength(0);
                 }
-            } else {
-                setCurrentTrack(undefined);
-                setCurrentTrackLength(0);
             }
         }
     }
@@ -516,11 +524,11 @@ export function updateSession(
             const track = session.playlist.tracks[playlistPosition()!];
 
             if (track) {
-                setCurrentTrack(track);
+                state.currentTrack = track;
                 setCurrentTrackLength(Math.round(track.duration));
             }
         } else {
-            setCurrentTrack(undefined);
+            state.currentTrack = undefined;
             setCurrentTrackLength(0);
         }
 

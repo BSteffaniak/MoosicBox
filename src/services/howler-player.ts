@@ -9,7 +9,6 @@ import {
     playlistPosition,
     setCurrentAlbum,
     setCurrentSeek,
-    setCurrentTrack,
     setCurrentTrackLength,
     setPlaying,
     setPlaylist,
@@ -20,6 +19,7 @@ import {
     volume,
     onVolumeChanged,
     isPlayerActive,
+    setPlayerState,
 } from './player';
 
 export type TrackListenerCallback = (
@@ -65,7 +65,7 @@ function setTrack(): boolean {
         );
         sound()!.volume(volume() / 100);
         sound()!.pannerAttr({ panningModel: 'equalpower' });
-        setCurrentTrack(track);
+        setPlayerState({ currentTrack: track });
         setCurrentTrackLength(Math.round(track.duration));
     }
     return true;
@@ -218,7 +218,7 @@ function stop() {
     stopHowl();
     setCurrentSeek(undefined);
     clearInterval(seekHandle);
-    setCurrentTrack(undefined);
+    setPlayerState({ currentTrack: undefined });
     setCurrentTrackLength(0);
     setPlaying(false);
     console.debug('Track stopped');

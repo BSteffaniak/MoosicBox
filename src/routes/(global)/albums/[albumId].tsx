@@ -13,8 +13,8 @@ import Album from '~/components/Album';
 import { displayDate, toTime } from '~/services/formatting';
 import {
     addAlbumToQueue,
-    currentTrack,
     playAlbum,
+    playerState,
     playPlaylist,
 } from '~/services/player';
 import { Api, api } from '~/services/api';
@@ -35,7 +35,7 @@ export default function albumPage() {
     async function playAlbumFrom(track: Api.Track) {
         const playlist = tracks()!.slice(tracks()!.indexOf(track));
 
-        await playPlaylist(playlist);
+        playPlaylist(playlist);
     }
 
     function albumDuration(): number {
@@ -226,8 +226,8 @@ export default function albumPage() {
                                     {(track) => (
                                         <tr
                                             class={`album-page-tracks-track${
-                                                currentTrack()?.trackId ===
-                                                track.trackId
+                                                playerState.currentTrack
+                                                    ?.trackId === track.trackId
                                                     ? ' playing'
                                                     : ''
                                             }`}
@@ -242,7 +242,8 @@ export default function albumPage() {
                                                 }
                                             >
                                                 <div class="album-page-tracks-track-no-container">
-                                                    {currentTrack()?.trackId ===
+                                                    {playerState.currentTrack
+                                                        ?.trackId ===
                                                     track.trackId ? (
                                                         <img
                                                             class="audio-icon"

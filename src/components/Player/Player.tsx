@@ -10,9 +10,7 @@ import {
 import { A, useLocation } from 'solid-start';
 import './Player.css';
 import {
-    currentAlbum,
     currentSeek,
-    currentTrack,
     currentTrackLength,
     nextTrack,
     offNextTrack,
@@ -25,10 +23,6 @@ import {
     playerState,
     previousTrack,
     seek,
-    setCurrentAlbum,
-    setCurrentSeek,
-    setCurrentTrack,
-    setCurrentTrackLength,
 } from '~/services/player';
 import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
@@ -140,10 +134,6 @@ export default function player() {
     }
 
     onMount(() => {
-        setCurrentTrackLength(currentTrackLength());
-        setCurrentAlbum(currentAlbum());
-        setCurrentTrack(currentTrack());
-        setCurrentSeek(currentSeek());
         speedyProgressTransition();
 
         if (!isServer) {
@@ -356,7 +346,7 @@ export default function player() {
         <>
             <div ref={playerRef} class="player">
                 <div class="player-now-playing">
-                    <Show when={currentTrack()}>
+                    <Show when={playerState.currentTrack}>
                         {(currentTrack) => (
                             <>
                                 <div class="player-album-icon">
