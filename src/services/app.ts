@@ -1,6 +1,7 @@
 import { isServer } from 'solid-js/web';
 import { Api } from './api';
 import { createSignal } from 'solid-js';
+import { createStore } from 'solid-js/store';
 
 type StartupCallback = () => void | Promise<void>;
 
@@ -36,6 +37,14 @@ export async function triggerStartup() {
         await func();
     }
 }
+
+interface AppState {
+    connections: Api.Connection[];
+}
+
+export const [appState, setAppState] = createStore<AppState>({
+    connections: [],
+});
 
 export const [currentArtistSearch, setCurrentArtistSearch] =
     createSignal<Api.Artist[]>();

@@ -50,7 +50,7 @@ function eventToSeekPosition(element: HTMLElement): number {
 }
 
 function seekTo(event: MouseEvent): void {
-    seek(Math.round(eventToSeekPosition(event.target as HTMLElement)));
+    seek(Math.round(eventToSeekPosition(event.target as HTMLElement)), true);
 }
 
 let dragStartListener: (event: MouseEvent) => void;
@@ -167,7 +167,7 @@ export default function player() {
                     setDragging(false);
                     if (!applyDrag()) return;
                     setApplyDrag(false);
-                    seek(Math.round(seekPosition()!));
+                    seek(Math.round(seekPosition()!), true);
                     progressBar?.classList.remove('no-transition');
                     event.preventDefault();
                 }

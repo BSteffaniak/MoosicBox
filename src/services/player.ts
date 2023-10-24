@@ -54,6 +54,33 @@ export const setPlaying = (value: Parameters<typeof _setPlaying>[0]) => {
     onPlayingChangedListener.trigger(value, old);
 };
 
+export const [_volume, _setVolume] = makePersisted(
+    createSignal(100, { equals: false }),
+    {
+        name: `player.v1.volume`,
+    },
+);
+const onVolumeChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _volume>,
+            old: ReturnType<typeof _volume>,
+        ) => boolean | void
+    >();
+export const onVolumeChanged = onVolumeChangedListener.on;
+export const offVolumeChanged = onVolumeChangedListener.off;
+export const volume = _volume;
+export const setVolume = (value: Parameters<typeof _setVolume>[0]) => {
+    const old = _volume();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setVolume(value);
+    if (value !== old) {
+        onVolumeChangedListener.trigger(value, old);
+    }
+};
+
 export const [_currentSeek, _setCurrentSeek] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
     {
@@ -197,6 +224,7 @@ if (!isServer) {
 }
 
 export interface PlayerType {
+    id: number;
     play(): boolean | void;
     playAlbum(album: Api.Album | Api.Track): Promise<boolean | void>;
     playPlaylist(tracks: Api.Track[]): boolean | void;
@@ -214,18 +242,38 @@ const playListener = createListener<() => void>();
 export const onPlay = playListener.on;
 export const offPlay = playListener.off;
 
+export function isMasterPlayer(): boolean {
+    return (
+        playerState.currentPlaybackSession?.activePlayers.findIndex(
+            (p) => p.playerId === player.id,
+        ) === 0
+    );
+}
+
+export function isPlayerActive(): boolean {
+    return (
+        playerState.currentPlaybackSession?.activePlayers.some(
+            (p) => p.playerId === player.id,
+        ) ?? false
+    );
+}
+
 export function play() {
-    if (player.play() === false) return;
+    if (isPlayerActive()) {
+        if (player.play() === false) return;
+    }
     playListener.trigger();
 }
 
-const seekListener = createListener<() => void>();
+const seekListener = createListener<(seek: number, manual: boolean) => void>();
 export const onSeek = seekListener.on;
 export const offSeek = seekListener.off;
 
-export function seek(seek: number) {
-    player.seek(seek);
-    seekListener.trigger();
+export function seek(seek: number, manual = false) {
+    if (isPlayerActive()) {
+        player.seek(seek);
+    }
+    seekListener.trigger(seek, manual);
 }
 
 const pauseListener = createListener<() => void>();
@@ -233,7 +281,9 @@ export const onPause = pauseListener.on;
 export const offPause = pauseListener.off;
 
 export function pause() {
-    player.pause();
+    if (isPlayerActive()) {
+        player.pause();
+    }
     pauseListener.trigger();
 }
 
@@ -266,7 +316,9 @@ export const onStop = stopListener.on;
 export const offStop = stopListener.off;
 
 export function stop() {
-    player.stop();
+    if (isPlayerActive()) {
+        player.stop();
+    }
     stopListener.trigger();
 }
 
@@ -392,11 +444,22 @@ export function updateSessionPartial(
         Object.assign(state.currentPlaybackSession, session);
 
         if (state.currentPlaybackSession?.sessionId === session.sessionId) {
+            if (isPlayerActive()) {
+                if (
+                    !state.currentPlaybackSession.activePlayers.some(
+                        (p) => p.playerId === player.id,
+                    )
+                ) {
+                    stop();
+                }
+            } else {
+                if (typeof session.seek !== 'undefined') {
+                    _setCurrentSeek(session.seek);
+                }
+            }
+
             if (typeof session.position !== 'undefined') {
                 _setPlaylistPosition(session.position);
-            }
-            if (typeof session.seek !== 'undefined') {
-                _setCurrentSeek(session.seek);
             }
             if (typeof session.playlist !== 'undefined') {
                 _setPlaylist(session.playlist.tracks);
@@ -442,16 +505,6 @@ export function updateSession(
         setCurrentPlaybackSessionId(session.sessionId);
 
         console.debug('session changed to', session, 'from', old);
-
-        if (old && old.sessionId !== session.sessionId && playing()) {
-            updatePlaybackSession(old.sessionId, { playing: false });
-
-            setPlaying(false);
-        }
-
-        if (!playing() && session.playing) {
-            setPlaying(true);
-        }
 
         _setPlaylist(session.playlist.tracks);
         _setCurrentSeek(session.seek);
@@ -533,11 +586,27 @@ onPlaylistChanged((value, old) => {
 
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
-    updateCurrentPlaybackSession({
-        seek: value ?? 0,
-    });
+    if (isMasterPlayer()) {
+        updateCurrentPlaybackSession({
+            seek: value ?? 0,
+        });
+    }
+});
+
+onSeek((value, manual) => {
+    if (manual) {
+        updateCurrentPlaybackSession({
+            seek: value ?? 0,
+        });
+        ws.setSeek(playerState.currentPlaybackSession!.sessionId, value ?? 0);
+    }
 });
 
 onPlaylistPositionChanged((value, old) => {
     console.debug('playlist position changed from', old, 'to', value);
+    if (isMasterPlayer()) {
+        updateCurrentPlaybackSession({
+            position: value ?? 0,
+        });
+    }
 });

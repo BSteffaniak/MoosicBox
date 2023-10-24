@@ -4,7 +4,6 @@ import { Api, api } from './api';
 import {
     PlayerType,
     currentSeek,
-    onCurrentPlaybackSessionChanged,
     playing,
     playlist,
     playlistPosition,
@@ -17,7 +16,9 @@ import {
     setPlaylistPosition,
     play as playerPlay,
     onUpdateSessionPartial,
-    playerState,
+    volume,
+    onVolumeChanged,
+    isPlayerActive,
 } from './player';
 
 export type TrackListenerCallback = (
@@ -61,6 +62,7 @@ function setTrack(): boolean {
                 html5: true,
             }),
         );
+        sound()!.volume(volume() / 100);
         sound()!.pannerAttr({ panningModel: 'equalpower' });
         setCurrentTrack(track);
         setCurrentTrackLength(Math.round(track.duration));
@@ -68,18 +70,12 @@ function setTrack(): boolean {
     return true;
 }
 
-onCurrentPlaybackSessionChanged((value, old) => {
-    if (value?.sessionId !== old?.sessionId) {
-        console.debug('session changed');
-        stopHowl();
-    }
+onVolumeChanged((value) => {
+    sound()?.volume(value / 100);
 });
-onUpdateSessionPartial((value) => {
-    if (
-        value.sessionId === playerState.currentPlaybackSession?.sessionId &&
-        value.playing &&
-        !playing()
-    ) {
+
+onUpdateSessionPartial(() => {
+    if (!isPlayerActive() && sound()) {
         console.debug('stopping howl');
         stopHowl();
     }
@@ -89,58 +85,65 @@ let ended: boolean = true;
 let loaded = false;
 
 function play(): boolean {
-    if (!setTrack()) return false;
+    if (playing()) {
+        console.debug('Already playing');
+        return false;
+    }
 
-    const initialSeek = currentSeek();
+    const initialSeek = !sound() ? currentSeek() : undefined;
 
-    sound()!.on(
-        'end',
-        (endHandle = (id: number) => {
-            if (ended) {
+    if (!sound() || ended) {
+        if (!setTrack()) return false;
+
+        sound()!.on(
+            'end',
+            (endHandle = (id: number) => {
+                if (ended) {
+                    console.debug(
+                        'End called after track already ended',
+                        id,
+                        sound(),
+                        sound()?.duration(),
+                    );
+                    return;
+                }
+                console.debug('Track ended', id, sound(), sound()?.duration());
+                ended = true;
+                loaded = false;
+                nextTrack();
+            }),
+        );
+        sound()!.on(
+            'load',
+            (loadHandle = (...args) => {
+                ended = false;
+                loaded = true;
                 console.debug(
-                    'End called after track already ended',
-                    id,
+                    'Track loaded',
                     sound(),
-                    sound()?.duration(),
+                    sound()!.duration(),
+                    ...args,
                 );
-                return;
-            }
-            console.debug('Track ended', id, sound(), sound()?.duration());
-            ended = true;
-            loaded = false;
-            nextTrack();
-        }),
-    );
-    sound()!.on(
-        'load',
-        (loadHandle = (...args) => {
-            ended = false;
-            loaded = true;
-            console.debug(
-                'Track loaded',
-                sound(),
-                sound()!.duration(),
-                ...args,
-            );
-            setCurrentTrackLength(Math.round(sound()!.duration()));
-            if (typeof initialSeek === 'number') {
-                console.debug(`Setting initial seek to ${initialSeek}`);
-                sound()!.seek(initialSeek);
-            }
-        }),
-    );
+                setCurrentTrackLength(Math.round(sound()!.duration()));
+                if (typeof initialSeek === 'number') {
+                    console.debug(`Setting initial seek to ${initialSeek}`);
+                    sound()!.seek(initialSeek);
+                }
+            }),
+        );
+    }
 
     sound()!.play();
-
-    if (loaded && typeof initialSeek === 'number') {
-        console.debug(`Setting initial seek to ${initialSeek}`);
-        sound()!.seek(initialSeek);
-    }
 
     seekHandle = setInterval(() => {
         if (!loaded) return;
         refreshCurrentSeek();
     }, 200);
+
+    if (loaded && typeof initialSeek === 'number') {
+        console.debug(`Setting initial seek to ${initialSeek}`);
+        sound()!.seek(initialSeek);
+    }
 
     setPlaying(true);
     console.debug('Playing', sound());
@@ -264,16 +267,19 @@ function playFromPlaylistPosition(index: number) {
     else setTrack();
 }
 
-export const player: PlayerType = {
-    play,
-    playAlbum,
-    playPlaylist,
-    playFromPlaylistPosition,
-    addAlbumToQueue,
-    removeTrackFromPlaylist,
-    pause,
-    stop,
-    seek,
-    previousTrack,
-    nextTrack,
-};
+export function createPlayer(id: number): PlayerType {
+    return {
+        id,
+        play,
+        playAlbum,
+        playPlaylist,
+        playFromPlaylistPosition,
+        addAlbumToQueue,
+        removeTrackFromPlaylist,
+        pause,
+        stop,
+        seek,
+        previousTrack,
+        nextTrack,
+    };
+}

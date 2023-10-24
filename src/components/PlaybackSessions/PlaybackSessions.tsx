@@ -1,10 +1,12 @@
 import './playback-sessions.css';
-import { For, Index, createSignal } from 'solid-js';
+import { For, Index, createComputed, createSignal } from 'solid-js';
 import { Api } from '~/services/api';
 import { playerState, setPlayerState, updateSession } from '~/services/player';
 import Album from '../Album';
 import * as ws from '~/services/ws';
 import { produce } from 'solid-js/store';
+import Modal from '../Modal/Modal';
+import { appState } from '~/services/app';
 
 const queuedTracksCache: {
     [id: number]: { position?: number; tracks: Api.Track[] };
@@ -14,6 +16,63 @@ export default function playbackSessionsFunc() {
     const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>(
         playerState.playbackSessions,
     );
+    const [activePlayersSession, setActivePlayersSession] =
+        createSignal<Api.PlaybackSession>();
+
+    createComputed(() => {
+        setSessions(playerState.playbackSessions);
+
+        if (activePlayersSession()) {
+            setActivePlayersSession(
+                sessions().find(
+                    (s) => s.sessionId === activePlayersSession()?.sessionId,
+                ),
+            );
+        }
+    });
+
+    function showActivePlayers(session: Api.PlaybackSession) {
+        setActivePlayersSession(session);
+    }
+
+    function disableAudioPlayer(
+        session: Api.PlaybackSession,
+        player: Api.Player,
+    ) {
+        const newActivePlayers = session.activePlayers
+            .filter((p) => p.playerId !== player.playerId)
+            .map((p) => p.playerId);
+
+        console.debug(
+            'Setting active players for session',
+            session.sessionId,
+            'to',
+            newActivePlayers,
+        );
+
+        ws.setActivePlayers(session.sessionId, newActivePlayers);
+    }
+
+    function enableAudioPlayer(
+        session: Api.PlaybackSession,
+        player: Api.Player,
+    ) {
+        const newActivePlayers = [
+            ...session.activePlayers
+                .filter((p) => p.playerId !== player.playerId)
+                .map((p) => p.playerId),
+            player.playerId,
+        ];
+
+        console.debug(
+            'Setting active players for session',
+            session.sessionId,
+            'to',
+            newActivePlayers,
+        );
+
+        ws.setActivePlayers(session.sessionId, newActivePlayers);
+    }
 
     function deleteSession(sessionId: number) {
         if (sessionId === playerState.currentPlaybackSession?.sessionId) {
@@ -116,18 +175,33 @@ export default function playbackSessionsFunc() {
                                         src="/img/audio-white.svg"
                                     />
                                 )}
-                                <div
-                                    class="playback-sessions-list-session-header-delete-session"
-                                    onClick={(e) => {
-                                        deleteSession(session.sessionId);
-                                        e.stopImmediatePropagation();
-                                    }}
-                                >
-                                    <img
-                                        class="trash-icon"
-                                        src="/img/trash-white.svg"
-                                        alt="Delete playback session"
-                                    />
+                                <div class="playback-sessions-list-session-header-right">
+                                    <div
+                                        class="playback-sessions-list-session-header-show-active-players"
+                                        onClick={(e) => {
+                                            showActivePlayers(session);
+                                            e.stopImmediatePropagation();
+                                        }}
+                                    >
+                                        <img
+                                            class="audio-icon"
+                                            src="/img/more-options-white.svg"
+                                            alt="Show active players"
+                                        />
+                                    </div>
+                                    <div
+                                        class="playback-sessions-list-session-header-delete-session"
+                                        onClick={(e) => {
+                                            deleteSession(session.sessionId);
+                                            e.stopImmediatePropagation();
+                                        }}
+                                    >
+                                        <img
+                                            class="trash-icon"
+                                            src="/img/trash-white.svg"
+                                            alt="Delete playback session"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div class="playback-sessions-playlist-tracks-container">
@@ -168,6 +242,78 @@ export default function playbackSessionsFunc() {
                     )}
                 </For>
             </div>
+            <Modal
+                show={() => activePlayersSession()}
+                onClose={() => setActivePlayersSession(undefined)}
+            >
+                {(activePlayersSession) => (
+                    <div class="playback-session-active-players-modal-container">
+                        <div class="playback-session-active-players-modal-header">
+                            <h1>
+                                {activePlayersSession.name} - Active Players
+                            </h1>
+                            <div
+                                class="playback-session-active-players-modal-header-close"
+                                onClick={(e) => {
+                                    setActivePlayersSession(undefined);
+                                    e.stopImmediatePropagation();
+                                }}
+                            >
+                                <img
+                                    class="cross-icon"
+                                    src="/img/cross-white.svg"
+                                    alt="Close playlist sessions modal"
+                                />
+                            </div>
+                        </div>
+                        <div class="playback-session-active-players-modal-content">
+                            <Index each={appState.connections}>
+                                {(connection) => (
+                                    <div class="playback-session-active-players-modal-connection">
+                                        <Index each={connection().players}>
+                                            {(player) => (
+                                                <div class="playback-session-active-players-modal-connection-player">
+                                                    {connection().name} -{' '}
+                                                    {player().name}{' '}
+                                                    {activePlayersSession.activePlayers.some(
+                                                        (p) =>
+                                                            p.playerId ===
+                                                            player().playerId,
+                                                    ) ? (
+                                                        <img
+                                                            class="audio-icon"
+                                                            src="/img/audio-white.svg"
+                                                            alt="Player enabled"
+                                                            onClick={() =>
+                                                                disableAudioPlayer(
+                                                                    activePlayersSession,
+                                                                    player(),
+                                                                )
+                                                            }
+                                                        />
+                                                    ) : (
+                                                        <img
+                                                            class="audio-icon"
+                                                            src="/img/audio-off-white.svg"
+                                                            alt="Player disabled"
+                                                            onClick={() =>
+                                                                enableAudioPlayer(
+                                                                    activePlayersSession,
+                                                                    player(),
+                                                                )
+                                                            }
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </Index>
+                                    </div>
+                                )}
+                            </Index>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }

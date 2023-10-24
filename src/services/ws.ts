@@ -1,7 +1,7 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
 import { Api } from './api';
-import { onStartup } from './app';
+import { onStartup, setAppState } from './app';
 import { PartialUpdateSession } from './types';
 import { createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
@@ -29,7 +29,8 @@ export const [_connectionName, _setConnectionName] = makePersisted(
         name: `ws.v1.connectionName`,
     },
 );
-const onConnectionNameChangedListener = createListener<(value: string) => boolean | void>();
+const onConnectionNameChangedListener =
+    createListener<(value: string) => boolean | void>();
 export const onConnectionNameChanged = onConnectionNameChangedListener.on;
 export const offConnectionNameChanged = onConnectionNameChangedListener.off;
 export const connectionName = _connectionName;
@@ -49,15 +50,15 @@ onConnect((id) => {
     getSessions();
 });
 
-enum InboundMessageType {
+export enum InboundMessageType {
     CONNECTION_ID = 'CONNECTION_ID',
-    CONNECTIONS_DATA = 'CONNECTIONS_DATA',
     SESSIONS = 'SESSIONS',
     SESSION_UPDATED = 'SESSION_UPDATED',
     CONNECTIONS = 'CONNECTIONS',
+    SET_SEEK = 'SET_SEEK',
 }
 
-enum OutboundMessageType {
+export enum OutboundMessageType {
     PING = 'PING',
     SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
     PLAYBACK_ACTION = 'PLAYBACK_ACTION',
@@ -67,6 +68,8 @@ enum OutboundMessageType {
     DELETE_SESSION = 'DELETE_SESSION',
     REGISTER_CONNECTION = 'REGISTER_CONNECTION',
     REGISTER_PLAYERS = 'REGISTER_PLAYERS',
+    SET_ACTIVE_PLAYERS = 'SET_ACTIVE_PLAYERS',
+    SET_SEEK = 'SET_SEEK',
 }
 
 interface ConnectionIdMessage extends InboundMessage {
@@ -87,6 +90,21 @@ interface ConnectionsMessage extends InboundMessage {
 interface SessionUpdatedMessage extends InboundMessage {
     type: InboundMessageType.SESSION_UPDATED;
     payload: PartialUpdateSession;
+}
+
+interface SetSeek {
+    sessionId: number;
+    seek: number;
+}
+
+interface SetSeekInboundMessage extends InboundMessage {
+    type: InboundMessageType.SET_SEEK;
+    payload: SetSeek;
+}
+
+interface SetSeekOutboundMessage extends OutboundMessage {
+    type: OutboundMessageType.SET_SEEK;
+    payload: SetSeek;
 }
 
 interface PingMessage extends OutboundMessage {
@@ -125,9 +143,20 @@ interface GetSessionsMessage extends OutboundMessage {
     type: OutboundMessageType.GET_SESSIONS;
 }
 
+export interface SetActivePlayers {
+    sessionId: number;
+    players: number[];
+}
+
+interface SetActivePlayersMessage extends OutboundMessage {
+    type: OutboundMessageType.SET_ACTIVE_PLAYERS;
+    payload: SetActivePlayers;
+}
+
 export interface CreateSessionRequest {
     name: string;
     playlist: CreateSessionPlaylistRequest;
+    activePlayers: number[];
 }
 
 export interface CreateSessionPlaylistRequest {
@@ -208,6 +237,16 @@ export function playbackAction(action: PlaybackAction) {
     });
 }
 
+export function setActivePlayers(sessionId: number, players: number[]) {
+    send<SetActivePlayersMessage>({
+        type: OutboundMessageType.SET_ACTIVE_PLAYERS,
+        payload: {
+            sessionId,
+            players,
+        },
+    });
+}
+
 function getSessions() {
     send<GetSessionsMessage>({
         type: OutboundMessageType.GET_SESSIONS,
@@ -255,9 +294,24 @@ export function deleteSession(sessionId: number) {
     });
 }
 
+export function setSeek(sessionId: number, seek: number) {
+    send<SetSeekOutboundMessage>({
+        type: OutboundMessageType.SET_SEEK,
+        payload: {
+            sessionId,
+            seek,
+        },
+    });
+}
+
 function send<T extends OutboundMessage>(value: T) {
     ws.send(JSON.stringify(value));
 }
+
+const onMessageListener =
+    createListener<(message: InboundMessage) => boolean | void>();
+export const onMessage = onMessageListener.on;
+export const offMessage = onMessageListener.off;
 
 function newClient(): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
@@ -294,84 +348,7 @@ function newClient(): Promise<WebSocket> {
 
         client.addEventListener('message', (event: MessageEvent<string>) => {
             const data = JSON.parse(event.data) as InboundMessage;
-            switch (data.type) {
-                case InboundMessageType.CONNECTION_ID: {
-                    const message = data as ConnectionIdMessage;
-                    console.debug('Client connected', message);
-                    onConnectListener.trigger(message.connectionId);
-                    break;
-                }
-                case InboundMessageType.SESSIONS: {
-                    const message = data as SessionsMessage;
-                    console.debug('Received sessions', message.payload);
-                    player.setPlayerState(
-                        produce((state) => {
-                            state.playbackSessions = message.payload;
-                            const existing = message.payload.find(
-                                (p) =>
-                                    p.sessionId ===
-                                    state.currentPlaybackSession?.sessionId,
-                            );
-                            if (existing) {
-                                player.updateSession(state, existing);
-                            } else if (
-                                typeof player.currentPlaybackSessionId() ===
-                                'number'
-                            ) {
-                                const session =
-                                    message.payload.find(
-                                        (s) =>
-                                            s.sessionId ===
-                                            player.currentPlaybackSessionId(),
-                                    ) ?? message.payload[0];
-                                if (session) {
-                                    player.updateSession(state, session, true);
-                                }
-                            } else {
-                                player.updateSession(
-                                    state,
-                                    message.payload[0],
-                                    true,
-                                );
-                            }
-                        }),
-                    );
-                    break;
-                }
-                case InboundMessageType.CONNECTIONS: {
-                    const message = data as ConnectionsMessage;
-                    console.debug('Received connections', message.payload);
-                    break;
-                }
-                case InboundMessageType.SESSION_UPDATED: {
-                    const message = data as SessionUpdatedMessage;
-                    console.debug('Received session update', message.payload);
-                    player.setPlayerState(
-                        produce((state) => {
-                            player.updateSessionPartial(state, message.payload);
-                            const session = message.payload;
-                            if (typeof session.position !== 'undefined') {
-                                if (player.playing()) {
-                                    player.stop();
-                                    player.play();
-                                }
-                            }
-                            if (typeof session.seek !== 'undefined') {
-                                if (player.playing()) {
-                                    player.seek(session.seek);
-                                }
-                            }
-                            if (typeof session.playing !== 'undefined') {
-                                if (!session.playing && player.playing()) {
-                                    player.pause();
-                                }
-                            }
-                        }),
-                    );
-
-                    break;
-                }
-            }
+            onMessageListener.trigger(data);
         });
 
         client.addEventListener('close', async () => {
@@ -396,6 +373,112 @@ function newClient(): Promise<WebSocket> {
         });
     });
 }
+
+onMessage((data) => {
+    switch (data.type) {
+        case InboundMessageType.CONNECTION_ID: {
+            const message = data as ConnectionIdMessage;
+            console.debug('Client connected', message);
+            onConnectListener.trigger(message.connectionId);
+            break;
+        }
+        case InboundMessageType.SESSIONS: {
+            const message = data as SessionsMessage;
+            console.debug('Received sessions', message.payload);
+            player.setPlayerState(
+                produce((state) => {
+                    state.playbackSessions = message.payload;
+                    const existing = message.payload.find(
+                        (p) =>
+                            p.sessionId ===
+                            state.currentPlaybackSession?.sessionId,
+                    );
+                    if (existing) {
+                        player.updateSession(state, existing);
+                    } else if (
+                        typeof player.currentPlaybackSessionId() === 'number'
+                    ) {
+                        const session =
+                            message.payload.find(
+                                (s) =>
+                                    s.sessionId ===
+                                    player.currentPlaybackSessionId(),
+                            ) ?? message.payload[0];
+                        if (session) {
+                            player.updateSession(state, session, true);
+                        }
+                    } else {
+                        player.updateSession(state, message.payload[0], true);
+                    }
+                }),
+            );
+            break;
+        }
+        case InboundMessageType.CONNECTIONS: {
+            const message = data as ConnectionsMessage;
+            console.debug('Received connections', message.payload);
+            setAppState(
+                produce((state) => {
+                    state.connections = message.payload;
+                }),
+            );
+            break;
+        }
+        case InboundMessageType.SET_SEEK: {
+            const message = data as SetSeekInboundMessage;
+            console.debug('Received seek', message.payload);
+            if (
+                message.payload.sessionId ===
+                player.playerState.currentPlaybackSession?.sessionId
+            ) {
+                player.seek(message.payload.seek);
+            }
+            break;
+        }
+        case InboundMessageType.SESSION_UPDATED: {
+            const message = data as SessionUpdatedMessage;
+            console.debug('Received session update', message.payload);
+
+            const session = message.payload;
+
+            player.setPlayerState(
+                produce((state) => {
+                    player.updateSessionPartial(state, message.payload);
+                }),
+            );
+
+            if (
+                session.sessionId ===
+                player.playerState.currentPlaybackSession?.sessionId
+            ) {
+                if (typeof session.position !== 'undefined') {
+                    if (player.playing()) {
+                        player.stop();
+                        player.play();
+                    }
+                }
+                if (
+                    typeof session.seek !== 'undefined' &&
+                    !player.isPlayerActive()
+                ) {
+                    player.seek(session.seek);
+                }
+                if (
+                    typeof session.playing !== 'undefined' &&
+                    player.isPlayerActive()
+                ) {
+                    if (!session.playing && player.playing()) {
+                        player.pause();
+                    } else if (session.playing && !player.playing()) {
+                        player.play();
+                    }
+                }
+            }
+
+            break;
+        }
+    }
+});
 
 let lastConnectionAttemptTime: number;
 const MAX_CONNECTION_RETRY_COUNT: number = -1;

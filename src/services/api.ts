@@ -41,6 +41,7 @@ export namespace Api {
     export interface Connection {
         connectionId: string;
         name: string;
+        players: Player[];
     }
 
     export interface Artist {
@@ -82,6 +83,7 @@ export namespace Api {
         playing: boolean;
         position?: number;
         seek?: number;
+        activePlayers: Player[];
         playlist: PlaybackSessionPlaylist;
     }
 
