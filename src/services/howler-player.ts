@@ -15,6 +15,7 @@ import {
     setPlaylist,
     setPlaylistPosition,
     play as playerPlay,
+    stop as playerStop,
     onUpdateSessionPartial,
     volume,
     onVolumeChanged,
@@ -172,7 +173,7 @@ function previousTrack(): boolean {
         console.debug('Playing previous track');
         setPlaylistPosition((value) => (value! > 0 ? value! - 1 : value!));
         const shouldPlay = playing();
-        stop();
+        playerStop();
         if (shouldPlay) play();
         else setTrack();
         return true;
@@ -191,13 +192,13 @@ function nextTrack(): boolean {
         console.debug('Playing next track');
         setPlaylistPosition((value) => value! + 1);
         const shouldPlay = playing();
-        stop();
+        playerStop();
         if (shouldPlay) play();
         else setTrack();
         return true;
     } else {
         console.debug('No next track to play');
-        stop();
+        playerStop();
         return false;
     }
 }
@@ -230,7 +231,7 @@ async function playAlbum(album: Api.Album | Api.Track): Promise<boolean> {
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    stop();
+    playerStop();
     return playerPlay()!;
 }
 
@@ -240,7 +241,7 @@ function playPlaylist(tracks: Api.Track[]): boolean {
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    stop();
+    playerStop();
     return playerPlay()!;
 }
 
@@ -262,7 +263,7 @@ function playFromPlaylistPosition(index: number) {
     console.debug('Playing from playlist position', index);
     setPlaylistPosition(index);
     const shouldPlay = playing();
-    stop();
+    playerStop();
     if (shouldPlay) play();
     else setTrack();
 }
