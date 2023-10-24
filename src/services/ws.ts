@@ -306,6 +306,7 @@ export function setSeek(sessionId: number, seek: number) {
 }
 
 function send<T extends OutboundMessage>(value: T) {
+    console.debug('Sending WebSocket message', value);
     ws.send(JSON.stringify(value));
 }
 
