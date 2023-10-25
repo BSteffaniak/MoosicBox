@@ -173,7 +173,7 @@ function previousTrack(): boolean {
         console.debug('Playing previous track');
         setPlaylistPosition((value) => (value! > 0 ? value! - 1 : value!));
         const shouldPlay = playing();
-        playerStop();
+        stop();
         if (shouldPlay) play();
         else setTrack();
         return true;
@@ -192,7 +192,7 @@ function nextTrack(): boolean {
         console.debug('Playing next track');
         setPlaylistPosition((value) => value! + 1);
         const shouldPlay = playing();
-        playerStop();
+        stop();
         if (shouldPlay) play();
         else setTrack();
         return true;
@@ -231,7 +231,7 @@ async function playAlbum(album: Api.Album | Api.Track): Promise<boolean> {
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    playerStop();
+    stop();
     return playerPlay()!;
 }
 
@@ -241,7 +241,7 @@ function playPlaylist(tracks: Api.Track[]): boolean {
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    playerStop();
+    stop();
     return playerPlay()!;
 }
 
@@ -263,7 +263,7 @@ function playFromPlaylistPosition(index: number) {
     console.debug('Playing from playlist position', index);
     setPlaylistPosition(index);
     const shouldPlay = playing();
-    playerStop();
+    stop();
     if (shouldPlay) play();
     else setTrack();
 }
