@@ -117,18 +117,7 @@ export default function global() {
                             onChange={(e) =>
                                 saveVolume(parseInt(e.target.value))
                             }
-                            onKeyUp={(e) =>
-                                e.key === 'Enter' &&
-                                saveVolume(parseInt(volumeInput.value))
-                            }
                         />
-                        <button
-                            onClick={() =>
-                                saveVolume(parseInt(volumeInput.value))
-                            }
-                        >
-                            save
-                        </button>
                     </li>
                 </ul>
                 {isMasterPlayer() ? 'master' : 'slave'}{' '}
