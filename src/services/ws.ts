@@ -60,7 +60,6 @@ export enum InboundMessageType {
 
 export enum OutboundMessageType {
     PING = 'PING',
-    SYNC_CONNECTION_DATA = 'SYNC_CONNECTION_DATA',
     PLAYBACK_ACTION = 'PLAYBACK_ACTION',
     GET_SESSIONS = 'GET_SESSIONS',
     CREATE_SESSION = 'CREATE_SESSION',
