@@ -43,11 +43,22 @@ export default function global() {
 
     let volumeInput: HTMLInputElement;
 
-    function saveVolume() {
-        const vol = parseInt(volumeInput.value);
-        if (!isNaN(vol)) {
-            setVolume(vol);
+    function saveVolume(value: number) {
+        if (isNaN(value)) {
+            volumeInput.value = '100';
+            return;
         }
+        let newVolume = value;
+        if (value > 100) {
+            newVolume = 100;
+        } else if (value < 0) {
+            newVolume = 0;
+        }
+        if (newVolume !== value) {
+            volumeInput.value = `${newVolume}`;
+        }
+
+        setVolume(newVolume);
     }
 
     function createNewSession() {
@@ -99,11 +110,25 @@ export default function global() {
                     <li>
                         <input
                             ref={volumeInput!}
-                            type="text"
+                            type="number"
                             value={volume()}
-                            onKeyUp={(e) => e.key === 'Enter' && saveVolume()}
+                            min="0"
+                            max="100"
+                            onChange={(e) =>
+                                saveVolume(parseInt(e.target.value))
+                            }
+                            onKeyUp={(e) =>
+                                e.key === 'Enter' &&
+                                saveVolume(parseInt(volumeInput.value))
+                            }
                         />
-                        <button onClick={saveVolume}>save</button>
+                        <button
+                            onClick={() =>
+                                saveVolume(parseInt(volumeInput.value))
+                            }
+                        >
+                            save
+                        </button>
                     </li>
                 </ul>
                 {isMasterPlayer() ? 'master' : 'slave'}{' '}
