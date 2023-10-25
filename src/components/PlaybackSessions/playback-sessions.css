@@ -137,10 +137,11 @@
 }
 
 .playback-session-active-players-modal-container {
-    width: 50vw;
-    height: 20vh;
-    max-width: 600px;
+    width: 600px;
+    max-width: 60vw;
     max-height: calc(70vh - 230px);
+    overflow: auto;
+    padding-bottom: 15px;
 }
 
 .playback-session-active-players-modal-header {
