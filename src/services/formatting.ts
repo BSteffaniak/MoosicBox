@@ -17,5 +17,6 @@ export function toTime(seconds: number) {
 }
 
 export function displayDate(date: string, dateFormat: string): string {
+    if (!date) return '';
     return format(parseISO(date), dateFormat);
 }
