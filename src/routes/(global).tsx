@@ -88,6 +88,9 @@ export default function global() {
                         <A href="/artists">Artists</A>
                     </li>
                     <li>
+                        <A href="/settings">Settings</A>
+                    </li>
+                    <li>
                         <input
                             ref={apiUrlInput!}
                             type="text"
