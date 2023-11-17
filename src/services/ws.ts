@@ -60,6 +60,7 @@ export enum InboundMessageType {
 
 export enum OutboundMessageType {
     PING = 'PING',
+    GET_CONNECTION_ID = 'GET_CONNECTION_ID',
     PLAYBACK_ACTION = 'PLAYBACK_ACTION',
     GET_SESSIONS = 'GET_SESSIONS',
     CREATE_SESSION = 'CREATE_SESSION',
@@ -99,6 +100,10 @@ interface SetSeek {
 interface SetSeekInboundMessage extends InboundMessage {
     type: InboundMessageType.SET_SEEK;
     payload: SetSeek;
+}
+
+interface GetConnectionIdMessage extends OutboundMessage {
+    type: OutboundMessageType.GET_CONNECTION_ID;
 }
 
 interface SetSeekOutboundMessage extends OutboundMessage {
@@ -212,6 +217,12 @@ interface OutboundMessage {
 
 function ping() {
     send<PingMessage>({ type: OutboundMessageType.PING });
+}
+
+function getConnectionId() {
+    send<GetConnectionIdMessage>({
+        type: OutboundMessageType.GET_CONNECTION_ID,
+    });
 }
 
 export function registerConnection(connection: RegisterConnection) {
@@ -343,6 +354,7 @@ function newClient(): Promise<WebSocket> {
                 );
 
                 ws = client;
+                getConnectionId();
                 resolve(client);
             }
         });
