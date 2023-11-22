@@ -1,5 +1,5 @@
 import { isServer } from 'solid-js/web';
-import { Api } from './api';
+import { Api, api } from './api';
 import { createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 
@@ -54,3 +54,15 @@ export const [currentAlbumSearch, setCurrentAlbumSearch] =
 
 export const [showPlaybackSessions, setShowPlaybackSessions] =
     createSignal(false);
+
+Api.onTokenUpdated((_token) => {
+    api.validateSignatureToken();
+});
+Api.onClientIdUpdated((_clientId) => {
+    api.validateSignatureToken();
+});
+onStartup(async () => {
+    if (Api.token() && Api.clientId()) {
+        await api.validateSignatureToken();
+    }
+});

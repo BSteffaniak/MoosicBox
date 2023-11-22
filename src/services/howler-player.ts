@@ -34,7 +34,16 @@ let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
 
 function getTrackUrl(track: Api.Track): string {
-    return `${Api.apiUrl()}/track?trackId=${track.trackId}`;
+    let url = `${Api.apiUrl()}/track?trackId=${track.trackId}`;
+
+    const clientId = Api.clientId();
+    const signatureToken = Api.signatureToken();
+
+    if (clientId && signatureToken) {
+        url += `&clientId=${clientId}&signature=${signatureToken}`;
+    }
+
+    return url;
 }
 
 function refreshCurrentSeek() {
@@ -56,15 +65,15 @@ function setTrack(): boolean {
         }
         const track = playlist()![playlistPosition()!];
         console.debug('Setting track to', track);
-        setSound(
-            new Howl({
-                src: [getTrackUrl(track)],
-                format: 'flac',
-                html5: true,
-            }),
-        );
-        sound()!.volume(volume() / 100);
-        sound()!.pannerAttr({ panningModel: 'equalpower' });
+
+        const howl = new Howl({
+            src: [getTrackUrl(track)],
+            format: 'flac',
+            html5: true,
+        });
+        howl.volume(volume() / 100);
+        howl.pannerAttr({ panningModel: 'equalpower' });
+        setSound(howl);
         setPlayerState({ currentTrack: track });
         setCurrentTrackLength(Math.round(track.duration));
     }

@@ -8,9 +8,46 @@ import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
 
 Api.onApiUrlUpdated((url) => {
-    wsUrl = `ws${url.slice(4)}/ws`;
+    updateWsUrl(url, Api.clientId(), Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
+        console.debug('Waiting for signature token');
+        return;
+    }
     reconnect();
 });
+Api.onClientIdUpdated((clientId) => {
+    updateWsUrl(Api.apiUrl(), clientId, Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
+        console.debug('Waiting for signature token');
+        return;
+    }
+    reconnect();
+});
+Api.onSignatureTokenUpdated((signatureToken) => {
+    updateWsUrl(Api.apiUrl(), Api.clientId(), signatureToken);
+    if (Api.token() && !Api.signatureToken()) {
+        console.debug('Waiting for signature token');
+        return;
+    }
+    reconnect();
+});
+
+function updateWsUrl(
+    apiUrl: string,
+    clientId: string | undefined,
+    signatureToken: string | undefined,
+) {
+    const params = [];
+    if (clientId) {
+        params.push(`clientId=${encodeURIComponent(clientId)}`);
+    }
+    if (signatureToken) {
+        params.push(`signature=${encodeURIComponent(signatureToken)}`);
+    }
+    wsUrl = `ws${apiUrl.slice(4)}/ws${
+        params.length > 0 ? `?${params.join('&')}` : ''
+    }`;
+}
 
 let ws: WebSocket;
 let wsUrl: string;
@@ -546,6 +583,10 @@ function reconnect(): Promise<WebSocket> {
 }
 
 onStartup(async () => {
-    wsUrl = `ws${Api.apiUrl().slice(4)}/ws`;
+    updateWsUrl(Api.apiUrl(), Api.clientId(), Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
+        console.debug('Waiting for signature token');
+        return;
+    }
     connectionPromise = attemptConnection();
 });

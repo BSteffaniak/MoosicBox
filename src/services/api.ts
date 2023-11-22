@@ -28,6 +28,56 @@ export namespace Api {
         onApiUrlUpdatedListeners.trigger(url);
     }
 
+    const onClientIdUpdatedListeners = createListener<(url: string) => void>();
+    export const onClientIdUpdated = onClientIdUpdatedListeners.on;
+    export const offClientIdUpdated = onClientIdUpdatedListeners.off;
+    const [_clientId, _setClientId] = makePersisted(createSignal(''), {
+        name: 'clientId',
+    });
+    export function clientId(): ReturnType<typeof _clientId> {
+        return _clientId();
+    }
+    export function setClientId(url: string): void {
+        _setClientId(url);
+
+        onClientIdUpdatedListeners.trigger(url);
+    }
+
+    const onTokenUpdatedListeners = createListener<(url: string) => void>();
+    export const onTokenUpdated = onTokenUpdatedListeners.on;
+    export const offTokenUpdated = onTokenUpdatedListeners.off;
+    const [_token, _setToken] = makePersisted(createSignal(''), {
+        name: 'token',
+    });
+    export function token(): ReturnType<typeof _token> {
+        return _token();
+    }
+    export function setToken(url: string): void {
+        _setToken(url);
+
+        onTokenUpdatedListeners.trigger(url);
+    }
+
+    const onSignatureTokenUpdatedListeners =
+        createListener<(url: string) => void>();
+    export const onSignatureTokenUpdated = onSignatureTokenUpdatedListeners.on;
+    export const offSignatureTokenUpdated =
+        onSignatureTokenUpdatedListeners.off;
+    const [_signatureToken, _setSignatureToken] = makePersisted(
+        createSignal(''),
+        {
+            name: 'signatureToken',
+        },
+    );
+    export function signatureToken(): ReturnType<typeof _signatureToken> {
+        return _signatureToken();
+    }
+    export function setSignatureToken(url: string): void {
+        _setSignatureToken(url);
+
+        onSignatureTokenUpdatedListeners.trigger(url);
+    }
+
     export enum PlayerType {
         HOWLER = 'HOWLER',
     }
@@ -122,6 +172,25 @@ export namespace Api {
     export type AlbumFilters = {
         search?: string;
     };
+
+    export function getPath(path: string): string {
+        path = path[0] === '/' ? path.substring(1) : path;
+        const containsQuery = path.includes('?');
+        const params = [];
+
+        const clientId = Api.clientId();
+        if (clientId) {
+            params.push(`clientId=${encodeURIComponent(clientId)}`);
+        }
+        const signatureToken = Api.signatureToken();
+        if (signatureToken) {
+            params.push(`signature=${encodeURIComponent(signatureToken)}`);
+        }
+
+        const query = `${containsQuery ? '' : '?'}${params.join('&')}`;
+
+        return `${Api.apiUrl()}/${path}${query}`;
+    }
 }
 
 export interface ApiType {
@@ -157,6 +226,7 @@ export interface ApiType {
         request: Api.ArtistsRequest | undefined,
         signal?: AbortSignal,
     ): Promise<Api.Artist[]>;
+    validateSignatureToken(signal?: AbortSignal): Promise<void>;
 }
 
 async function getArtist(
@@ -167,7 +237,7 @@ async function getArtist(
         artistId: `${artistId}`,
     });
 
-    const response = await fetch(`${Api.apiUrl()}/artist?${query}`, {
+    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -184,7 +254,7 @@ function getAlbumArtwork(
         | undefined,
 ): string {
     if (album?.containsArtwork) {
-        return `${Api.apiUrl()}/albums/${album.albumId}/300x300`;
+        return Api.getPath(`albums/${album.albumId}/300x300`);
     }
     return '/img/album.svg';
 }
@@ -197,7 +267,7 @@ async function getArtistAlbums(
         artistId: `${artistId}`,
     });
 
-    const response = await fetch(`${Api.apiUrl()}/artist/albums?${query}`, {
+    const response = await request(`${Api.apiUrl()}/artist/albums?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -210,7 +280,7 @@ async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
         albumId: `${id}`,
     });
 
-    const response = await fetch(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${Api.apiUrl()}/album?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -219,15 +289,17 @@ async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
 }
 
 async function getAlbums(
-    request: Api.AlbumsRequest | undefined = undefined,
+    albumsRequest: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Album[]> {
     const query = new URLSearchParams();
-    if (request?.sources) query.set('sources', request.sources.join(','));
-    if (request?.sort) query.set('sort', request.sort);
-    if (request?.filters?.search) query.set('search', request.filters.search);
+    if (albumsRequest?.sources)
+        query.set('sources', albumsRequest.sources.join(','));
+    if (albumsRequest?.sort) query.set('sort', albumsRequest.sort);
+    if (albumsRequest?.filters?.search)
+        query.set('search', albumsRequest.filters.search);
 
-    const response = await fetch(`${Api.apiUrl()}/albums?${query}`, {
+    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -246,7 +318,7 @@ function getArtistCover(
         | undefined,
 ): string {
     if (artist?.containsCover) {
-        return `${Api.apiUrl()}/artists/${artist.artistId}/300x300`;
+        return Api.getPath(`artists/${artist.artistId}/300x300`);
     }
     return '/img/album.svg';
 }
@@ -255,7 +327,7 @@ async function getAlbumTracks(
     albumId: number,
     signal?: AbortSignal,
 ): Promise<Api.Track[]> {
-    const response = await fetch(
+    const response = await request(
         `${Api.apiUrl()}/album/tracks?albumId=${albumId}`,
         {
             method: 'GET',
@@ -268,15 +340,17 @@ async function getAlbumTracks(
 }
 
 async function getArtists(
-    request: Api.ArtistsRequest | undefined = undefined,
+    artistsRequest: Api.ArtistsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Artist[]> {
     const query = new URLSearchParams();
-    if (request?.sources) query.set('sources', request.sources.join(','));
-    if (request?.sort) query.set('sort', request.sort);
-    if (request?.filters?.search) query.set('search', request.filters.search);
+    if (artistsRequest?.sources)
+        query.set('sources', artistsRequest.sources.join(','));
+    if (artistsRequest?.sort) query.set('sort', artistsRequest.sort);
+    if (artistsRequest?.filters?.search)
+        query.set('search', artistsRequest.filters.search);
 
-    const response = await fetch(`${Api.apiUrl()}/artists?${query}`, {
+    const response = await request(`${Api.apiUrl()}/artists?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -284,6 +358,89 @@ async function getArtists(
     const artists: Api.Artist[] = await response.json();
 
     return artists;
+}
+
+async function fetchSignatureToken(
+    signal?: AbortSignal,
+): Promise<string | undefined> {
+    const response = await request(
+        `${Api.apiUrl()}/auth/signature-token?clientId=${Api.clientId()}`,
+        {
+            credentials: 'include',
+            method: 'POST',
+            signal,
+        },
+    );
+
+    const payload = await response.json();
+
+    return payload?.token;
+}
+
+async function validateSignatureTokenAndClient(
+    clientId: string,
+    signature: string,
+    signal?: AbortSignal,
+): Promise<boolean> {
+    try {
+        const response = await request(
+            `${Api.apiUrl()}/auth/validate-signature-token?clientId=${clientId}&signature=${signature}`,
+            {
+                credentials: 'include',
+                signal,
+            },
+        );
+
+        const payload = await response.json();
+
+        return payload.valid;
+    } catch {
+        return false;
+    }
+}
+
+async function refetchSignatureToken(): Promise<void> {
+    const token = await fetchSignatureToken();
+
+    if (token) {
+        Api.setSignatureToken(token);
+    } else {
+        console.error('Failed to fetch signature token');
+    }
+}
+
+async function validateSignatureToken(): Promise<void> {
+    if (!Api.token()) return;
+
+    const existing = Api.signatureToken();
+
+    if (!existing) {
+        await refetchSignatureToken();
+
+        return;
+    }
+
+    const clientId = Api.clientId();
+    const valid = await validateSignatureTokenAndClient(clientId, existing);
+
+    if (!valid) {
+        await refetchSignatureToken();
+    }
+}
+
+function request(
+    url: Parameters<typeof fetch>[0],
+    options: Parameters<typeof fetch>[1],
+): ReturnType<typeof fetch> {
+    const token = Api.token();
+    if (token) {
+        const headers = { ...(options?.headers ?? {}), Authorization: token };
+        options = {
+            ...options,
+            headers,
+        };
+    }
+    return fetch(url, options);
 }
 
 export function cancellable<T>(func: (signal: AbortSignal) => Promise<T>): {
@@ -334,4 +491,5 @@ export const api: ApiType = {
     getAlbumArtwork,
     getAlbumTracks,
     getArtists,
+    validateSignatureToken,
 };
