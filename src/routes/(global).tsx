@@ -91,6 +91,7 @@ export default function global() {
                         <A href="/settings">Settings</A>
                     </li>
                     <li>
+                        API Url:{' '}
                         <input
                             ref={apiUrlInput!}
                             type="text"
@@ -100,6 +101,7 @@ export default function global() {
                         <button onClick={saveApiUrl}>save</button>
                     </li>
                     <li>
+                        Name:{' '}
                         <input
                             ref={connectionNameInput!}
                             type="text"
@@ -111,6 +113,7 @@ export default function global() {
                         <button onClick={saveConnectionName}>save</button>
                     </li>
                     <li>
+                        Volume:{' '}
                         <input
                             ref={volumeInput!}
                             type="number"
