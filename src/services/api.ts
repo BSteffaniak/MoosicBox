@@ -219,6 +219,17 @@ export interface ApiType {
                   containsArtwork: boolean;
               }
             | undefined,
+        width: number,
+        height: number,
+        signal?: AbortSignal,
+    ): string;
+    getAlbumSourceArtwork(
+        album:
+            | {
+                  albumId: number;
+                  containsArtwork: boolean;
+              }
+            | undefined,
         signal?: AbortSignal,
     ): string;
     getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
@@ -252,9 +263,25 @@ function getAlbumArtwork(
               containsArtwork: boolean;
           }
         | undefined,
+    width: number,
+    height: number,
 ): string {
     if (album?.containsArtwork) {
-        return Api.getPath(`albums/${album.albumId}/300x300`);
+        return Api.getPath(`albums/${album.albumId}/${width}x${height}`);
+    }
+    return '/img/album.svg';
+}
+
+function getAlbumSourceArtwork(
+    album:
+        | {
+              albumId: number;
+              containsArtwork: boolean;
+          }
+        | undefined,
+): string {
+    if (album?.containsArtwork) {
+        return Api.getPath(`albums/${album.albumId}/source`);
     }
     return '/img/album.svg';
 }
@@ -489,6 +516,7 @@ export const api: ApiType = {
     getAlbum,
     getAlbums,
     getAlbumArtwork,
+    getAlbumSourceArtwork,
     getAlbumTracks,
     getArtists,
     validateSignatureToken,

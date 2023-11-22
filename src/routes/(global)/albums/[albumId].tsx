@@ -91,7 +91,7 @@ export default function albumPage() {
                 <div class="album-page-artwork-previewer-content">
                     <img
                         ref={albumArtworkPreviewerIcon}
-                        src={api.getAlbumArtwork(album())}
+                        src={api.getAlbumSourceArtwork(album())}
                         style={{
                             filter: blurringArtwork()
                                 ? `blur(${window.innerHeight / 30}px)`
