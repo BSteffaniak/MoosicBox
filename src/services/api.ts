@@ -390,14 +390,11 @@ async function getArtists(
 async function fetchSignatureToken(
     signal?: AbortSignal,
 ): Promise<string | undefined> {
-    const response = await request(
-        `${Api.apiUrl()}/auth/signature-token?clientId=${Api.clientId()}`,
-        {
-            credentials: 'include',
-            method: 'POST',
-            signal,
-        },
-    );
+    const response = await request(`${Api.apiUrl()}/auth/signature-token`, {
+        credentials: 'include',
+        method: 'POST',
+        signal,
+    });
 
     const payload = await response.json();
 
@@ -405,13 +402,12 @@ async function fetchSignatureToken(
 }
 
 async function validateSignatureTokenAndClient(
-    clientId: string,
     signature: string,
     signal?: AbortSignal,
 ): Promise<boolean> {
     try {
         const response = await request(
-            `${Api.apiUrl()}/auth/validate-signature-token?clientId=${clientId}&signature=${signature}`,
+            `${Api.apiUrl()}/auth/validate-signature-token?signature=${signature}`,
             {
                 credentials: 'include',
                 signal,
@@ -447,8 +443,7 @@ async function validateSignatureToken(): Promise<void> {
         return;
     }
 
-    const clientId = Api.clientId();
-    const valid = await validateSignatureTokenAndClient(clientId, existing);
+    const valid = await validateSignatureTokenAndClient(existing);
 
     if (!valid) {
         await refetchSignatureToken();
@@ -456,9 +451,22 @@ async function validateSignatureToken(): Promise<void> {
 }
 
 function request(
-    url: Parameters<typeof fetch>[0],
+    url: string,
     options: Parameters<typeof fetch>[1],
 ): ReturnType<typeof fetch> {
+    if (url[url.length - 1] === '?') url = url.substring(0, url.length - 1);
+
+    const clientId = Api.clientId();
+
+    if (clientId) {
+        if (url.indexOf('?') > 0) {
+            url += '&';
+        } else {
+            url += '?';
+        }
+        url += `clientId=${clientId}`;
+    }
+
     const token = Api.token();
     if (token) {
         const headers = { ...(options?.headers ?? {}), Authorization: token };
