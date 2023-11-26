@@ -7,14 +7,21 @@ export default function authPage() {
     const params = useParams();
     const navigate = useNavigate();
 
+    const searchParams = new URLSearchParams(
+        isServer ? {} : window.location.search,
+    );
+
     const [loading, setLoading] = createSignal(true);
 
     (async () => {
         if (isServer) return;
+        const apiUrl = searchParams.get('apiUrl');
+        if (apiUrl) {
+            Api.setApiUrl(apiUrl);
+        }
         const { clientId, accessToken } = await api.magicToken(
             params.magicToken,
         );
-        console.log(clientId, accessToken);
         Api.setClientId(clientId);
         Api.setToken(accessToken);
         setLoading(false);
