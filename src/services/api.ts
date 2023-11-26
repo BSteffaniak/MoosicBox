@@ -238,6 +238,10 @@ export interface ApiType {
         signal?: AbortSignal,
     ): Promise<Api.Artist[]>;
     validateSignatureToken(signal?: AbortSignal): Promise<void>;
+    magicToken(
+        magicToken: string,
+        signal?: AbortSignal,
+    ): Promise<{ clientId: string; accessToken: string }>;
 }
 
 async function getArtist(
@@ -450,6 +454,21 @@ async function validateSignatureToken(): Promise<void> {
     }
 }
 
+async function magicToken(
+    magicToken: string,
+    signal?: AbortSignal,
+): Promise<{ clientId: string; accessToken: string }> {
+    const response = await request(
+        `${Api.apiUrl()}/auth/magic-token?magicToken=${magicToken}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -528,4 +547,5 @@ export const api: ApiType = {
     getAlbumTracks,
     getArtists,
     validateSignatureToken,
+    magicToken,
 };
