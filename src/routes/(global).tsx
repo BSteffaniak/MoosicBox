@@ -35,18 +35,6 @@ export default function global() {
         Api.setApiUrl(apiUrlInput.value);
     }
 
-    let clientIdInput: HTMLInputElement;
-
-    function saveClientId() {
-        Api.setClientId(clientIdInput.value);
-    }
-
-    let tokenInput: HTMLInputElement;
-
-    function saveToken() {
-        Api.setToken(tokenInput.value);
-    }
-
     let connectionNameInput: HTMLInputElement;
 
     function saveConnectionName() {
@@ -111,26 +99,6 @@ export default function global() {
                             onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
                         />
                         <button onClick={saveApiUrl}>save</button>
-                    </li>
-                    <li>
-                        Client ID:{' '}
-                        <input
-                            ref={clientIdInput!}
-                            type="text"
-                            value={Api.clientId()}
-                            onKeyUp={(e) => e.key === 'Enter' && saveClientId()}
-                        />
-                        <button onClick={saveClientId}>save</button>
-                    </li>
-                    <li>
-                        Token:{' '}
-                        <input
-                            ref={tokenInput!}
-                            type="text"
-                            value={Api.token()}
-                            onKeyUp={(e) => e.key === 'Enter' && saveToken()}
-                        />
-                        <button onClick={saveToken}>save</button>
                     </li>
                     <li>
                         Name:{' '}
