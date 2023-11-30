@@ -84,13 +84,13 @@ function albumImage(props: AlbumProps, blur: boolean) {
             style={{
                 width: `${props.size}px`,
                 height: `${props.size}px`,
-                filter: blur ? `blur(${props.size / 20}px)` : undefined,
+                'image-rendering': blur ? 'pixelated' : undefined,
                 cursor: props.onClick ? `pointer` : undefined,
             }}
             src={api.getAlbumArtwork(
                 props.album,
-                Math.round(props.size * 1.33),
-                Math.round(props.size * 1.33),
+                blur ? 16 : Math.round(props.size * 1.33),
+                blur ? 16 : Math.round(props.size * 1.33),
             )}
             alt={`${props.album.title} by ${props.album.artist}`}
             title={`${props.album.title} by ${props.album.artist}`}

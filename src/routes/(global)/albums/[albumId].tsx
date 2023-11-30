@@ -1,8 +1,10 @@
 import './album-page.css';
 import {
     createComputed,
+    createEffect,
     createSignal,
     For,
+    on,
     onCleanup,
     onMount,
     Show,
@@ -25,6 +27,9 @@ export default function albumPage() {
     const [tracks, setTracks] = createSignal<Api.Track[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
+    const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
+
+    let sourceImageRef: HTMLImageElement | undefined;
 
     (async () => {
         if (isServer) return;
@@ -50,11 +55,28 @@ export default function albumPage() {
         setBlurringArtwork(album()?.blur);
     });
 
+    createEffect(
+        on(
+            () => showingArtwork(),
+            (showing) => {
+                if (!sourceImage() && showing && sourceImageRef) {
+                    sourceImageRef.src = api.getAlbumSourceArtwork(album());
+                    sourceImageRef.onload = ({ target }) => {
+                        const image = target as HTMLImageElement;
+                        setSourceImage(image);
+                    };
+                }
+            },
+        ),
+    );
+
     function toggleBlurringArtwork() {
         setBlurringArtwork(!blurringArtwork());
     }
 
     function showArtwork(): void {
+        setBlurringArtwork(album()?.blur);
+        setSourceImage(undefined);
         setShowingArtwork(true);
         setTimeout(() => {
             window.addEventListener('click', handleClick);
@@ -71,7 +93,11 @@ export default function albumPage() {
     let albumArtworkPreviewerIcon: HTMLImageElement | undefined;
 
     const handleClick = (event: MouseEvent) => {
-        if (!albumArtworkPreviewerIcon?.contains(event.target as Node)) {
+        const node = event.target as Node;
+        if (
+            !albumArtworkPreviewerIcon?.contains(node) &&
+            !sourceImageRef?.contains(node)
+        ) {
             hideArtwork();
         }
     };
@@ -90,16 +116,32 @@ export default function albumPage() {
             <div class="album-page-artwork-previewer">
                 <div class="album-page-artwork-previewer-content">
                     <img
-                        ref={albumArtworkPreviewerIcon}
-                        src={api.getAlbumSourceArtwork(album())}
+                        ref={sourceImageRef}
                         style={{
-                            filter: blurringArtwork()
-                                ? `blur(${window.innerHeight / 30}px)`
-                                : undefined,
                             cursor: album()?.blur ? 'pointer' : 'initial',
+                            visibility: blurringArtwork()
+                                ? 'hidden'
+                                : undefined,
                         }}
                         onClick={() => album()?.blur && toggleBlurringArtwork()}
                     />
+                    <Show when={blurringArtwork() && sourceImage()}>
+                        <img
+                            ref={albumArtworkPreviewerIcon}
+                            src={api.getAlbumArtwork(album(), 16, 16)}
+                            style={{
+                                'image-rendering': 'pixelated',
+                                cursor: 'pointer',
+                                width: '100%',
+                                position: 'absolute',
+                                left: '0',
+                                top: '0',
+                            }}
+                            onClick={() =>
+                                album()?.blur && toggleBlurringArtwork()
+                            }
+                        />
+                    </Show>
                     {blurringArtwork() && (
                         <div class="album-page-artwork-previewer-content-blur-notice">
                             Click to unblur
