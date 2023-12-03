@@ -27,6 +27,38 @@ export const [playerState, setPlayerState] = createStore<PlayerState>({
     currentTrack: undefined,
 });
 
+export const [_playbackQuality, _setPlaybackQuality] = makePersisted(
+    createSignal<Api.PlaybackQuality>(
+        { format: Api.AudioFormat.SOURCE },
+        { equals: false },
+    ),
+    {
+        name: `player.v1.playbackQuality`,
+    },
+);
+const onPlaybackQualityChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _playbackQuality>,
+            old: ReturnType<typeof _playbackQuality>,
+        ) => boolean | void
+    >();
+export const onPlaybackQualityChanged = onPlaybackQualityChangedListener.on;
+export const offPlaybackQualityChanged = onPlaybackQualityChangedListener.off;
+export const playbackQuality = _playbackQuality;
+export const setPlaybackQuality = (
+    value: Parameters<typeof _setPlaybackQuality>[0],
+) => {
+    const old = _playbackQuality();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setPlaybackQuality(value);
+    if (value !== old) {
+        onPlaybackQualityChangedListener.trigger(value, old);
+    }
+};
+
 export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
     makePersisted(
         createSignal<number | undefined>(undefined, { equals: false }),
@@ -112,12 +144,37 @@ export const setCurrentSeek = (
     }
 };
 
-export const [currentTrackLength, setCurrentTrackLength] = makePersisted(
+export const [_currentTrackLength, _setCurrentTrackLength] = makePersisted(
     createSignal<number>(0, { equals: false }),
     {
         name: `player.v1.currentTrackLength`,
     },
 );
+const onCurrentTrackLengthChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _currentTrackLength>,
+            old: ReturnType<typeof _currentTrackLength>,
+        ) => boolean | void
+    >();
+export const onCurrentTrackLengthChanged =
+    onCurrentTrackLengthChangedListener.on;
+export const offCurrentTrackLengthChanged =
+    onCurrentTrackLengthChangedListener.off;
+export const currentTrackLength = _currentTrackLength;
+export const setCurrentTrackLength = (
+    value: Parameters<typeof _setCurrentTrackLength>[0],
+) => {
+    const old = _currentTrackLength();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setCurrentTrackLength(value);
+    if (value !== old) {
+        onCurrentTrackLengthChangedListener.trigger(value, old);
+    }
+};
+
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
     createSignal<Api.Album | Api.Track | undefined>(undefined, {
         equals: false,

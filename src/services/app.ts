@@ -34,7 +34,11 @@ export async function triggerStartup() {
     startedUp = true;
 
     for (const func of startupCallbacks) {
-        await func();
+        try {
+            await func();
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 
@@ -51,6 +55,9 @@ export const [currentArtistSearch, setCurrentArtistSearch] =
 
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
+
+export const [showPlaybackQuality, setShowPlaybackQuality] =
+    createSignal(false);
 
 export const [showPlaybackSessions, setShowPlaybackSessions] =
     createSignal(false);

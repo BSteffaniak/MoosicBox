@@ -20,6 +20,7 @@ import {
     onVolumeChanged,
     isPlayerActive,
     setPlayerState,
+    playbackQuality,
 } from './player';
 
 export type TrackListenerCallback = (
@@ -34,16 +35,22 @@ let endHandle: HowlCallback;
 let loadHandle: HowlCallback;
 
 function getTrackUrl(track: Api.Track): string {
-    let url = `${Api.apiUrl()}/track?trackId=${track.trackId}`;
+    const query = new URLSearchParams({ trackId: track.trackId.toString() });
 
     const clientId = Api.clientId();
     const signatureToken = Api.signatureToken();
 
     if (clientId && signatureToken) {
-        url += `&clientId=${clientId}&signature=${signatureToken}`;
+        query.set('clientId', clientId);
+        query.set('signature', signatureToken);
     }
 
-    return url;
+    console.log(playbackQuality());
+    if (playbackQuality().format !== Api.AudioFormat.SOURCE) {
+        query.set('format', playbackQuality().format);
+    }
+
+    return `${Api.apiUrl()}/track?${query}`;
 }
 
 function refreshCurrentSeek() {
@@ -75,7 +82,10 @@ function setTrack(): boolean {
         howl.pannerAttr({ panningModel: 'equalpower' });
         setSound(howl);
         setPlayerState({ currentTrack: track });
-        setCurrentTrackLength(Math.round(track.duration));
+        const duration = Math.round(track.duration);
+        if (!isNaN(duration) && isFinite(duration)) {
+            setCurrentTrackLength(duration);
+        }
     }
     return true;
 }
@@ -134,7 +144,10 @@ function play(): boolean {
                     sound()!.duration(),
                     ...args,
                 );
-                setCurrentTrackLength(Math.round(sound()!.duration()));
+                const duration = Math.round(sound()!.duration());
+                if (!isNaN(duration) && isFinite(duration)) {
+                    setCurrentTrackLength(duration);
+                }
                 if (typeof initialSeek === 'number') {
                     console.debug(`Setting initial seek to ${initialSeek}`);
                     sound()!.seek(initialSeek);

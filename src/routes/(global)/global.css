@@ -153,3 +153,19 @@ p {
     margin-right: auto;
     width: 34px;
 }
+
+.playback-quality-modal-close {
+    display: flex;
+    margin-left: auto;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+}
+
+.playback-quality-modal-close .cross-icon {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 34px;
+}

@@ -3,7 +3,9 @@ import { onMount } from 'solid-js';
 import Player from '~/components/Player';
 import './(global)/global.css';
 import {
+    setShowPlaybackQuality,
     setShowPlaybackSessions,
+    showPlaybackQuality,
     showPlaybackSessions,
     triggerStartup,
 } from '~/services/app';
@@ -23,6 +25,7 @@ import {
     setVolume,
     volume,
 } from '~/services/player';
+import PlaybackQuality from '~/components/PlaybackQuality';
 
 export default function global() {
     onMount(async () => {
@@ -129,6 +132,32 @@ export default function global() {
                 {isMasterPlayer() ? 'master' : 'slave'}{' '}
                 {isPlayerActive() ? 'active' : 'inactive'}
                 <Outlet />
+                <Modal
+                    show={() => showPlaybackQuality()}
+                    onClose={() => setShowPlaybackQuality(false)}
+                >
+                    <div class="playback-quality-modal-container">
+                        <div class="playback-quality-modal-header">
+                            <h1>Playback Quality</h1>
+                            <div
+                                class="playback-quality-modal-close"
+                                onClick={(e) => {
+                                    setShowPlaybackQuality(false);
+                                    e.stopImmediatePropagation();
+                                }}
+                            >
+                                <img
+                                    class="cross-icon"
+                                    src="/img/cross-white.svg"
+                                    alt="Close playlist quality modal"
+                                />
+                            </div>
+                        </div>
+                        <div class="playback-quality-modal-content">
+                            <PlaybackQuality />
+                        </div>
+                    </div>
+                </Modal>
                 <Modal
                     show={() => showPlaybackSessions()}
                     onClose={() => setShowPlaybackSessions(false)}

@@ -126,6 +126,15 @@ export namespace Api {
         blur: boolean;
     }
 
+    export const AudioFormat = {
+        AAC: 'AAC',
+        SOURCE: 'SOURCE',
+    } as const;
+
+    export interface PlaybackQuality {
+        format: keyof typeof AudioFormat;
+    }
+
     export interface PlaybackSession {
         sessionId: number;
         name: string;

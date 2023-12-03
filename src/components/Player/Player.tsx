@@ -28,7 +28,12 @@ import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';
-import { setShowPlaybackSessions, showPlaybackSessions } from '~/services/app';
+import {
+    setShowPlaybackQuality,
+    setShowPlaybackSessions,
+    showPlaybackQuality,
+    showPlaybackSessions,
+} from '~/services/app';
 
 let mouseX: number;
 
@@ -127,6 +132,10 @@ export default function player() {
         } else {
             openPlaylist();
         }
+    }
+
+    function toggleShowPlaybackQuality() {
+        setShowPlaybackQuality(!showPlaybackQuality());
     }
 
     function toggleShowPlaybackSessions() {
@@ -479,6 +488,12 @@ export default function player() {
                 </div>
                 <div class="player-track-options">
                     <div class="player-track-options-buttons">
+                        <img
+                            class="show-playback-quality-icon"
+                            src="/img/speaker-white.svg"
+                            alt="Show Playback Quality"
+                            onClick={() => toggleShowPlaybackQuality()}
+                        />
                         <img
                             class="show-playback-sessions-icon"
                             src="/img/speaker-white.svg"
