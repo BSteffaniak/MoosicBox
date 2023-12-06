@@ -128,6 +128,7 @@ export namespace Api {
 
     export const AudioFormat = {
         AAC: 'AAC',
+        MP3: 'MP3',
         SOURCE: 'SOURCE',
     } as const;
 
