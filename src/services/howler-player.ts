@@ -247,13 +247,13 @@ function stop() {
 }
 
 async function playAlbum(album: Api.Album | Api.Track): Promise<boolean> {
+    stop();
     setCurrentAlbum(album);
 
     const tracks = await api.getAlbumTracks(album.albumId);
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    stop();
     return playerPlay()!;
 }
 
