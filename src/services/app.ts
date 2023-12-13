@@ -21,6 +21,14 @@ const startupCallbacks: StartupCallback[] = isServer
     : window.startupCallbacks;
 let startedUp = false;
 
+export function onStartupFirst(func: StartupCallback) {
+    if (startedUp) {
+        func();
+        return;
+    }
+    startupCallbacks.unshift(func);
+}
+
 export function onStartup(func: StartupCallback) {
     if (startedUp) {
         func();
