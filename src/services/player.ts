@@ -48,13 +48,14 @@ export const offPlaybackQualityChanged = onPlaybackQualityChangedListener.off;
 export const playbackQuality = _playbackQuality;
 export const setPlaybackQuality = (
     value: Parameters<typeof _setPlaybackQuality>[0],
+    trigger = true,
 ) => {
     const old = _playbackQuality();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setPlaybackQuality(value);
-    if (value !== old) {
+    if (trigger && value !== old) {
         onPlaybackQualityChangedListener.trigger(value, old);
     }
 };
@@ -79,13 +80,18 @@ const onPlayingChangedListener =
 export const onPlayingChanged = onPlayingChangedListener.on;
 export const offPlayingChanged = onPlayingChangedListener.off;
 export const playing = _playing;
-export const setPlaying = (value: Parameters<typeof _setPlaying>[0]) => {
+export const setPlaying = (
+    value: Parameters<typeof _setPlaying>[0],
+    trigger = true,
+) => {
     const old = _playing();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setPlaying(value);
-    onPlayingChangedListener.trigger(value, old);
+    if (trigger) {
+        onPlayingChangedListener.trigger(value, old);
+    }
 };
 
 export const [_volume, _setVolume] = makePersisted(
@@ -104,13 +110,16 @@ const onVolumeChangedListener =
 export const onVolumeChanged = onVolumeChangedListener.on;
 export const offVolumeChanged = onVolumeChangedListener.off;
 export const volume = _volume;
-export const setVolume = (value: Parameters<typeof _setVolume>[0]) => {
+export const setVolume = (
+    value: Parameters<typeof _setVolume>[0],
+    trigger = true,
+) => {
     const old = _volume();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setVolume(value);
-    if (value !== old) {
+    if (trigger && value !== old) {
         onVolumeChangedListener.trigger(value, old);
     }
 };
@@ -133,13 +142,15 @@ export const offCurrentSeekChanged = onCurrentSeekChangedListener.off;
 export const currentSeek = _currentSeek;
 export const setCurrentSeek = (
     value: Parameters<typeof _setCurrentSeek>[0],
+    trigger = true,
 ) => {
+    console.trace();
     const old = _currentSeek();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setCurrentSeek(value);
-    if (value !== old) {
+    if (trigger && value !== old) {
         onCurrentSeekChangedListener.trigger(value, old);
     }
 };
@@ -164,13 +175,14 @@ export const offCurrentTrackLengthChanged =
 export const currentTrackLength = _currentTrackLength;
 export const setCurrentTrackLength = (
     value: Parameters<typeof _setCurrentTrackLength>[0],
+    trigger = true,
 ) => {
     const old = _currentTrackLength();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setCurrentTrackLength(value);
-    if (value !== old) {
+    if (trigger && value !== old) {
         onCurrentTrackLengthChangedListener.trigger(value, old);
     }
 };
@@ -200,13 +212,16 @@ export const offPlaylistPositionChanged = onPlaylistPositionChangedListener.off;
 export const playlistPosition = _playlistPosition;
 export const setPlaylistPosition = (
     value: Parameters<typeof _setPlaylistPosition>[0],
+    trigger = true,
 ) => {
     const old = _playlistPosition();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setPlaylistPosition(value);
-    onPlaylistPositionChangedListener.trigger(value, old);
+    if (trigger && value !== old) {
+        onPlaylistPositionChangedListener.trigger(value, old);
+    }
 };
 
 const [_playlist, _setPlaylist] = makePersisted(
@@ -223,15 +238,18 @@ const onPlaylistChangedListener =
 export const onPlaylistChanged = onPlaylistChangedListener.on;
 export const offPlaylistChanged = onPlaylistChangedListener.off;
 export const playlist = _playlist;
-export const setPlaylist: typeof _setPlaylist = (
+export const setPlaylist = (
     value: Parameters<typeof _setPlaylist>[0],
+    trigger = true,
 ) => {
     const old = _playlist();
     if (typeof value === 'function') {
         value = value(old);
     }
     _setPlaylist(value);
-    onPlaylistChangedListener.trigger(value, old);
+    if (trigger) {
+        onPlaylistChangedListener.trigger(value, old);
+    }
 };
 
 if (!isServer) {
