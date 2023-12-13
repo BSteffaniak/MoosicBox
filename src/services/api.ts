@@ -28,7 +28,8 @@ export namespace Api {
         onApiUrlUpdatedListeners.trigger(url);
     }
 
-    const onClientIdUpdatedListeners = createListener<(url: string) => void>();
+    const onClientIdUpdatedListeners =
+        createListener<(clientId: string, old: string) => void>();
     export const onClientIdUpdated = onClientIdUpdatedListeners.on;
     export const offClientIdUpdated = onClientIdUpdatedListeners.off;
     const [_clientId, _setClientId] = makePersisted(createSignal(''), {
@@ -37,13 +38,15 @@ export namespace Api {
     export function clientId(): ReturnType<typeof _clientId> {
         return _clientId();
     }
-    export function setClientId(url: string): void {
-        _setClientId(url);
+    export function setClientId(clientId: string): void {
+        const old = _clientId();
+        _setClientId(clientId);
 
-        onClientIdUpdatedListeners.trigger(url);
+        onClientIdUpdatedListeners.trigger(clientId, old);
     }
 
-    const onTokenUpdatedListeners = createListener<(url: string) => void>();
+    const onTokenUpdatedListeners =
+        createListener<(token: string, old: string) => void>();
     export const onTokenUpdated = onTokenUpdatedListeners.on;
     export const offTokenUpdated = onTokenUpdatedListeners.off;
     const [_token, _setToken] = makePersisted(createSignal(''), {
@@ -52,10 +55,11 @@ export namespace Api {
     export function token(): ReturnType<typeof _token> {
         return _token();
     }
-    export function setToken(url: string): void {
-        _setToken(url);
+    export function setToken(token: string): void {
+        const old = _token();
+        _setToken(token);
 
-        onTokenUpdatedListeners.trigger(url);
+        onTokenUpdatedListeners.trigger(token, old);
     }
 
     const onSignatureTokenUpdatedListeners =

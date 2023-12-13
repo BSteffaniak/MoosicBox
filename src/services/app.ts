@@ -70,11 +70,15 @@ export const [showPlaybackQuality, setShowPlaybackQuality] =
 export const [showPlaybackSessions, setShowPlaybackSessions] =
     createSignal(false);
 
-Api.onTokenUpdated((_token) => {
-    api.validateSignatureToken();
+Api.onTokenUpdated((token, old) => {
+    if (token !== old) {
+        api.refetchSignatureToken();
+    }
 });
-Api.onClientIdUpdated((_clientId) => {
-    api.validateSignatureToken();
+Api.onClientIdUpdated((clientId, old) => {
+    if (clientId !== old) {
+        api.refetchSignatureToken();
+    }
 });
 onStartup(async () => {
     if (Api.token() && Api.clientId()) {
