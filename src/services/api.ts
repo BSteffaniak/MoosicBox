@@ -429,6 +429,7 @@ async function validateSignatureTokenAndClient(
             `${Api.apiUrl()}/auth/validate-signature-token?signature=${signature}`,
             {
                 credentials: 'include',
+                method: 'POST',
                 signal,
             },
         );
