@@ -91,6 +91,7 @@ export namespace Api {
     export interface Connection {
         connectionId: string;
         name: string;
+        alive: boolean;
         players: Player[];
     }
 

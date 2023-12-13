@@ -152,7 +152,7 @@ interface PingMessage extends OutboundMessage {
     type: OutboundMessageType.PING;
 }
 
-export type RegisterConnection = Omit<Api.Connection, 'players'> & {
+export type RegisterConnection = Omit<Api.Connection, 'players' | 'alive'> & {
     players: RegisterPlayer[];
 };
 interface RegisterConnectionMessage extends OutboundMessage {

@@ -168,6 +168,10 @@
     width: 34px;
 }
 
+.playback-session-active-players-modal-connection.dead {
+    opacity: 0.5;
+}
+
 .playback-session-active-players-modal-connection-player {
     display: flex;
     flex-direction: row;
@@ -178,4 +182,11 @@
     width: 24px;
     margin-left: 10px;
     cursor: pointer;
+}
+
+/* https://blog.union.io/code/2017/08/10/img-svg-fill
+ * https://codepen.io/sosuke/pen/Pjoqqp */
+.playback-session-active-players-modal-connection-player.active .audio-icon {
+    filter: invert(46%) sepia(65%) saturate(3181%) hue-rotate(81deg)
+        brightness(107%) contrast(118%);
 }

@@ -19,6 +19,16 @@ export default function playbackSessionsFunc() {
     const [activePlayersSession, setActivePlayersSession] =
         createSignal<Api.PlaybackSession>();
 
+    const [connections, setConnections] = createSignal<Api.Connection[]>([]);
+
+    const [aliveConnections, setAliveConnections] = createSignal<
+        Api.Connection[]
+    >([]);
+
+    const [deadConnections, setDeadConnections] = createSignal<
+        Api.Connection[]
+    >([]);
+
     createComputed(() => {
         setSessions(playerState.playbackSessions);
 
@@ -29,6 +39,12 @@ export default function playbackSessionsFunc() {
                 ),
             );
         }
+
+        const alive = appState.connections.filter((c) => c.alive);
+        const dead = appState.connections.filter((c) => !c.alive);
+        setConnections([...alive, ...dead]);
+        setAliveConnections(alive);
+        setDeadConnections(dead);
     });
 
     function showActivePlayers(session: Api.PlaybackSession) {
@@ -267,12 +283,29 @@ export default function playbackSessionsFunc() {
                             </div>
                         </div>
                         <div class="playback-session-active-players-modal-content">
-                            <Index each={appState.connections}>
+                            <Index each={connections()}>
                                 {(connection) => (
-                                    <div class="playback-session-active-players-modal-connection">
+                                    <div
+                                        class={`playback-session-active-players-modal-connection${
+                                            connection().alive
+                                                ? ' alive'
+                                                : ' dead'
+                                        }`}
+                                    >
                                         <Index each={connection().players}>
                                             {(player) => (
-                                                <div class="playback-session-active-players-modal-connection-player">
+                                                <div
+                                                    class={`playback-session-active-players-modal-connection-player${
+                                                        activePlayersSession.activePlayers.some(
+                                                            (p) =>
+                                                                p.playerId ===
+                                                                player()
+                                                                    .playerId,
+                                                        )
+                                                            ? ' active'
+                                                            : ''
+                                                    }`}
+                                                >
                                                     {connection().name} -{' '}
                                                     {player().name}{' '}
                                                     {activePlayersSession.activePlayers.some(
