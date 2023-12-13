@@ -298,7 +298,7 @@ function onPositionUpdated(_position: number) {
 
 function onSeekUpdated(seek: number) {
     if (!player.isPlayerActive()) {
-        player.seek(seek);
+        setCurrentSeek(seek);
     }
 }
 
