@@ -248,6 +248,7 @@ export interface ApiType {
         signal?: AbortSignal,
     ): string;
     getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
+    getTracks(trackIds: number[], signal?: AbortSignal): Promise<Api.Track[]>;
     getArtists(
         request: Api.ArtistsRequest | undefined,
         signal?: AbortSignal,
@@ -381,6 +382,22 @@ async function getAlbumTracks(
 ): Promise<Api.Track[]> {
     const response = await request(
         `${Api.apiUrl()}/album/tracks?albumId=${albumId}`,
+        {
+            method: 'GET',
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
+async function getTracks(
+    trackIds: number[],
+    signal?: AbortSignal,
+): Promise<Api.Track[]> {
+    const response = await request(
+        `${Api.apiUrl()}/tracks?trackIds=${trackIds.join(',')}`,
         {
             method: 'GET',
             credentials: 'include',
@@ -572,6 +589,7 @@ export const api: ApiType = {
     getAlbumArtwork,
     getAlbumSourceArtwork,
     getAlbumTracks,
+    getTracks,
     getArtists,
     fetchSignatureToken,
     refetchSignatureToken,
