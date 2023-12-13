@@ -91,8 +91,12 @@ export default function player() {
         }, 100);
     }
 
-    function getSeekPosition() {
+    function getSeekPosition(): number {
         return Math.max(Math.min(seekPosition() ?? 0, currentTrackLength()), 0);
+    }
+
+    function getCurrentSeekPosition(): number {
+        return Math.max(Math.min(currentSeek() ?? 0, currentTrackLength()), 0);
     }
 
     function getProgressBarWidth(): number {
@@ -100,7 +104,7 @@ export default function player() {
             return (getSeekPosition() / currentTrackLength()) * 100;
         }
 
-        return ((currentSeek()! ?? 0) / currentTrackLength()) * 100;
+        return (getCurrentSeekPosition() / currentTrackLength()) * 100;
     }
 
     function closePlaylist() {
