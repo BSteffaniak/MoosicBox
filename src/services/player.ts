@@ -307,6 +307,9 @@ export interface PlayerType {
     seek(seek: number): void;
     previousTrack(): boolean;
     nextTrack(): boolean;
+    onPositionUpdated(position: number): void;
+    onSeekUpdated(seek: number): void;
+    onPlayingUpdated(playing: boolean): void;
 }
 
 const playListener = createListener<() => void>();
@@ -356,6 +359,18 @@ export function pause() {
         player.pause();
     }
     pauseListener.trigger();
+}
+
+export function onPositionUpdated(position: number) {
+    player.onPositionUpdated(position);
+}
+
+export function onSeekUpdated(seek: number) {
+    player.onSeekUpdated(seek);
+}
+
+export function onPlayingUpdated(playing: boolean) {
+    player.onPlayingUpdated(playing);
 }
 
 const prevTrackListener = createListener<TrackListenerCallback>();
@@ -521,18 +536,8 @@ export function updateSessionPartial(
         Object.assign(state.currentPlaybackSession, session);
 
         if (state.currentPlaybackSession?.sessionId === session.sessionId) {
-            if (isPlayerActive()) {
-                if (
-                    !state.currentPlaybackSession.activePlayers.some(
-                        (p) => p.playerId === player.id,
-                    )
-                ) {
-                    stop();
-                }
-            } else {
-                if (typeof session.seek !== 'undefined') {
-                    _setCurrentSeek(session.seek);
-                }
+            if (typeof session.seek !== 'undefined') {
+                onSeekUpdated(session.seek);
             }
 
             let updatedPlaylist = false;

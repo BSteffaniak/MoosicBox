@@ -502,26 +502,13 @@ onMessage((data) => {
                 player.playerState.currentPlaybackSession?.sessionId
             ) {
                 if (typeof session.position !== 'undefined') {
-                    if (player.playing()) {
-                        player.stop();
-                        player.play();
-                    }
+                    player.onPositionUpdated(session.position);
                 }
-                if (
-                    typeof session.seek !== 'undefined' &&
-                    !player.isPlayerActive()
-                ) {
-                    player.seek(session.seek);
+                if (typeof session.seek !== 'undefined') {
+                    player.onSeekUpdated(session.seek);
                 }
-                if (
-                    typeof session.playing !== 'undefined' &&
-                    player.isPlayerActive()
-                ) {
-                    if (!session.playing && player.playing()) {
-                        player.pause();
-                    } else if (session.playing && !player.playing()) {
-                        player.play();
-                    }
+                if (typeof session.playing !== 'undefined') {
+                    player.onPlayingUpdated(session.playing);
                 }
             }
 

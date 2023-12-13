@@ -13,8 +13,6 @@ import {
     setPlaying,
     setPlaylist,
     setPlaylistPosition,
-    play as playerPlay,
-    stop as playerStop,
     onUpdateSessionPartial,
     volume,
     onVolumeChanged,
@@ -22,6 +20,7 @@ import {
     setPlayerState,
     playbackQuality,
 } from './player';
+import * as player from './player';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -220,7 +219,7 @@ function nextTrack(): boolean {
         return true;
     } else {
         console.debug('No next track to play');
-        playerStop();
+        player.stop();
         return false;
     }
 }
@@ -254,7 +253,7 @@ async function playAlbum(album: Api.Album | Api.Track): Promise<boolean> {
 
     setPlaylistPosition(0);
     setPlaylist(tracks);
-    return playerPlay()!;
+    return player.play()!;
 }
 
 function playPlaylist(tracks: Api.Track[]): boolean {
@@ -264,7 +263,7 @@ function playPlaylist(tracks: Api.Track[]): boolean {
     setPlaylistPosition(0);
     setPlaylist(tracks);
     stop();
-    return playerPlay()!;
+    return player.play()!;
 }
 
 async function addAlbumToQueue(album: Api.Album | Api.Track) {
@@ -290,6 +289,21 @@ function playFromPlaylistPosition(index: number) {
     else setTrack();
 }
 
+function onPositionUpdated(_position: number) {
+    if (player.playing()) {
+        player.stop();
+        player.play();
+    }
+}
+
+function onSeekUpdated(seek: number) {
+    if (!player.isPlayerActive()) {
+        player.seek(seek);
+    }
+}
+
+function onPlayingUpdated(_updatedPlaying: boolean) {}
+
 export function createPlayer(id: number): PlayerType {
     return {
         id,
@@ -304,5 +318,8 @@ export function createPlayer(id: number): PlayerType {
         seek,
         previousTrack,
         nextTrack,
+        onPositionUpdated,
+        onSeekUpdated,
+        onPlayingUpdated,
     };
 }
