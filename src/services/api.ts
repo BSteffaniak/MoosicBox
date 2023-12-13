@@ -252,7 +252,13 @@ export interface ApiType {
         request: Api.ArtistsRequest | undefined,
         signal?: AbortSignal,
     ): Promise<Api.Artist[]>;
+    fetchSignatureToken(signal?: AbortSignal): Promise<string | undefined>;
+    refetchSignatureToken(signal?: AbortSignal): Promise<void>;
     validateSignatureToken(signal?: AbortSignal): Promise<void>;
+    validateSignatureTokenAndClient(
+        signature: string,
+        signal?: AbortSignal,
+    ): Promise<boolean>;
     magicToken(
         magicToken: string,
         signal?: AbortSignal,
@@ -443,7 +449,8 @@ async function validateSignatureTokenAndClient(
 }
 
 async function refetchSignatureToken(): Promise<void> {
-    const token = await fetchSignatureToken();
+    console.debug('Refetching signature token');
+    const token = await api.fetchSignatureToken();
 
     if (token) {
         Api.setSignatureToken(token);
@@ -458,15 +465,15 @@ async function validateSignatureToken(): Promise<void> {
     const existing = Api.signatureToken();
 
     if (!existing) {
-        await refetchSignatureToken();
+        await api.refetchSignatureToken();
 
         return;
     }
 
-    const valid = await validateSignatureTokenAndClient(existing);
+    const valid = await api.validateSignatureTokenAndClient(existing);
 
     if (!valid) {
-        await refetchSignatureToken();
+        await api.refetchSignatureToken();
     }
 }
 
@@ -491,16 +498,20 @@ function request(
 ): ReturnType<typeof fetch> {
     if (url[url.length - 1] === '?') url = url.substring(0, url.length - 1);
 
+    const params = new URLSearchParams();
     const clientId = Api.clientId();
 
     if (clientId) {
-        if (url.indexOf('?') > 0) {
-            url += '&';
-        } else {
-            url += '?';
-        }
-        url += `clientId=${clientId}`;
+        params.set('clientId', clientId);
     }
+
+    if (url.indexOf('?') > 0) {
+        url += '&';
+    } else {
+        url += '?';
+    }
+
+    url += params.toString();
 
     const token = Api.token();
     if (token) {
@@ -562,6 +573,9 @@ export const api: ApiType = {
     getAlbumSourceArtwork,
     getAlbumTracks,
     getArtists,
+    fetchSignatureToken,
+    refetchSignatureToken,
+    validateSignatureTokenAndClient,
     validateSignatureToken,
     magicToken,
 };
