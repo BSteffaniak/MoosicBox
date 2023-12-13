@@ -144,7 +144,6 @@ export const setCurrentSeek = (
     value: Parameters<typeof _setCurrentSeek>[0],
     trigger = true,
 ) => {
-    console.trace();
     const old = _currentSeek();
     if (typeof value === 'function') {
         value = value(old);
