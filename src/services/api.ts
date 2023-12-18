@@ -140,7 +140,7 @@ export namespace Api {
 
     export interface AlbumVersion {
         tracks: Api.Track[];
-        format: PlaybackQuality['format'];
+        format: PlaybackQuality['format'] | null;
         bitDepth: number | null;
         audioBitrate: number | null;
         overallBitrate: number | null;
