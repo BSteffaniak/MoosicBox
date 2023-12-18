@@ -13,32 +13,67 @@ import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
 import { displayDate, toTime } from '~/services/formatting';
-import {
-    addAlbumToQueue,
-    playAlbum,
-    playerState,
-    playPlaylist,
-} from '~/services/player';
+import { addAlbumToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api } from '~/services/api';
+
+export interface TrackSource {
+    tracks: Api.Track[];
+    bitDepth: number;
+    sampleRate: number;
+}
 
 export default function albumPage() {
     const params = useParams();
     const [album, setAlbum] = createSignal<Api.Album>();
-    const [tracks, setTracks] = createSignal<Api.Track[]>();
+    const [trackSources, setTrackSources] = createSignal<TrackSource[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
+    const [activeTrackSource, setActiveTrackSource] =
+        createSignal<TrackSource>();
 
     let sourceImageRef: HTMLImageElement | undefined;
 
     (async () => {
         if (isServer) return;
         setAlbum(await api.getAlbum(parseInt(params.albumId)));
-        setTracks(await api.getAlbumTracks(parseInt(params.albumId)));
+        const sources: TrackSource[] = [];
+        const tracks = await api.getAlbumTracks(parseInt(params.albumId));
+        tracks.forEach((track) => {
+            if (sources.length === 0) {
+                sources.push({
+                    tracks: [track],
+                    bitDepth: track.bitDepth,
+                    sampleRate: track.sampleRate,
+                });
+                return;
+            }
+            const existingSource = sources.find(
+                ({ sampleRate, bitDepth }) =>
+                    sampleRate === track.sampleRate &&
+                    bitDepth === track.bitDepth,
+            );
+
+            if (!existingSource) {
+                sources.push({
+                    tracks: [track],
+                    bitDepth: track.bitDepth,
+                    sampleRate: track.sampleRate,
+                });
+                return;
+            }
+
+            existingSource.tracks.push(track);
+        });
+        sources.sort((a, b) => b.bitDepth - a.bitDepth);
+
+        setTrackSources(sources);
+        setActiveTrackSource(sources[0]);
     })();
 
     async function playAlbumFrom(track: Api.Track) {
-        const playlist = tracks()!.slice(tracks()!.indexOf(track));
+        const tracks = activeTrackSource()!.tracks;
+        const playlist = tracks.slice(tracks.indexOf(track));
 
         playPlaylist(playlist);
     }
@@ -46,7 +81,8 @@ export default function albumPage() {
     function albumDuration(): number {
         let duration = 0;
 
-        tracks()!.forEach((track) => (duration += track.duration));
+        const tracks = activeTrackSource()!.tracks;
+        tracks.forEach((track) => (duration += track.duration));
 
         return duration;
     }
@@ -189,7 +225,12 @@ export default function albumPage() {
                                                 </A>
                                             </div>
                                             <div class="album-page-album-info-details-tracks">
-                                                <Show when={tracks()}>
+                                                <Show
+                                                    when={
+                                                        activeTrackSource()
+                                                            ?.tracks
+                                                    }
+                                                >
                                                     {(tracks) => (
                                                         <>
                                                             {tracks().length}{' '}
@@ -210,6 +251,50 @@ export default function albumPage() {
                                                     'LLLL dd, yyyy',
                                                 )}
                                             </div>
+                                            {(trackSources()?.length ?? 0) >
+                                                1 && (
+                                                <div class="album-page-album-info-details-sources">
+                                                    <For each={trackSources()}>
+                                                        {(source, index) => (
+                                                            <>
+                                                                <span
+                                                                    class={`album-page-album-info-details-sources-source${
+                                                                        source ===
+                                                                        activeTrackSource()
+                                                                            ? ' active'
+                                                                            : ''
+                                                                    }`}
+                                                                    onClick={() =>
+                                                                        setActiveTrackSource(
+                                                                            source,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {source.sampleRate /
+                                                                        1000}{' '}
+                                                                    kHz,{' '}
+                                                                    {
+                                                                        source.bitDepth
+                                                                    }
+                                                                    {'-'}
+                                                                    bit
+                                                                </span>
+                                                                <>
+                                                                    {index() <
+                                                                        trackSources()!
+                                                                            .length -
+                                                                            1 && (
+                                                                        <span>
+                                                                            {' '}
+                                                                            /{' '}
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            </>
+                                                        )}
+                                                    </For>
+                                                </div>
+                                            )}
                                         </div>
                                     </>
                                 )}
@@ -222,7 +307,11 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        playAlbum(album()!);
+                                        if (activeTrackSource()) {
+                                            playPlaylist(
+                                                activeTrackSource()!.tracks,
+                                            );
+                                        }
                                         return false;
                                     }}
                                 >
@@ -263,8 +352,8 @@ export default function albumPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {tracks() && (
-                                <For each={tracks()}>
+                            {activeTrackSource()?.tracks && (
+                                <For each={activeTrackSource()!.tracks}>
                                     {(track) => (
                                         <tr
                                             class={`album-page-tracks-track${

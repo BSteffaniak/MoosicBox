@@ -129,6 +129,13 @@ export namespace Api {
         artistId: number;
         containsArtwork: boolean;
         blur: boolean;
+        bytes: number;
+        format: PlaybackQuality['format'];
+        bitDepth: number;
+        audioBitrate: number;
+        overallBitrate: number;
+        sampleRate: number;
+        channels: number;
     }
 
     export const AudioFormat = {
