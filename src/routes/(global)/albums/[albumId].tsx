@@ -13,66 +13,30 @@ import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
 import { displayDate, toTime } from '~/services/formatting';
-import { addAlbumToQueue, playerState, playPlaylist } from '~/services/player';
+import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api } from '~/services/api';
-
-export interface TrackSource {
-    tracks: Api.Track[];
-    bitDepth: number;
-    sampleRate: number;
-}
 
 export default function albumPage() {
     const params = useParams();
     const [album, setAlbum] = createSignal<Api.Album>();
-    const [trackSources, setTrackSources] = createSignal<TrackSource[]>();
+    const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
-    const [activeTrackSource, setActiveTrackSource] =
-        createSignal<TrackSource>();
+    const [activeVersion, setActiveVersion] = createSignal<Api.AlbumVersion>();
 
     let sourceImageRef: HTMLImageElement | undefined;
 
     (async () => {
         if (isServer) return;
         setAlbum(await api.getAlbum(parseInt(params.albumId)));
-        const sources: TrackSource[] = [];
-        const tracks = await api.getAlbumTracks(parseInt(params.albumId));
-        tracks.forEach((track) => {
-            if (sources.length === 0) {
-                sources.push({
-                    tracks: [track],
-                    bitDepth: track.bitDepth,
-                    sampleRate: track.sampleRate,
-                });
-                return;
-            }
-            const existingSource = sources.find(
-                ({ sampleRate, bitDepth }) =>
-                    sampleRate === track.sampleRate &&
-                    bitDepth === track.bitDepth,
-            );
-
-            if (!existingSource) {
-                sources.push({
-                    tracks: [track],
-                    bitDepth: track.bitDepth,
-                    sampleRate: track.sampleRate,
-                });
-                return;
-            }
-
-            existingSource.tracks.push(track);
-        });
-        sources.sort((a, b) => b.bitDepth - a.bitDepth);
-
-        setTrackSources(sources);
-        setActiveTrackSource(sources[0]);
+        const versions = await api.getAlbumVersions(parseInt(params.albumId));
+        setVersions(versions);
+        setActiveVersion(versions[0]);
     })();
 
     async function playAlbumFrom(track: Api.Track) {
-        const tracks = activeTrackSource()!.tracks;
+        const tracks = activeVersion()!.tracks;
         const playlist = tracks.slice(tracks.indexOf(track));
 
         playPlaylist(playlist);
@@ -81,7 +45,7 @@ export default function albumPage() {
     function albumDuration(): number {
         let duration = 0;
 
-        const tracks = activeTrackSource()!.tracks;
+        const tracks = activeVersion()!.tracks;
         tracks.forEach((track) => (duration += track.duration));
 
         return duration;
@@ -227,8 +191,7 @@ export default function albumPage() {
                                             <div class="album-page-album-info-details-tracks">
                                                 <Show
                                                     when={
-                                                        activeTrackSource()
-                                                            ?.tracks
+                                                        activeVersion()?.tracks
                                                     }
                                                 >
                                                     {(tracks) => (
@@ -251,37 +214,48 @@ export default function albumPage() {
                                                     'LLLL dd, yyyy',
                                                 )}
                                             </div>
-                                            {(trackSources()?.length ?? 0) >
-                                                1 && (
-                                                <div class="album-page-album-info-details-sources">
-                                                    <For each={trackSources()}>
-                                                        {(source, index) => (
+                                            {(versions()?.length ?? 0) > 1 && (
+                                                <div class="album-page-album-info-details-versions">
+                                                    <For each={versions()}>
+                                                        {(version, index) => (
                                                             <>
                                                                 <span
-                                                                    class={`album-page-album-info-details-sources-source${
-                                                                        source ===
-                                                                        activeTrackSource()
+                                                                    class={`album-page-album-info-details-versions-version${
+                                                                        version ===
+                                                                        activeVersion()
                                                                             ? ' active'
                                                                             : ''
                                                                     }`}
                                                                     onClick={() =>
-                                                                        setActiveTrackSource(
-                                                                            source,
+                                                                        setActiveVersion(
+                                                                            version,
                                                                         )
                                                                     }
                                                                 >
-                                                                    {source.sampleRate /
-                                                                        1000}{' '}
-                                                                    kHz,{' '}
-                                                                    {
-                                                                        source.bitDepth
-                                                                    }
-                                                                    {'-'}
-                                                                    bit
+                                                                    {version.sampleRate !==
+                                                                        null && (
+                                                                        <>
+                                                                            {version.sampleRate /
+                                                                                1000}{' '}
+                                                                            kHz,{' '}
+                                                                        </>
+                                                                    )}
+                                                                    {version.bitDepth !==
+                                                                        null && (
+                                                                        <>
+                                                                            {
+                                                                                version.bitDepth
+                                                                            }
+                                                                            {
+                                                                                '-'
+                                                                            }
+                                                                            bit
+                                                                        </>
+                                                                    )}
                                                                 </span>
                                                                 <>
                                                                     {index() <
-                                                                        trackSources()!
+                                                                        versions()!
                                                                             .length -
                                                                             1 && (
                                                                         <span>
@@ -307,9 +281,9 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        if (activeTrackSource()) {
+                                        if (activeVersion()) {
                                             playPlaylist(
-                                                activeTrackSource()!.tracks,
+                                                activeVersion()!.tracks,
                                             );
                                         }
                                         return false;
@@ -326,7 +300,9 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        addAlbumToQueue(album()!);
+                                        addTracksToQueue(
+                                            activeVersion()!.tracks,
+                                        );
                                         return false;
                                     }}
                                 >
@@ -352,8 +328,8 @@ export default function albumPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {activeTrackSource()?.tracks && (
-                                <For each={activeTrackSource()!.tracks}>
+                            {activeVersion()?.tracks && (
+                                <For each={activeVersion()!.tracks}>
                                     {(track) => (
                                         <tr
                                             class={`album-page-tracks-track${

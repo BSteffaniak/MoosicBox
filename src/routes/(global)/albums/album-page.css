@@ -43,15 +43,15 @@
     font-size: 20px;
 }
 
-.album-page-album-info-details-sources {
+.album-page-album-info-details-versions {
     margin: 10px 0;
 }
 
-.album-page-album-info-details-sources-source {
+.album-page-album-info-details-versions-version {
     cursor: pointer;
 }
 
-.album-page-album-info-details-sources-source.active {
+.album-page-album-info-details-versions-version.active {
     font-weight: bold;
     text-decoration: underline;
 }

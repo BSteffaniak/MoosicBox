@@ -138,6 +138,16 @@ export namespace Api {
         channels: number;
     }
 
+    export interface AlbumVersion {
+        tracks: Api.Track[];
+        format: PlaybackQuality['format'];
+        bitDepth: number | null;
+        audioBitrate: number | null;
+        overallBitrate: number | null;
+        sampleRate: number | null;
+        channels: number | null;
+    }
+
     export const AudioFormat = {
         AAC: 'AAC',
         MP3: 'MP3',
@@ -255,6 +265,10 @@ export interface ApiType {
         signal?: AbortSignal,
     ): string;
     getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
+    getAlbumVersions(
+        albumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.AlbumVersion[]>;
     getTracks(trackIds: number[], signal?: AbortSignal): Promise<Api.Track[]>;
     getArtists(
         request: Api.ArtistsRequest | undefined,
@@ -389,6 +403,22 @@ async function getAlbumTracks(
 ): Promise<Api.Track[]> {
     const response = await request(
         `${Api.apiUrl()}/album/tracks?albumId=${albumId}`,
+        {
+            method: 'GET',
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
+async function getAlbumVersions(
+    albumId: number,
+    signal?: AbortSignal,
+): Promise<Api.AlbumVersion[]> {
+    const response = await request(
+        `${Api.apiUrl()}/album/versions?albumId=${albumId}`,
         {
             method: 'GET',
             credentials: 'include',
@@ -596,6 +626,7 @@ export const api: ApiType = {
     getAlbumArtwork,
     getAlbumSourceArtwork,
     getAlbumTracks,
+    getAlbumVersions,
     getTracks,
     getArtists,
     fetchSignatureToken,

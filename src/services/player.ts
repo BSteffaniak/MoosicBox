@@ -300,6 +300,7 @@ export interface PlayerType {
     playPlaylist(tracks: Api.Track[]): boolean | void;
     playFromPlaylistPosition(index: number): boolean | void;
     addAlbumToQueue(album: Api.Album | Api.Track): Promise<void>;
+    addTracksToQueue(tracks: Api.Track[]): Promise<void>;
     removeTrackFromPlaylist(index: number): void;
     pause(): void;
     stop(): void;
@@ -437,6 +438,11 @@ export const offAddAlbumToQueue = addAlbumToQueueListener.off;
 
 export async function addAlbumToQueue(album: Api.Album | Api.Track) {
     player.addAlbumToQueue(album);
+    addAlbumToQueueListener.trigger();
+}
+
+export async function addTracksToQueue(tracks: Api.Track[]) {
+    player.addTracksToQueue(tracks);
     addAlbumToQueueListener.trigger();
 }
 
