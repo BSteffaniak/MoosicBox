@@ -55,6 +55,7 @@ function seekTo(event: MouseEvent): void {
 let dragStartListener: (event: MouseEvent) => void;
 let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
+let visibilityChangeListener: () => void;
 let playlistSlideoutTimeout: NodeJS.Timeout | undefined;
 
 enum BackToNowPlayingPosition {
@@ -175,12 +176,22 @@ export default function player() {
                     event.preventDefault();
                 }
             };
+
+            visibilityChangeListener = () => {
+                if (document.visibilityState !== 'hidden') {
+                    speedyProgressTransition();
+                }
+            };
             progressBarTrigger?.addEventListener(
                 'mousedown',
                 dragStartListener,
             );
             window.addEventListener('mousemove', dragListener);
             window.addEventListener('mouseup', dragEndListener);
+            document.addEventListener(
+                'visibilitychange',
+                visibilityChangeListener,
+            );
         }
     });
 
@@ -192,6 +203,10 @@ export default function player() {
             );
             window.removeEventListener('mousemove', dragListener);
             window.removeEventListener('mouseup', dragEndListener);
+            document.removeEventListener(
+                'visibilitychange',
+                visibilityChangeListener,
+            );
         }
     });
 
