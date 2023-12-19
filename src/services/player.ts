@@ -437,12 +437,12 @@ export const onAddAlbumToQueue = addAlbumToQueueListener.on;
 export const offAddAlbumToQueue = addAlbumToQueueListener.off;
 
 export async function addAlbumToQueue(album: Api.Album | Api.Track) {
-    player.addAlbumToQueue(album);
+    await player.addAlbumToQueue(album);
     addAlbumToQueueListener.trigger();
 }
 
 export async function addTracksToQueue(tracks: Api.Track[]) {
-    player.addTracksToQueue(tracks);
+    await player.addTracksToQueue(tracks);
     addAlbumToQueueListener.trigger();
 }
 
