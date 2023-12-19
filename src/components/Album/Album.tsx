@@ -3,6 +3,7 @@ import { Api, api } from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
+import { displayAlbumVersionQualities } from '~/services/formatting';
 
 function albumControls(album: Api.Album | Api.Track) {
     return (
@@ -38,6 +39,7 @@ function albumDetails(
     showArtist = true,
     showTitle = true,
     showYear = true,
+    showVersionQualities = true,
     route = true,
 ) {
     return (
@@ -70,6 +72,14 @@ function albumDetails(
                 <div class="album-year">
                     <span class="album-year-text">
                         {album.dateReleased?.substring(0, 4)}
+                    </span>
+                </div>
+            )}
+            {'versions' in album && showVersionQualities && (
+                <div class="album-version-qualities">
+                    <span class="album-version-qualities-text">
+                        {album.versions.length > 0 &&
+                            displayAlbumVersionQualities(album.versions)}
                     </span>
                 </div>
             )}
@@ -109,6 +119,7 @@ type AlbumProps = {
     artist: boolean;
     year: boolean;
     title: boolean;
+    versionQualities: boolean;
     blur: boolean;
     route: boolean;
     onClick?: (e: MouseEvent) => void;
@@ -117,13 +128,20 @@ type AlbumProps = {
 export default function album(
     props: PartialBy<
         AlbumProps,
-        'size' | 'artist' | 'title' | 'blur' | 'route' | 'year'
+        | 'size'
+        | 'artist'
+        | 'title'
+        | 'blur'
+        | 'route'
+        | 'year'
+        | 'versionQualities'
     >,
 ) {
     props.size = props.size ?? 200;
     props.artist = props.artist ?? false;
     props.title = props.title ?? false;
     props.route = props.route ?? true;
+    props.versionQualities = props.versionQualities ?? false;
 
     const [blur, setBlur] = createSignal(false);
 
@@ -157,6 +175,7 @@ export default function album(
                     props.artist,
                     props.title,
                     props.year,
+                    props.versionQualities,
                     props.route,
                 )}
         </div>

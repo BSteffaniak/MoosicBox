@@ -47,11 +47,13 @@
     margin: 10px 0;
 }
 
-.album-page-album-info-details-versions-version {
+.album-page-album-info-details-versions.multiple
+    .album-page-album-info-details-versions-version {
     cursor: pointer;
 }
 
-.album-page-album-info-details-versions-version.active {
+.album-page-album-info-details-versions.multiple
+    .album-page-album-info-details-versions-version.active {
     font-weight: bold;
     text-decoration: underline;
 }

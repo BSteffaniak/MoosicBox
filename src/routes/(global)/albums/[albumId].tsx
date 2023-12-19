@@ -12,7 +12,11 @@ import {
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
-import { displayDate, toTime } from '~/services/formatting';
+import {
+    displayAlbumVersionQuality,
+    displayDate,
+    toTime,
+} from '~/services/formatting';
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api } from '~/services/api';
 
@@ -214,61 +218,49 @@ export default function albumPage() {
                                                     'LLLL dd, yyyy',
                                                 )}
                                             </div>
-                                            {(versions()?.length ?? 0) > 1 && (
-                                                <div class="album-page-album-info-details-versions">
-                                                    <For each={versions()}>
-                                                        {(version, index) => (
+                                            <div
+                                                class={`album-page-album-info-details-versions${
+                                                    (versions()?.length ?? 0) >
+                                                    1
+                                                        ? ' multiple'
+                                                        : ''
+                                                }`}
+                                            >
+                                                <For each={versions()}>
+                                                    {(version, index) => (
+                                                        <>
+                                                            <span
+                                                                class={`album-page-album-info-details-versions-version${
+                                                                    version ===
+                                                                    activeVersion()
+                                                                        ? ' active'
+                                                                        : ''
+                                                                }`}
+                                                                onClick={() =>
+                                                                    setActiveVersion(
+                                                                        version,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {displayAlbumVersionQuality(
+                                                                    version,
+                                                                )}
+                                                            </span>
                                                             <>
-                                                                <span
-                                                                    class={`album-page-album-info-details-versions-version${
-                                                                        version ===
-                                                                        activeVersion()
-                                                                            ? ' active'
-                                                                            : ''
-                                                                    }`}
-                                                                    onClick={() =>
-                                                                        setActiveVersion(
-                                                                            version,
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {version.sampleRate !==
-                                                                        null && (
-                                                                        <>
-                                                                            {version.sampleRate /
-                                                                                1000}{' '}
-                                                                            kHz,{' '}
-                                                                        </>
-                                                                    )}
-                                                                    {version.bitDepth !==
-                                                                        null && (
-                                                                        <>
-                                                                            {
-                                                                                version.bitDepth
-                                                                            }
-                                                                            {
-                                                                                '-'
-                                                                            }
-                                                                            bit
-                                                                        </>
-                                                                    )}
-                                                                </span>
-                                                                <>
-                                                                    {index() <
-                                                                        versions()!
-                                                                            .length -
-                                                                            1 && (
-                                                                        <span>
-                                                                            {' '}
-                                                                            /{' '}
-                                                                        </span>
-                                                                    )}
-                                                                </>
+                                                                {index() <
+                                                                    versions()!
+                                                                        .length -
+                                                                        1 && (
+                                                                    <span>
+                                                                        {' '}
+                                                                        /{' '}
+                                                                    </span>
+                                                                )}
                                                             </>
-                                                        )}
-                                                    </For>
-                                                </div>
-                                            )}
+                                                        </>
+                                                    )}
+                                                </For>
+                                            </div>
                                         </div>
                                     </>
                                 )}

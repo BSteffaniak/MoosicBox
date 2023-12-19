@@ -106,6 +106,13 @@ export namespace Api {
         blur: boolean;
     }
 
+    export interface AlbumVersionQuality {
+        format: PlaybackQuality['format'] | null;
+        bitDepth: number | null;
+        sampleRate: number | null;
+        channels: number | null;
+    }
+
     export interface Album {
         albumId: number;
         title: string;
@@ -115,6 +122,7 @@ export namespace Api {
         blur: boolean;
         dateReleased: string;
         dateAdded: string;
+        versions: AlbumVersionQuality[];
     }
 
     export interface Track {
@@ -150,6 +158,7 @@ export namespace Api {
 
     export const AudioFormat = {
         AAC: 'AAC',
+        FLAC: 'FLAC',
         MP3: 'MP3',
         SOURCE: 'SOURCE',
     } as const;

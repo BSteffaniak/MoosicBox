@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { Api } from './api';
 
 function zeroPad(num: number, places: number) {
     return String(num).padStart(places, '0');
@@ -19,4 +20,54 @@ export function toTime(seconds: number) {
 export function displayDate(date: string, dateFormat: string): string {
     if (!date) return '';
     return format(parseISO(date), dateFormat);
+}
+
+export function displayAlbumVersionQuality(
+    version: Api.AlbumVersionQuality,
+): string {
+    let str = '';
+
+    if (version.format) {
+        switch (version.format) {
+            case Api.AudioFormat.AAC:
+                str += 'AAC';
+                break;
+            case Api.AudioFormat.FLAC:
+                str += 'FLAC';
+                break;
+            case Api.AudioFormat.MP3:
+                str += 'MP3';
+                break;
+            case Api.AudioFormat.SOURCE:
+                break;
+            default:
+                version.format satisfies never;
+        }
+    }
+    if (version.sampleRate) {
+        if (str.length > 0) {
+            str += ' ';
+        }
+        str += `${version.sampleRate / 1000} kHz`;
+    }
+    if (version.bitDepth) {
+        if (str.length > 0) {
+            str += ', ';
+        }
+        str += `${version.bitDepth}-bit`;
+    }
+
+    return str;
+}
+
+export function displayAlbumVersionQualities(
+    versions: Api.AlbumVersionQuality[],
+): string {
+    let str = displayAlbumVersionQuality(versions[0]);
+
+    if (versions.length > 1) {
+        str += ` (+${versions.length - 1})`;
+    }
+
+    return str;
 }

@@ -224,6 +224,7 @@ export default function albums() {
                                     controls={true}
                                     artist={true}
                                     title={true}
+                                    versionQualities={true}
                                 />
                             )}
                         </For>
