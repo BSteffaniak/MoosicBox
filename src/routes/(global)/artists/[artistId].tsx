@@ -52,6 +52,7 @@ export default function albumPage() {
                                     artist={true}
                                     title={true}
                                     controls={true}
+                                    versionQualities={true}
                                     size={200}
                                 />
                             )}
