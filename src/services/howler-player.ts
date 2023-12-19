@@ -308,7 +308,15 @@ function onSeekUpdated(seek: number) {
     }
 }
 
-function onPlayingUpdated(_updatedPlaying: boolean) {}
+function onPlayingUpdated(updatedPlaying: boolean) {
+    if (player.isPlayerActive() && updatedPlaying != playing()) {
+        if (updatedPlaying) {
+            play();
+        } else {
+            pause();
+        }
+    }
+}
 
 export function createPlayer(id: number): PlayerType {
     return {
