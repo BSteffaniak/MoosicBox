@@ -11,7 +11,7 @@ import {
     Title,
 } from 'solid-start';
 import { ErrorBoundary } from 'solid-start/error-boundary';
-import { PlayerType, player } from './services/player';
+import { registerPlayer } from './services/player';
 import {
     InboundMessageType,
     connectionId,
@@ -25,22 +25,20 @@ import { Api } from './services/api';
 import { createPlayer as createHowlerPlayer } from './services/howler-player';
 import { appState } from './services/app';
 
-let currentPlayer: PlayerType | undefined;
-
 function updatePlayer() {
     const connection = appState.connections.find(
         (c) => c.connectionId === connectionId(),
     );
 
-    const newPlayer = connection?.players[0];
-
-    if (newPlayer && currentPlayer?.id !== newPlayer.playerId) {
-        currentPlayer = createHowlerPlayer(newPlayer.playerId);
-    }
-
-    Object.assign(player, currentPlayer);
-
-    console.debug('Set player to', currentPlayer);
+    connection?.players
+        .filter((player) => player.type === Api.PlayerType.HOWLER)
+        .forEach((player) => {
+            switch (player.type) {
+                case Api.PlayerType.HOWLER:
+                    registerPlayer(createHowlerPlayer(player.playerId));
+                    break;
+            }
+        });
 }
 
 onMessage((data) => {

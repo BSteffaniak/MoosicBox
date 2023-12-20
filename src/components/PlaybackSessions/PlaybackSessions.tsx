@@ -1,7 +1,13 @@
 import './playback-sessions.css';
 import { For, Index, createComputed, createSignal } from 'solid-js';
 import { Api } from '~/services/api';
-import { playerState, setPlayerState, updateSession } from '~/services/player';
+import {
+    containsPlayer,
+    playerState,
+    setActivePlayerId,
+    setPlayerState,
+    updateSession,
+} from '~/services/player';
 import Album from '../Album';
 import * as ws from '~/services/ws';
 import { produce } from 'solid-js/store';
@@ -74,10 +80,10 @@ export default function playbackSessionsFunc() {
         player: Api.Player,
     ) {
         const newActivePlayers = [
-            ...session.activePlayers
-                .filter((p) => p.playerId !== player.playerId)
-                .map((p) => p.playerId),
-            player.playerId,
+            ...session.activePlayers.filter(
+                (p) => p.playerId !== player.playerId,
+            ),
+            player,
         ];
 
         console.debug(
@@ -87,7 +93,18 @@ export default function playbackSessionsFunc() {
             newActivePlayers,
         );
 
-        ws.setActivePlayers(session.sessionId, newActivePlayers);
+        const localPlayer = newActivePlayers.find((p) =>
+            containsPlayer(p.playerId),
+        );
+
+        if (localPlayer) {
+            setActivePlayerId(localPlayer.playerId);
+        }
+
+        ws.setActivePlayers(
+            session.sessionId,
+            newActivePlayers.map((player) => player.playerId),
+        );
     }
 
     function deleteSession(sessionId: number) {
