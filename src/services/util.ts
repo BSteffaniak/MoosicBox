@@ -2,6 +2,7 @@
 type BaseCallbackType = (...args: any) => boolean | void;
 export function createListener<CallbackType extends BaseCallbackType>(): {
     on: (callback: CallbackType) => CallbackType;
+    onFirst: (callback: CallbackType) => CallbackType;
     off: (callback: CallbackType) => void;
     listeners: CallbackType[];
     trigger: CallbackType;
@@ -9,6 +10,10 @@ export function createListener<CallbackType extends BaseCallbackType>(): {
     let listeners: CallbackType[] = [];
     function on(callback: CallbackType): CallbackType {
         listeners.push(callback);
+        return callback;
+    }
+    function onFirst(callback: CallbackType): CallbackType {
+        listeners.unshift(callback);
         return callback;
     }
     function off(callback: CallbackType): void {
@@ -23,5 +28,5 @@ export function createListener<CallbackType extends BaseCallbackType>(): {
         }
     };
 
-    return { on, off, listeners, trigger: trigger as CallbackType };
+    return { on, onFirst, off, listeners, trigger: trigger as CallbackType };
 }
