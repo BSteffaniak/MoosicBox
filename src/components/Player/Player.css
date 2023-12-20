@@ -214,10 +214,17 @@
     transition: none !important;
 }
 
+.player-media-controls-track {
+    position: relative;
+}
+
 .show-playback-quality-icon {
     width: 25px;
     cursor: pointer;
-    margin: 0 10px;
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translate(100%, -50%);
 }
 
 .show-playback-sessions-icon {

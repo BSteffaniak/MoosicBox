@@ -467,6 +467,12 @@ export default function player() {
                                 alt="Next Track"
                             />
                         </button>
+                        <img
+                            class="show-playback-quality-icon"
+                            src="/img/more-options-white.svg"
+                            alt="Show Playback Quality"
+                            onClick={() => toggleShowPlaybackQuality()}
+                        />
                     </div>
                     <div class="player-media-controls-seeker">
                         <div class="player-media-controls-seeker-current-time">
@@ -507,12 +513,6 @@ export default function player() {
                 </div>
                 <div class="player-track-options">
                     <div class="player-track-options-buttons">
-                        <img
-                            class="show-playback-quality-icon"
-                            src="/img/speaker-white.svg"
-                            alt="Show Playback Quality"
-                            onClick={() => toggleShowPlaybackQuality()}
-                        />
                         <img
                             class="show-playback-sessions-icon"
                             src="/img/speaker-white.svg"
