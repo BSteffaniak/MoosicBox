@@ -360,6 +360,7 @@ function send<T extends OutboundMessage>(value: T) {
 const onMessageListener =
     createListener<(message: InboundMessage) => boolean | void>();
 export const onMessage = onMessageListener.on;
+export const onMessageFirst = onMessageListener.onFirst;
 export const offMessage = onMessageListener.off;
 
 function newClient(): Promise<WebSocket> {
@@ -424,7 +425,7 @@ function newClient(): Promise<WebSocket> {
     });
 }
 
-onMessage((data) => {
+onMessageFirst((data) => {
     switch (data.type) {
         case InboundMessageType.CONNECTION_ID: {
             const message = data as ConnectionIdMessage;
