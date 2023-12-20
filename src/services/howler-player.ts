@@ -44,7 +44,6 @@ function getTrackUrl(track: Api.Track): string {
         query.set('signature', signatureToken);
     }
 
-    console.log(playbackQuality());
     if (playbackQuality().format !== Api.AudioFormat.SOURCE) {
         query.set('format', playbackQuality().format);
     }
