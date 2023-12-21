@@ -426,16 +426,15 @@ function newClient(): Promise<WebSocket> {
 }
 
 onMessageFirst((data) => {
+    console.debug('Received ws message', data);
     switch (data.type) {
         case InboundMessageType.CONNECTION_ID: {
             const message = data as ConnectionIdMessage;
-            console.debug('Client connected', message);
             onConnectListener.trigger(message.connectionId);
             break;
         }
         case InboundMessageType.SESSIONS: {
             const message = data as SessionsMessage;
-            console.debug('Received sessions', message.payload);
             player.setPlayerState(
                 produce((state) => {
                     state.playbackSessions = message.payload;
@@ -467,7 +466,6 @@ onMessageFirst((data) => {
         }
         case InboundMessageType.CONNECTIONS: {
             const message = data as ConnectionsMessage;
-            console.debug('Received connections', message.payload);
             setAppState(
                 produce((state) => {
                     state.connections = message.payload;
@@ -477,7 +475,6 @@ onMessageFirst((data) => {
         }
         case InboundMessageType.SET_SEEK: {
             const message = data as SetSeekInboundMessage;
-            console.debug('Received seek', message.payload);
             if (
                 message.payload.sessionId ===
                 player.playerState.currentPlaybackSession?.sessionId
@@ -488,7 +485,6 @@ onMessageFirst((data) => {
         }
         case InboundMessageType.SESSION_UPDATED: {
             const message = data as SessionUpdatedMessage;
-            console.debug('Received session update', message.payload);
 
             const session = message.payload;
 
