@@ -79,10 +79,7 @@ export default function player() {
     const [playing, setPlaying] = createSignal(playerPlaying());
 
     createComputed(() => {
-        setPlaying(
-            playerPlaying() ||
-                (playerState.currentPlaybackSession?.playing ?? false),
-        );
+        setPlaying(playerState.currentPlaybackSession?.playing ?? false);
     });
 
     function speedyProgressTransition() {

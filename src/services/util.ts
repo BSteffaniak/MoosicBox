@@ -1,3 +1,5 @@
+import { Entries } from './types';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BaseCallbackType = (...args: any) => boolean | void;
 export function createListener<CallbackType extends BaseCallbackType>(): {
@@ -29,4 +31,22 @@ export function createListener<CallbackType extends BaseCallbackType>(): {
     };
 
     return { on, onFirst, off, listeners, trigger: trigger as CallbackType };
+}
+
+export function orderedEntries<T extends Parameters<typeof Object.entries>[0]>(
+    value: T,
+    order: (keyof T)[],
+): Entries<T> {
+    const updates = Object.entries(value) as Entries<T>;
+
+    updates.sort(([key1], [key2]) => {
+        let first = order.indexOf(key1 as keyof T);
+        let second = order.indexOf(key2 as keyof T);
+        first = first === -1 ? order.length : first;
+        second = second === -1 ? order.length : second;
+
+        return first - second;
+    });
+
+    return updates;
 }

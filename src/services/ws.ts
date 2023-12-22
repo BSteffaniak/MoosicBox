@@ -319,17 +319,20 @@ export function createSession(session: CreateSessionRequest) {
 }
 
 export function updateSession(session: PartialUpdateSession) {
+    const payload: UpdateSession = { ...session, playlist: undefined };
+
+    if (session.playlist) {
+        payload.playlist = {
+            ...session.playlist,
+            tracks: session.playlist.tracks.map((t) => t.trackId),
+        };
+    } else {
+        delete payload.playlist;
+    }
+
     send<UpdateSessionMessage>({
         type: OutboundMessageType.UPDATE_SESSION,
-        payload: {
-            ...session,
-            playlist: session.playlist
-                ? {
-                      ...session.playlist,
-                      tracks: session.playlist.tracks.map((t) => t.trackId),
-                  }
-                : undefined,
-        },
+        payload,
     });
 }
 
@@ -490,24 +493,10 @@ onMessageFirst((data) => {
 
             player.setPlayerState(
                 produce((state) => {
-                    player.updateSessionPartial(state, message.payload);
+                    player.updateSessionPartial(state, session);
                 }),
             );
-
-            if (
-                session.sessionId ===
-                player.playerState.currentPlaybackSession?.sessionId
-            ) {
-                if (typeof session.position !== 'undefined') {
-                    player.onPositionUpdated(session.position);
-                }
-                if (typeof session.seek !== 'undefined') {
-                    player.onSeekUpdated(session.seek);
-                }
-                if (typeof session.playing !== 'undefined') {
-                    player.onPlayingUpdated(session.playing);
-                }
-            }
+            player.sessionUpdated(session);
 
             break;
         }

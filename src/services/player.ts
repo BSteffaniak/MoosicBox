@@ -3,10 +3,10 @@ import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import { Api } from './api';
+import { Api, api } from './api';
 import { createStore, produce } from 'solid-js/store';
+import { createListener, orderedEntries } from './util';
 import { PartialBy, PartialUpdateSession } from './types';
-import { createListener } from './util';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -69,30 +69,6 @@ export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
     );
 
 export const [sound, setSound] = createSignal<Howl>();
-export const [_playing, _setPlaying] = createSignal(false, { equals: false });
-const onPlayingChangedListener =
-    createListener<
-        (
-            value: ReturnType<typeof _playing>,
-            old: ReturnType<typeof _playing>,
-        ) => boolean | void
-    >();
-export const onPlayingChanged = onPlayingChangedListener.on;
-export const offPlayingChanged = onPlayingChangedListener.off;
-export const playing = _playing;
-export const setPlaying = (
-    value: Parameters<typeof _setPlaying>[0],
-    trigger = true,
-) => {
-    const old = _playing();
-    if (typeof value === 'function') {
-        value = value(old);
-    }
-    _setPlaying(value);
-    if (trigger) {
-        onPlayingChangedListener.trigger(value, old);
-    }
-};
 
 export const [_volume, _setVolume] = makePersisted(
     createSignal(100, { equals: false }),
@@ -123,6 +99,10 @@ export const setVolume = (
         onVolumeChangedListener.trigger(value, old);
     }
 };
+
+onVolumeChanged((volume) => {
+    updatePlayback({ volume });
+});
 
 export const [_currentSeek, _setCurrentSeek] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
@@ -262,20 +242,6 @@ if (!isServer) {
         );
     }
 
-    window.onbeforeunload = () => {
-        if (playing()) {
-            pause();
-        }
-    };
-
-    if (import.meta.hot) {
-        import.meta.hot.on('vite:beforeUpdate', () => {
-            if (playing()) {
-                pause();
-            }
-        });
-    }
-
     document.body.onkeydown = function (e) {
         const target = e.target as HTMLElement;
 
@@ -295,21 +261,11 @@ if (!isServer) {
 
 export interface PlayerType {
     id: number;
-    play(): boolean | void;
-    playAlbum(album: Api.Album | Api.Track): Promise<boolean | void>;
-    playPlaylist(tracks: Api.Track[]): boolean | void;
-    playFromPlaylistPosition(index: number): boolean | void;
-    addAlbumToQueue(album: Api.Album | Api.Track): Promise<void>;
-    addTracksToQueue(tracks: Api.Track[]): Promise<void>;
-    removeTrackFromPlaylist(index: number): void;
-    pause(): void;
-    stop(): void;
-    seek(seek: number): void;
-    previousTrack(): boolean;
-    nextTrack(): boolean;
-    onPositionUpdated(position: number): void;
-    onSeekUpdated(seek: number): void;
-    onPlayingUpdated(playing: boolean): void;
+    activate?(): boolean | void | Promise<boolean | void>;
+    deactivate?(): boolean | void | Promise<boolean | void>;
+    updatePlayback(
+        update: PlaybackUpdate,
+    ): boolean | void | Promise<boolean | void>;
 }
 
 const playListener = createListener<() => void>();
@@ -318,13 +274,23 @@ export const offPlay = playListener.off;
 
 export function isMasterPlayer(): boolean {
     return (
+        isPlayerActive() &&
         playerState.currentPlaybackSession?.activePlayers.findIndex(
             (p) => p.playerId === activePlayer?.id,
         ) === 0
     );
 }
 
-export function isPlayerActive(): boolean {
+export function isPlayerActive(playerOrId?: PlayerType | number): boolean {
+    if (typeof playerOrId === 'number') {
+        if (activePlayer?.id !== playerOrId) {
+            return false;
+        }
+    } else if (typeof playerOrId === 'object') {
+        if (activePlayer?.id !== playerOrId.id) {
+            return false;
+        }
+    }
     return (
         playerState.currentPlaybackSession?.activePlayers.some(
             (p) => p.playerId === activePlayer?.id,
@@ -332,67 +298,50 @@ export function isPlayerActive(): boolean {
     );
 }
 
-export function play() {
+export async function play() {
     console.debug('Play called');
-    if (isPlayerActive()) {
-        if (activePlayer?.play() === false) return;
-    } else {
-        console.debug('Current player is not active');
-    }
-    playListener.trigger();
+    await updatePlayback({ playing: true });
 }
 
 const seekListener = createListener<(seek: number, manual: boolean) => void>();
 export const onSeek = seekListener.on;
 export const offSeek = seekListener.off;
 
-export function seek(seek: number, manual = false) {
+export async function seek(seek: number, manual = false) {
     console.debug('Seek called');
-    if (isPlayerActive()) {
-        activePlayer?.seek(seek);
-    } else {
-        console.debug('Current player is not active');
+    if (typeof seek === 'number' && manual) {
+        console.debug(`Setting seek to ${seek}`);
+        await updatePlayback({ play: playing(), seek });
     }
-    seekListener.trigger(seek, manual);
 }
 
 const pauseListener = createListener<() => void>();
 export const onPause = pauseListener.on;
 export const offPause = pauseListener.off;
 
-export function pause() {
+export async function pause() {
     console.debug('Pause called');
-    if (isPlayerActive()) {
-        activePlayer?.pause();
-    } else {
-        console.debug('Current player is not active');
-    }
-    pauseListener.trigger();
-}
-
-export function onPositionUpdated(position: number) {
-    activePlayer?.onPositionUpdated(position);
-}
-
-export function onSeekUpdated(seek: number) {
-    activePlayer?.onSeekUpdated(seek);
-}
-
-export function onPlayingUpdated(playing: boolean) {
-    activePlayer?.onPlayingUpdated(playing);
+    await updatePlayback({ playing: false });
 }
 
 const prevTrackListener = createListener<TrackListenerCallback>();
 export const onPreviousTrack = prevTrackListener.on;
 export const offPreviousTrack = prevTrackListener.off;
 
-export function previousTrack(): boolean {
-    if (activePlayer?.previousTrack()) {
-        prevTrackListener.trigger(
-            playerState.currentTrack!,
-            playlistPosition()!,
-        );
-        return true;
+export async function previousTrack(): Promise<boolean> {
+    if ((currentSeek() ?? 0) < 5) {
+        console.debug('Playing previous track');
+
+        const position = playlistPosition() ?? 0;
+
+        await updatePlayback({
+            play: true,
+            seek: 0,
+            position: position > 0 ? position - 1 : position,
+        });
+    } else {
+        console.debug('Setting track position to 0');
+        seek(0, true);
     }
     return false;
 }
@@ -401,14 +350,25 @@ const nextTrackListener = createListener<TrackListenerCallback>();
 export const onNextTrack = nextTrackListener.on;
 export const offNextTrack = nextTrackListener.off;
 
-export function nextTrack(): boolean {
-    if (activePlayer?.nextTrack()) {
-        nextTrackListener.trigger(
-            playerState.currentTrack!,
-            playlistPosition()!,
-        );
-        return true;
+export async function nextTrack(): Promise<boolean> {
+    if (
+        typeof playlistPosition() === 'number' &&
+        playlistPosition()! < playlist()!.length - 1
+    ) {
+        console.debug('Playing next track');
+
+        const position = playlistPosition() ?? 0;
+
+        await updatePlayback({
+            play: true,
+            seek: 0,
+            position: position + 1,
+        });
+    } else {
+        console.debug('No next track to play');
+        stop();
     }
+
     return false;
 }
 
@@ -416,11 +376,8 @@ const stopListener = createListener<() => void>();
 export const onStop = stopListener.on;
 export const offStop = stopListener.off;
 
-export function stop() {
-    if (isPlayerActive()) {
-        activePlayer?.stop();
-    }
-    stopListener.trigger();
+export async function stop() {
+    await updatePlayback({ stop: false });
 }
 
 const playAlbumListener = createListener<() => void>();
@@ -428,17 +385,28 @@ export const onPlayAlbum = playAlbumListener.on;
 export const offPlayAlbum = playAlbumListener.off;
 
 export async function playAlbum(album: Api.Album | Api.Track) {
-    await activePlayer?.playAlbum(album);
-    playAlbumListener.trigger();
+    setCurrentAlbum(album);
+
+    const versions = await api.getAlbumVersions(album.albumId);
+    const tracks = versions[0].tracks;
+
+    await playPlaylist(tracks);
 }
 
 const playPlaylistListener = createListener<() => void>();
 export const onPlayPlaylist = playPlaylistListener.on;
 export const offPlayPlaylist = playPlaylistListener.off;
 
-export function playPlaylist(tracks: Api.Track[]) {
-    activePlayer?.playPlaylist(tracks);
-    playPlaylistListener.trigger();
+export async function playPlaylist(tracks: Api.Track[]) {
+    const firstTrack = tracks[0];
+    setCurrentAlbum(firstTrack);
+
+    await updatePlayback({
+        play: true,
+        position: 0,
+        seek: 0,
+        tracks,
+    });
 }
 
 const addAlbumToQueueListener = createListener<() => void>();
@@ -446,31 +414,40 @@ export const onAddAlbumToQueue = addAlbumToQueueListener.on;
 export const offAddAlbumToQueue = addAlbumToQueueListener.off;
 
 export async function addAlbumToQueue(album: Api.Album | Api.Track) {
-    await activePlayer?.addAlbumToQueue(album);
-    addAlbumToQueueListener.trigger();
+    const versions = await api.getAlbumVersions(album.albumId);
+    const tracks = versions[0].tracks;
+
+    return addTracksToQueue(tracks);
 }
 
 export async function addTracksToQueue(tracks: Api.Track[]) {
-    await activePlayer?.addTracksToQueue(tracks);
-    addAlbumToQueueListener.trigger();
+    updatePlayback({
+        tracks: [...playlist(), ...tracks],
+    });
 }
-
-const removeTrackFromPlaylistListener = createListener<() => void>();
-export const onRemoveTrackFromPlaylist = removeTrackFromPlaylistListener.on;
-export const offRemoveTrackFromPlaylist = removeTrackFromPlaylistListener.off;
 
 export function removeTrackFromPlaylist(index: number) {
-    activePlayer?.removeTrackFromPlaylist(index);
-    removeTrackFromPlaylistListener.trigger();
+    console.debug('Removing track from playlist', index);
+
+    const update: Parameters<typeof updatePlayback>[0] = {
+        tracks: [...playlist()!.filter((_, i) => i !== index)],
+    };
+
+    const currentPosition = playlistPosition()!;
+
+    if (index < currentPosition) {
+        update.position = currentPosition - 1;
+    } else if (index === currentPosition) {
+        update.seek = 0;
+        update.play = true;
+    }
+
+    updatePlayback(update);
 }
 
-const playFromPlaylistPositionListener = createListener<() => void>();
-export const onPlayFromPlaylistPosition = playFromPlaylistPositionListener.on;
-export const offPlayFromPlaylistPosition = playFromPlaylistPositionListener.off;
-
 export function playFromPlaylistPosition(index: number) {
-    activePlayer?.playFromPlaylistPosition(index);
-    playFromPlaylistPositionListener.trigger();
+    console.debug('Playing from playlist position', index);
+    updatePlayback({ play: true, position: index, seek: 0 });
 }
 
 export const players: PlayerType[] = [];
@@ -487,11 +464,9 @@ export function registerPlayer(player: PlayerType) {
     }
     console.debug('Registering player', player);
 
-    const setAsActive =
-        players.length === 0 ||
-        playerState.currentPlaybackSession?.activePlayers?.some(
-            (p) => p.playerId === player.id,
-        );
+    const setAsActive = playerState.currentPlaybackSession?.activePlayers?.some(
+        (p) => p.playerId === player.id,
+    );
 
     players.push(player);
 
@@ -510,7 +485,122 @@ export function setActivePlayerId(id: number) {
 
 export function setActivePlayer(player: PlayerType) {
     console.debug('Setting active player to', player);
+    deactivatePlayer();
+    if (player?.activate) {
+        player.activate();
+    }
     activePlayer = player;
+}
+
+export function deactivatePlayer() {
+    if (activePlayer?.deactivate) {
+        activePlayer.deactivate();
+    }
+
+    activePlayer = undefined;
+}
+
+export function sessionUpdated(update: PartialUpdateSession) {
+    if (!isMasterPlayer()) {
+        return;
+    }
+
+    const sessionId = currentPlaybackSessionId()!;
+
+    if (update.sessionId !== sessionId) {
+        return;
+    }
+
+    const playbackUpdate: PlaybackUpdate = {
+        sessionId,
+    };
+
+    const updates = orderedEntries(update, [
+        'play',
+        'stop',
+        'playing',
+        'playlist',
+        'position',
+        'seek',
+    ]);
+
+    for (const [key, value] of updates) {
+        switch (key) {
+            case 'play':
+                playbackUpdate.play = value;
+                break;
+            case 'stop':
+                playbackUpdate.stop = value;
+                break;
+            case 'playing':
+                playbackUpdate.playing = value;
+                break;
+            case 'playlist':
+                playbackUpdate.tracks = value?.tracks;
+                break;
+            case 'position':
+                playbackUpdate.position = value;
+                break;
+            case 'seek':
+                playbackUpdate.seek = value;
+                break;
+            case 'active':
+            case 'name':
+            case 'sessionId':
+                break;
+            default:
+                key satisfies never;
+        }
+    }
+
+    updatePlayback(playbackUpdate);
+}
+
+export type PlaybackUpdate = {
+    sessionId: number;
+    play?: boolean;
+    stop?: boolean;
+    playing?: boolean;
+    quality?: Api.PlaybackQuality;
+    position?: number;
+    seek?: number;
+    volume?: number;
+    tracks?: Api.Track[];
+};
+
+async function updatePlayback(update: Omit<PlaybackUpdate, 'sessionId'>) {
+    const sessionUpdate: Parameters<typeof updateCurrentPlaybackSession>[0] =
+        {};
+
+    if (typeof update.play !== 'undefined') {
+        sessionUpdate.play = update.play;
+        if (update.play) {
+            sessionUpdate.playing = true;
+        }
+    }
+    if (typeof update.playing !== 'undefined') {
+        sessionUpdate.playing = update.playing;
+    }
+    if (typeof update.position !== 'undefined') {
+        sessionUpdate.position = update.position;
+    }
+    if (typeof update.seek !== 'undefined') {
+        sessionUpdate.seek = update.seek;
+    }
+    if (update.tracks) {
+        sessionUpdate.playlist = { tracks: update.tracks };
+    }
+
+    updateCurrentPlaybackSession(sessionUpdate);
+
+    if (
+        (await activePlayer?.updatePlayback({
+            ...update,
+            sessionId: currentPlaybackSessionId()!,
+        })) === false
+    ) {
+        return;
+    }
 }
 
 function updateCurrentPlaybackSession(
@@ -588,12 +678,11 @@ export function updateSessionPartial(
         Object.assign(state.currentPlaybackSession, session);
 
         if (state.currentPlaybackSession?.sessionId === session.sessionId) {
-            if (typeof session.seek !== 'undefined') {
-                onSeekUpdated(session.seek);
-            }
-
             let updatedPlaylist = false;
 
+            if (typeof session.seek !== 'undefined') {
+                _setCurrentSeek(session.seek);
+            }
             if (typeof session.position !== 'undefined') {
                 _setPlaylistPosition(session.position);
                 updatedPlaylist = true;
@@ -652,6 +741,8 @@ export function updateSession(
 
         if (localPlayer) {
             setActivePlayerId(localPlayer.playerId);
+        } else {
+            deactivatePlayer();
         }
 
         _setPlaylist(session.playlist.tracks);
@@ -676,69 +767,72 @@ export function updateSession(
     }
 }
 
-onPlay(() => {
-    ws.playbackAction(ws.PlaybackAction.PLAY);
-    updateCurrentPlaybackSession({
-        playing: true,
-    });
-});
-
-onPause(() => {
-    ws.playbackAction(ws.PlaybackAction.PAUSE);
-    updateCurrentPlaybackSession({
-        playing: false,
-    });
-});
-
-onStop(() => {
-    ws.playbackAction(ws.PlaybackAction.STOP);
-    updateCurrentPlaybackSession({
-        playing: false,
-    });
-});
-
-onNextTrack(() => {
-    ws.playbackAction(ws.PlaybackAction.NEXT_TRACK);
-    updateCurrentPlaybackSession({
-        position: playlistPosition(),
-    });
-});
-
-onPreviousTrack(() => {
-    ws.playbackAction(ws.PlaybackAction.PREVIOUS_TRACK);
-    updateCurrentPlaybackSession({
-        position: playlistPosition(),
-    });
-});
-
-onPlayPlaylist(() => {
-    console.debug('playing playlist');
-    updateCurrentPlaybackSession({
-        position: playlistPosition(),
-        playlist: { tracks: _playlist() },
-    });
-});
-
-onAddAlbumToQueue(() => {
-    console.debug('album added to queue');
-    updateCurrentPlaybackSession({
-        position: playlistPosition(),
-        playlist: { tracks: _playlist() },
-    });
-});
-
-onPlayAlbum(() => {
-    console.debug('playing album', _playlist());
-    updateCurrentPlaybackSession({
-        position: playlistPosition(),
-        playlist: { tracks: _playlist() },
-    });
-});
-
-onPlaylistChanged((value, old) => {
-    console.debug('playlist changed from', old, 'to', value);
-});
-
+// onPlay(() => {
+//     ws.playbackAction(ws.PlaybackAction.PLAY);
+//     updateCurrentPlaybackSession({
+//         playing: true,
+//     });
+// });
+//
+// onPause(() => {
+//     ws.playbackAction(ws.PlaybackAction.PAUSE);
+//     updateCurrentPlaybackSession({
+//         playing: false,
+//     });
+// });
+//
+// onStop(() => {
+//     ws.playbackAction(ws.PlaybackAction.STOP);
+//     updateCurrentPlaybackSession({
+//         playing: false,
+//     });
+// });
+//
+// onNextTrack(() => {
+//     ws.playbackAction(ws.PlaybackAction.NEXT_TRACK);
+//     updateCurrentPlaybackSession({
+//         play: true,
+//         position: playlistPosition(),
+//     });
+// });
+//
+// onPreviousTrack(() => {
+//     ws.playbackAction(ws.PlaybackAction.PREVIOUS_TRACK);
+//     updateCurrentPlaybackSession({
+//         play: true,
+//         position: playlistPosition(),
+//     });
+// });
+//
+// onPlayPlaylist(() => {
+//     console.debug('playing playlist');
+//     updateCurrentPlaybackSession({
+//         play: true,
+//         position: playlistPosition(),
+//         playlist: { tracks: _playlist() },
+//     });
+// });
+//
+// onAddAlbumToQueue(() => {
+//     console.debug('album added to queue');
+//     updateCurrentPlaybackSession({
+//         playlist: { tracks: _playlist() },
+//     });
+// });
+//
+// onPlayAlbum(() => {
+//     console.debug('playing album', _playlist());
+//     updateCurrentPlaybackSession({
+//         play: true,
+//         position: playlistPosition(),
+//         playlist: { tracks: _playlist() },
+//     });
+// });
+//
+// onPlaylistChanged((value, old) => {
+//     console.debug('playlist changed from', old, 'to', value);
+// });
+//
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
     if (isMasterPlayer()) {
@@ -748,20 +842,35 @@ onCurrentSeekChanged((value, old) => {
     }
 });
 
-onSeek((value, manual) => {
-    if (manual) {
-        updateCurrentPlaybackSession({
-            seek: value ?? 0,
-        });
-        ws.setSeek(playerState.currentPlaybackSession!.sessionId, value ?? 0);
+// onSeek((value, manual) => {
+//     if (manual) {
+//         updateCurrentPlaybackSession({
+//             seek: value ?? 0,
+//         });
+//         ws.setSeek(playerState.currentPlaybackSession!.sessionId, value ?? 0);
+//     }
+// });
+//
+// onPlaylistPositionChanged((value, old) => {
+//     console.debug('playlist position changed from', old, 'to', value);
+//     if (isMasterPlayer()) {
+//         updateCurrentPlaybackSession({
+//             play: true,
+//             position: value ?? 0,
+//         });
+//     }
+// });
+
+onUpdateSessionPartial((session) => {
+    if (playerState.currentPlaybackSession?.sessionId !== session.sessionId) {
+        return;
+    }
+
+    if (typeof session.seek !== 'undefined') {
+        _setCurrentSeek(session.seek);
     }
 });
 
-onPlaylistPositionChanged((value, old) => {
-    console.debug('playlist position changed from', old, 'to', value);
-    if (isMasterPlayer()) {
-        updateCurrentPlaybackSession({
-            position: value ?? 0,
-        });
-    }
-});
+export function playing(): boolean {
+    return playerState.currentPlaybackSession?.playing ?? false;
+}
