@@ -767,72 +767,6 @@ export function updateSession(
     }
 }
 
-// onPlay(() => {
-//     ws.playbackAction(ws.PlaybackAction.PLAY);
-//     updateCurrentPlaybackSession({
-//         playing: true,
-//     });
-// });
-//
-// onPause(() => {
-//     ws.playbackAction(ws.PlaybackAction.PAUSE);
-//     updateCurrentPlaybackSession({
-//         playing: false,
-//     });
-// });
-//
-// onStop(() => {
-//     ws.playbackAction(ws.PlaybackAction.STOP);
-//     updateCurrentPlaybackSession({
-//         playing: false,
-//     });
-// });
-//
-// onNextTrack(() => {
-//     ws.playbackAction(ws.PlaybackAction.NEXT_TRACK);
-//     updateCurrentPlaybackSession({
-//         play: true,
-//         position: playlistPosition(),
-//     });
-// });
-//
-// onPreviousTrack(() => {
-//     ws.playbackAction(ws.PlaybackAction.PREVIOUS_TRACK);
-//     updateCurrentPlaybackSession({
-//         play: true,
-//         position: playlistPosition(),
-//     });
-// });
-//
-// onPlayPlaylist(() => {
-//     console.debug('playing playlist');
-//     updateCurrentPlaybackSession({
-//         play: true,
-//         position: playlistPosition(),
-//         playlist: { tracks: _playlist() },
-//     });
-// });
-//
-// onAddAlbumToQueue(() => {
-//     console.debug('album added to queue');
-//     updateCurrentPlaybackSession({
-//         playlist: { tracks: _playlist() },
-//     });
-// });
-//
-// onPlayAlbum(() => {
-//     console.debug('playing album', _playlist());
-//     updateCurrentPlaybackSession({
-//         play: true,
-//         position: playlistPosition(),
-//         playlist: { tracks: _playlist() },
-//     });
-// });
-//
-// onPlaylistChanged((value, old) => {
-//     console.debug('playlist changed from', old, 'to', value);
-// });
-//
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
     if (isMasterPlayer()) {
@@ -841,25 +775,6 @@ onCurrentSeekChanged((value, old) => {
         });
     }
 });
-
-// onSeek((value, manual) => {
-//     if (manual) {
-//         updateCurrentPlaybackSession({
-//             seek: value ?? 0,
-//         });
-//         ws.setSeek(playerState.currentPlaybackSession!.sessionId, value ?? 0);
-//     }
-// });
-//
-// onPlaylistPositionChanged((value, old) => {
-//     console.debug('playlist position changed from', old, 'to', value);
-//     if (isMasterPlayer()) {
-//         updateCurrentPlaybackSession({
-//             play: true,
-//             position: value ?? 0,
-//         });
-//     }
-// });
 
 onUpdateSessionPartial((session) => {
     if (playerState.currentPlaybackSession?.sessionId !== session.sessionId) {
