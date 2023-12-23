@@ -221,6 +221,7 @@ export interface UpdateSession {
     playing?: boolean;
     position?: number;
     seek?: number;
+    volume?: number;
     playlist?: UpdateSessionPlaylist;
 }
 

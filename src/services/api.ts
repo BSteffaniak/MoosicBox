@@ -174,6 +174,7 @@ export namespace Api {
         playing: boolean;
         position?: number;
         seek?: number;
+        volume?: number;
         activePlayers: Player[];
         playlist: PlaybackSessionPlaylist;
     }

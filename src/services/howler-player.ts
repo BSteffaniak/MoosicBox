@@ -9,8 +9,8 @@ import {
     playlistPosition,
     setCurrentSeek,
     setCurrentTrackLength,
-    volume,
     playbackQuality,
+    playerState,
 } from './player';
 import * as player from './player';
 import { orderedEntries } from './util';
@@ -88,7 +88,7 @@ export function createPlayer(id: number): PlayerType {
                 format,
                 html5: true,
             });
-            howl.volume(volume() / 100);
+            howl.volume(playerState.currentPlaybackSession?.volume ?? 1);
             howl.pannerAttr({ panningModel: 'equalpower' });
             setSound(howl);
             const duration = Math.round(track.duration);
@@ -233,7 +233,7 @@ export function createPlayer(id: number): PlayerType {
                         stop();
                         break;
                     case 'volume':
-                        sound()?.volume(value / 100);
+                        sound()?.volume(value);
                         break;
                     case 'seek':
                         seek(value);

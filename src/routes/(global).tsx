@@ -23,7 +23,6 @@ import {
     isPlayerActive,
     playerState,
     setVolume,
-    volume,
 } from '~/services/player';
 import PlaybackQuality from '~/components/PlaybackQuality';
 
@@ -61,7 +60,7 @@ export default function global() {
             volumeInput.value = `${newVolume}`;
         }
 
-        setVolume(newVolume);
+        setVolume(newVolume / 100);
     }
 
     function createNewSession() {
@@ -120,7 +119,16 @@ export default function global() {
                         <input
                             ref={volumeInput!}
                             type="number"
-                            value={volume()}
+                            value={Math.round(
+                                Math.max(
+                                    0,
+                                    Math.min(
+                                        100,
+                                        (playerState.currentPlaybackSession
+                                            ?.volume ?? 1) * 100,
+                                    ),
+                                ),
+                            )}
                             min="0"
                             max="100"
                             onChange={(e) =>

@@ -70,39 +70,15 @@ export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
 
 export const [sound, setSound] = createSignal<Howl>();
 
-export const [_volume, _setVolume] = makePersisted(
-    createSignal(100, { equals: false }),
-    {
-        name: `player.v1.volume`,
-    },
-);
 const onVolumeChangedListener =
-    createListener<
-        (
-            value: ReturnType<typeof _volume>,
-            old: ReturnType<typeof _volume>,
-        ) => boolean | void
-    >();
+    createListener<(value: number, old: number) => boolean | void>();
 export const onVolumeChanged = onVolumeChangedListener.on;
 export const offVolumeChanged = onVolumeChangedListener.off;
-export const volume = _volume;
-export const setVolume = (
-    value: Parameters<typeof _setVolume>[0],
-    trigger = true,
-) => {
-    const old = _volume();
-    if (typeof value === 'function') {
-        value = value(old);
-    }
-    _setVolume(value);
-    if (trigger && value !== old) {
-        onVolumeChangedListener.trigger(value, old);
-    }
-};
 
-onVolumeChanged((volume) => {
+export function setVolume(volume: number) {
+    console.log('Setting volume to', volume);
     updatePlayback({ volume });
-});
+}
 
 export const [_currentSeek, _setCurrentSeek] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
@@ -522,9 +498,12 @@ export function sessionUpdated(update: PartialUpdateSession) {
         'playlist',
         'position',
         'seek',
+        'volume',
     ]);
 
     for (const [key, value] of updates) {
+        if (typeof value === 'undefined') continue;
+
         switch (key) {
             case 'play':
                 playbackUpdate.play = value;
@@ -544,6 +523,9 @@ export function sessionUpdated(update: PartialUpdateSession) {
             case 'seek':
                 playbackUpdate.seek = value;
                 break;
+            case 'volume':
+                playbackUpdate.volume = value;
+                break;
             case 'active':
             case 'name':
             case 'sessionId':
@@ -553,7 +535,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
         }
     }
 
-    updatePlayback(playbackUpdate);
+    updatePlayback(playbackUpdate, false);
 }
 
 export type PlaybackUpdate = {
@@ -568,30 +550,62 @@ export type PlaybackUpdate = {
     tracks?: Api.Track[];
 };
 
-async function updatePlayback(update: Omit<PlaybackUpdate, 'sessionId'>) {
-    const sessionUpdate: Parameters<typeof updateCurrentPlaybackSession>[0] =
-        {};
+async function updatePlayback(
+    update: Omit<PlaybackUpdate, 'sessionId'>,
+    updateSession = true,
+) {
+    if (updateSession) {
+        const sessionUpdate: Parameters<
+            typeof updateCurrentPlaybackSession
+        >[0] = {};
 
-    if (typeof update.play !== 'undefined') {
-        sessionUpdate.play = update.play;
-        if (update.play) {
-            sessionUpdate.playing = true;
+        const updates = orderedEntries(update, [
+            'play',
+            'playing',
+            'position',
+            'seek',
+            'volume',
+            'tracks',
+            'quality',
+        ]);
+
+        for (const [key, value] of updates) {
+            if (typeof value === 'undefined') continue;
+
+            switch (key) {
+                case 'play':
+                    sessionUpdate.play = value;
+                    if (update.play) {
+                        sessionUpdate.playing = true;
+                    }
+                    break;
+                case 'stop':
+                    sessionUpdate.stop = value;
+                    break;
+                case 'playing':
+                    sessionUpdate.playing = value;
+                    break;
+                case 'position':
+                    sessionUpdate.position = value;
+                    break;
+                case 'seek':
+                    sessionUpdate.seek = value;
+                    break;
+                case 'volume':
+                    sessionUpdate.volume = value;
+                    break;
+                case 'tracks':
+                    sessionUpdate.playlist = { tracks: value };
+                    break;
+                case 'quality':
+                    break;
+                default:
+                    key satisfies never;
+            }
         }
-    }
-    if (typeof update.playing !== 'undefined') {
-        sessionUpdate.playing = update.playing;
-    }
-    if (typeof update.position !== 'undefined') {
-        sessionUpdate.position = update.position;
-    }
-    if (typeof update.seek !== 'undefined') {
-        sessionUpdate.seek = update.seek;
-    }
-    if (update.tracks) {
-        sessionUpdate.playlist = { tracks: update.tracks };
-    }
 
-    updateCurrentPlaybackSession(sessionUpdate);
+        updateCurrentPlaybackSession(sessionUpdate);
+    }
 
     if (
         (await activePlayer?.updatePlayback({
