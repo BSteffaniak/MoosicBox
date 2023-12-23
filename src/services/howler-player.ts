@@ -236,6 +236,7 @@ export function createPlayer(id: number): PlayerType {
                         sound()?.volume(value);
                         break;
                     case 'seek':
+                        if (!update.play) continue;
                         seek(value);
                         break;
                     case 'playing':
