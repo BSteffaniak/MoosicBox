@@ -214,7 +214,7 @@ export function createPlayer(id: number): PlayerType {
     const self = {
         id,
         updatePlayback(update: player.PlaybackUpdate) {
-            const updates = orderedEntries(update, [
+            for (const [key, value] of orderedEntries(update, [
                 'stop',
                 'volume',
                 'seek',
@@ -223,9 +223,7 @@ export function createPlayer(id: number): PlayerType {
                 'position',
                 'playing',
                 'quality',
-            ]);
-
-            for (const [key, value] of updates) {
+            ])) {
                 if (typeof value === 'undefined') continue;
 
                 switch (key) {

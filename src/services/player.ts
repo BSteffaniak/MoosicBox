@@ -491,7 +491,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
         sessionId,
     };
 
-    const updates = orderedEntries(update, [
+    for (const [key, value] of orderedEntries(update, [
         'play',
         'stop',
         'playing',
@@ -499,9 +499,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
         'position',
         'seek',
         'volume',
-    ]);
-
-    for (const [key, value] of updates) {
+    ])) {
         if (typeof value === 'undefined') continue;
 
         switch (key) {
@@ -559,7 +557,7 @@ async function updatePlayback(
             typeof updateCurrentPlaybackSession
         >[0] = {};
 
-        const updates = orderedEntries(update, [
+        for (const [key, value] of orderedEntries(update, [
             'play',
             'playing',
             'position',
@@ -567,9 +565,7 @@ async function updatePlayback(
             'volume',
             'tracks',
             'quality',
-        ]);
-
-        for (const [key, value] of updates) {
+        ])) {
             if (typeof value === 'undefined') continue;
 
             switch (key) {
