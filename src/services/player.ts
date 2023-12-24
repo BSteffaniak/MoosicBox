@@ -250,7 +250,8 @@ export const offPlay = playListener.off;
 
 export function isMasterPlayer(): boolean {
     return (
-        isPlayerActive() &&
+        !!activePlayer &&
+        isPlayerActive(activePlayer.id) &&
         playerState.currentPlaybackSession?.activePlayers.findIndex(
             (p) => p.playerId === activePlayer?.id,
         ) === 0
