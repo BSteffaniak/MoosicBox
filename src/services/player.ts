@@ -306,7 +306,10 @@ export const onPreviousTrack = prevTrackListener.on;
 export const offPreviousTrack = prevTrackListener.off;
 
 export async function previousTrack(): Promise<boolean> {
-    if ((currentSeek() ?? 0) < 5) {
+    if (playlistPosition() === 0) {
+        console.debug('Setting track position to 0');
+        seek(0, true);
+    } else if ((currentSeek() ?? 0) < 5) {
         console.debug('Playing previous track');
 
         const position = playlistPosition() ?? 0;
