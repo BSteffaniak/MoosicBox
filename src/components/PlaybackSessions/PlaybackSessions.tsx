@@ -27,14 +27,6 @@ export default function playbackSessionsFunc() {
 
     const [connections, setConnections] = createSignal<Api.Connection[]>([]);
 
-    const [aliveConnections, setAliveConnections] = createSignal<
-        Api.Connection[]
-    >([]);
-
-    const [deadConnections, setDeadConnections] = createSignal<
-        Api.Connection[]
-    >([]);
-
     createComputed(() => {
         setSessions(playerState.playbackSessions);
 
@@ -52,8 +44,6 @@ export default function playbackSessionsFunc() {
         alive.sort((a, _b) => (a.connectionId == ws.connectionId() ? -1 : 0));
 
         setConnections([...alive, ...dead]);
-        setAliveConnections(alive);
-        setDeadConnections(dead);
     });
 
     function showActivePlayers(session: Api.PlaybackSession) {
