@@ -48,6 +48,9 @@ export default function playbackSessionsFunc() {
 
         const alive = appState.connections.filter((c) => c.alive);
         const dead = appState.connections.filter((c) => !c.alive);
+
+        alive.sort((a, _b) => (a.connectionId == ws.connectionId() ? -1 : 0));
+
         setConnections([...alive, ...dead]);
         setAliveConnections(alive);
         setDeadConnections(dead);
