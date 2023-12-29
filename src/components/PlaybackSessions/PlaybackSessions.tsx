@@ -41,9 +41,14 @@ export default function playbackSessionsFunc() {
         const alive = appState.connections.filter((c) => c.alive);
         const dead = appState.connections.filter((c) => !c.alive);
 
-        alive.sort((a, _b) => (a.connectionId == ws.connectionId() ? -1 : 0));
+        const aliveCurrent = alive.filter(
+            (a) => a.connectionId == ws.connectionId(),
+        );
+        const aliveOthers = alive.filter(
+            (a) => a.connectionId != ws.connectionId(),
+        );
 
-        setConnections([...alive, ...dead]);
+        setConnections([...aliveCurrent, ...aliveOthers, ...dead]);
     });
 
     function showActivePlayers(session: Api.PlaybackSession) {
