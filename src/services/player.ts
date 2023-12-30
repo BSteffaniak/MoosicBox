@@ -365,6 +365,7 @@ export const onPlayAlbum = playAlbumListener.on;
 export const offPlayAlbum = playAlbumListener.off;
 
 export async function playAlbum(album: Api.Album | Api.Track) {
+    console.debug('playAlbum', album);
     setCurrentAlbum(album);
 
     const versions = await api.getAlbumVersions(album.albumId);
@@ -378,6 +379,7 @@ export const onPlayPlaylist = playPlaylistListener.on;
 export const offPlayPlaylist = playPlaylistListener.off;
 
 export async function playPlaylist(tracks: Api.Track[]) {
+    console.debug('playPlaylist', tracks);
     const firstTrack = tracks[0];
     setCurrentAlbum(firstTrack);
 
@@ -394,6 +396,7 @@ export const onAddAlbumToQueue = addAlbumToQueueListener.on;
 export const offAddAlbumToQueue = addAlbumToQueueListener.off;
 
 export async function addAlbumToQueue(album: Api.Album | Api.Track) {
+    console.debug('addAlbumToQueue', album);
     const versions = await api.getAlbumVersions(album.albumId);
     const tracks = versions[0].tracks;
 
@@ -401,6 +404,7 @@ export async function addAlbumToQueue(album: Api.Album | Api.Track) {
 }
 
 export async function addTracksToQueue(tracks: Api.Track[]) {
+    console.debug('addTracksToQueue', tracks);
     updatePlayback({
         tracks: [...playlist(), ...tracks],
     });
