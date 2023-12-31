@@ -50,3 +50,68 @@ export function orderedEntries<T extends Parameters<typeof Object.entries>[0]>(
 
     return updates;
 }
+
+export class QueryParams {
+    private params: [string, string][];
+
+    public constructor(init?: Record<string, string> | QueryParams | string) {
+        this.params = [];
+
+        if (typeof init === 'string') {
+            if (init[0] === '?') {
+                init = init.substring(1);
+            }
+
+            init.split('&')
+                .map((pair) => pair.split('='))
+                .forEach(([key, value]) => {
+                    this.params.push([key, value]);
+                });
+        } else if (init instanceof QueryParams) {
+            this.params.push(...init.params);
+        } else if (init) {
+            Object.entries(init).forEach(([key, value]) =>
+                this.params.push([key, value]),
+            );
+        }
+    }
+
+    public get size(): number {
+        return this.params.length;
+    }
+
+    public has(key: string): boolean {
+        return !!this.params.find(([k, _value]) => k === key);
+    }
+
+    public get(key: string): string | undefined {
+        const value = this.params.find(([k, _value]) => k === key);
+
+        if (value) {
+            return value[1];
+        }
+
+        return undefined;
+    }
+
+    public set(key: string, value: string) {
+        this.params.push([key, value]);
+    }
+
+    public delete(key: string) {
+        this.params = this.params.filter(([k, _value]) => k !== key);
+    }
+
+    public forEach(func: (key: string, value: string) => void) {
+        this.params.forEach(([key, value]) => func(key, value));
+    }
+
+    public toString(): string {
+        return `${this.params
+            .map(
+                ([key, value]) =>
+                    `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+            )
+            .join('&')}`;
+    }
+}
