@@ -1,7 +1,7 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
 import { createSignal } from 'solid-js';
-import { createListener } from './util';
+import { QueryParams, createListener } from './util';
 
 function getDefaultApiUrl(): string {
     if (isServer) return 'http://localhost:8000';
@@ -301,7 +301,7 @@ async function getArtist(
     artistId: number,
     signal?: AbortSignal,
 ): Promise<Api.Artist> {
-    const query = new URLSearchParams({
+    const query = new QueryParams({
         artistId: `${artistId}`,
     });
 
@@ -347,7 +347,7 @@ async function getArtistAlbums(
     artistId: number,
     signal?: AbortSignal,
 ): Promise<Api.Album[]> {
-    const query = new URLSearchParams({
+    const query = new QueryParams({
         artistId: `${artistId}`,
     });
 
@@ -360,7 +360,7 @@ async function getArtistAlbums(
 }
 
 async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
-    const query = new URLSearchParams({
+    const query = new QueryParams({
         albumId: `${id}`,
     });
 
@@ -376,7 +376,7 @@ async function getAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Album[]> {
-    const query = new URLSearchParams();
+    const query = new QueryParams();
     if (albumsRequest?.sources)
         query.set('sources', albumsRequest.sources.join(','));
     if (albumsRequest?.sort) query.set('sort', albumsRequest.sort);
@@ -459,7 +459,7 @@ async function getArtists(
     artistsRequest: Api.ArtistsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Artist[]> {
-    const query = new URLSearchParams();
+    const query = new QueryParams();
     if (artistsRequest?.sources)
         query.set('sources', artistsRequest.sources.join(','));
     if (artistsRequest?.sort) query.set('sort', artistsRequest.sort);
@@ -562,7 +562,7 @@ function request(
 ): ReturnType<typeof fetch> {
     if (url[url.length - 1] === '?') url = url.substring(0, url.length - 1);
 
-    const params = new URLSearchParams();
+    const params = new QueryParams();
     const clientId = Api.clientId();
 
     if (clientId) {

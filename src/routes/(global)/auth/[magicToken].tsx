@@ -2,12 +2,13 @@ import { createSignal } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { useNavigate, useParams } from 'solid-start';
 import { Api, api } from '~/services/api';
+import { QueryParams } from '~/services/util';
 
 export default function authPage() {
     const params = useParams();
     const navigate = useNavigate();
 
-    const searchParams = new URLSearchParams(
+    const searchParams = new QueryParams(
         isServer ? {} : window.location.search,
     );
 

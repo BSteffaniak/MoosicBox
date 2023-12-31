@@ -5,13 +5,14 @@ import { debounce } from '@solid-primitives/scheduled';
 import Album from '~/components/Album';
 import { api, Api, once } from '~/services/api';
 import { currentAlbumSearch, setCurrentAlbumSearch } from '~/services/app';
+import { QueryParams } from '~/services/util';
 
 let historyListener: () => void;
 
 export default function albums() {
     const [albums, setAlbums] = createSignal<Api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
-    const searchParams = new URLSearchParams(
+    const searchParams = new QueryParams(
         isServer ? {} : window.location.search,
     );
 
@@ -94,7 +95,7 @@ export default function albums() {
         }
 
         historyListener = () => {
-            const newSearchParams = new URLSearchParams(window.location.search);
+            const newSearchParams = new QueryParams(window.location.search);
 
             let wasChange = false;
 

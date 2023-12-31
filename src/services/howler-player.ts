@@ -13,7 +13,7 @@ import {
     playerState,
 } from './player';
 import * as player from './player';
-import { orderedEntries } from './util';
+import { QueryParams, orderedEntries } from './util';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -30,7 +30,7 @@ export function createPlayer(id: number): PlayerType {
     let loadHandle: HowlCallback;
 
     function getTrackUrl(track: Api.Track): string {
-        const query = new URLSearchParams({
+        const query = new QueryParams({
             trackId: track.trackId.toString(),
         });
 
