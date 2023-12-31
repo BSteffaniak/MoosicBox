@@ -95,7 +95,7 @@ export default function artists() {
         }
 
         historyListener = () => {
-            const newSearchParams = new URLSearchParams(window.location.search);
+            const newSearchParams = new QueryParams(window.location.search);
 
             let wasChange = false;
 
