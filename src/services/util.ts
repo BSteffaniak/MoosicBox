@@ -62,11 +62,13 @@ export class QueryParams {
                 init = init.substring(1);
             }
 
-            init.split('&')
-                .map((pair) => pair.split('='))
-                .forEach(([key, value]) => {
-                    this.params.push([key, value]);
-                });
+            if (init.trim().length > 0) {
+                init.split('&')
+                    .map((pair) => pair.split('='))
+                    .forEach(([key, value]) => {
+                        this.params.push([key, value]);
+                    });
+            }
         } else if (init instanceof QueryParams) {
             this.params.push(...init.params);
         } else if (init) {
