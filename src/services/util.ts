@@ -97,7 +97,13 @@ export class QueryParams {
     }
 
     public set(key: string, value: string) {
-        this.params.push([key, value]);
+        const existing = this.params.find(([k, _value]) => k === key);
+
+        if (existing) {
+            existing[1] = value;
+        } else {
+            this.params.push([key, value]);
+        }
     }
 
     public delete(key: string) {
