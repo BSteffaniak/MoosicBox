@@ -9,14 +9,9 @@ import {
     showPlaybackSessions,
     triggerStartup,
 } from '~/services/app';
-import { Api } from '~/services/api';
 import '~/services/ws';
 import PlaybackSessions from '~/components/PlaybackSessions';
-import {
-    connectionName,
-    createSession,
-    setConnectionName,
-} from '~/services/ws';
+import { createSession } from '~/services/ws';
 import Modal from '~/components/Modal/Modal';
 import {
     isMasterPlayer,
@@ -30,18 +25,6 @@ export default function global() {
     onMount(async () => {
         await triggerStartup();
     });
-
-    let apiUrlInput: HTMLInputElement;
-
-    function saveApiUrl() {
-        Api.setApiUrl(apiUrlInput.value);
-    }
-
-    let connectionNameInput: HTMLInputElement;
-
-    function saveConnectionName() {
-        setConnectionName(connectionNameInput.value);
-    }
 
     let volumeInput: HTMLInputElement;
 
@@ -91,28 +74,6 @@ export default function global() {
                     </li>
                     <li>
                         <A href="/settings">Settings</A>
-                    </li>
-                    <li>
-                        API Url:{' '}
-                        <input
-                            ref={apiUrlInput!}
-                            type="text"
-                            value={Api.apiUrl()}
-                            onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
-                        />
-                        <button onClick={saveApiUrl}>save</button>
-                    </li>
-                    <li>
-                        Name:{' '}
-                        <input
-                            ref={connectionNameInput!}
-                            type="text"
-                            value={connectionName()}
-                            onKeyUp={(e) =>
-                                e.key === 'Enter' && saveConnectionName()
-                            }
-                        />
-                        <button onClick={saveConnectionName}>save</button>
                     </li>
                     <li>
                         Volume:{' '}

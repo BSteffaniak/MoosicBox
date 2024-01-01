@@ -1,8 +1,21 @@
 import { Api } from '~/services/api';
 import './settings.css';
+import { connectionName, setConnectionName } from '~/services/ws';
 
 export default function settingsPage() {
     let clientIdInput: HTMLInputElement;
+
+    let apiUrlInput: HTMLInputElement;
+
+    function saveApiUrl() {
+        Api.setApiUrl(apiUrlInput.value);
+    }
+
+    let connectionNameInput: HTMLInputElement;
+
+    function saveConnectionName() {
+        setConnectionName(connectionNameInput.value);
+    }
 
     function saveClientId() {
         Api.setClientId(clientIdInput.value);
@@ -17,6 +30,28 @@ export default function settingsPage() {
     return (
         <div>
             <ul>
+                <li>
+                    API Url:{' '}
+                    <input
+                        ref={apiUrlInput!}
+                        type="text"
+                        value={Api.apiUrl()}
+                        onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
+                    />
+                    <button onClick={saveApiUrl}>save</button>
+                </li>
+                <li>
+                    Name:{' '}
+                    <input
+                        ref={connectionNameInput!}
+                        type="text"
+                        value={connectionName()}
+                        onKeyUp={(e) =>
+                            e.key === 'Enter' && saveConnectionName()
+                        }
+                    />
+                    <button onClick={saveConnectionName}>save</button>
+                </li>
                 <li>
                     Client ID:{' '}
                     <input
