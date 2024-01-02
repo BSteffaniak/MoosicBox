@@ -10,6 +10,7 @@
 }
 
 .albums-header-text {
+    margin-top: 0;
     font-size: 40px;
 }
 
@@ -56,7 +57,7 @@
 }
 
 #albums-header-offset {
-    height: 55px;
+    height: 48px;
 }
 
 .sort-chevron-icon {
