@@ -158,60 +158,6 @@ export default function albums() {
 
     return (
         <>
-            <header id="albums-header">
-                <button onClick={() => loadAlbums({ sources: ['Local'] })}>
-                    Local
-                </button>
-                <button onClick={() => loadAlbums({ sources: ['Tidal'] })}>
-                    Tidal
-                </button>
-                <button onClick={() => loadAlbums({ sources: ['Qobuz'] })}>
-                    Qobuz
-                </button>
-                <button onClick={() => loadAlbums({ sort: 'Artist' })}>
-                    Album Artist
-                </button>
-                <button onClick={() => loadAlbums({ sort: 'Name' })}>
-                    Album Name
-                </button>
-                <button
-                    onClick={() =>
-                        loadAlbums({
-                            sort:
-                                getAlbumSort() === 'Release-Date-Desc'
-                                    ? 'Release-Date'
-                                    : 'Release-Date-Desc',
-                        })
-                    }
-                >
-                    Album Release Date
-                </button>
-                <button
-                    onClick={() =>
-                        loadAlbums({
-                            sort:
-                                getAlbumSort() === 'Date-Added-Desc'
-                                    ? 'Date-Added'
-                                    : 'Date-Added-Desc',
-                        })
-                    }
-                >
-                    Date Added
-                </button>
-                <input
-                    type="text"
-                    value={searchFilterValue()}
-                    onInput={debounce(
-                        (e) =>
-                            loadAlbums({
-                                filters: {
-                                    search: e.target.value ?? undefined,
-                                },
-                            }),
-                        200,
-                    )}
-                />
-            </header>
             <div id="albums-header-offset"></div>
             {albums() && (
                 <div class="albums-container">
@@ -232,6 +178,62 @@ export default function albums() {
                     </div>
                 </div>
             )}
+            <header id="albums-header">
+                <div class="albums-header-controls">
+                    <button onClick={() => loadAlbums({ sources: ['Local'] })}>
+                        Local
+                    </button>
+                    <button onClick={() => loadAlbums({ sources: ['Tidal'] })}>
+                        Tidal
+                    </button>
+                    <button onClick={() => loadAlbums({ sources: ['Qobuz'] })}>
+                        Qobuz
+                    </button>
+                    <button onClick={() => loadAlbums({ sort: 'Artist' })}>
+                        Album Artist
+                    </button>
+                    <button onClick={() => loadAlbums({ sort: 'Name' })}>
+                        Album Name
+                    </button>
+                    <button
+                        onClick={() =>
+                            loadAlbums({
+                                sort:
+                                    getAlbumSort() === 'Release-Date-Desc'
+                                        ? 'Release-Date'
+                                        : 'Release-Date-Desc',
+                            })
+                        }
+                    >
+                        Album Release Date
+                    </button>
+                    <button
+                        onClick={() =>
+                            loadAlbums({
+                                sort:
+                                    getAlbumSort() === 'Date-Added-Desc'
+                                        ? 'Date-Added'
+                                        : 'Date-Added-Desc',
+                            })
+                        }
+                    >
+                        Date Added
+                    </button>
+                    <input
+                        type="text"
+                        value={searchFilterValue()}
+                        onInput={debounce(
+                            (e) =>
+                                loadAlbums({
+                                    filters: {
+                                        search: e.target.value ?? undefined,
+                                    },
+                                }),
+                            200,
+                        )}
+                    />
+                </div>
+            </header>
         </>
     );
 }

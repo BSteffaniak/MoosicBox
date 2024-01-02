@@ -13,33 +13,13 @@ import '~/services/ws';
 import PlaybackSessions from '~/components/PlaybackSessions';
 import { createSession } from '~/services/ws';
 import Modal from '~/components/Modal/Modal';
-import { playerState, setVolume } from '~/services/player';
+import { playerState } from '~/services/player';
 import PlaybackQuality from '~/components/PlaybackQuality';
 
 export default function global() {
     onMount(async () => {
         await triggerStartup();
     });
-
-    let volumeInput: HTMLInputElement;
-
-    function saveVolume(value: number) {
-        if (isNaN(value)) {
-            volumeInput.value = '100';
-            return;
-        }
-        let newVolume = value;
-        if (value > 100) {
-            newVolume = 100;
-        } else if (value < 0) {
-            newVolume = 0;
-        }
-        if (newVolume !== value) {
-            volumeInput.value = `${newVolume}`;
-        }
-
-        setVolume(newVolume / 100);
-    }
 
     function createNewSession() {
         createSession({
@@ -56,104 +36,97 @@ export default function global() {
 
     return (
         <div id="root" class="dark">
-            <main>
-                <ul>
-                    <li>
-                        <A href="/">Home</A>
-                    </li>
-                    <li>
-                        <A href="/albums">Albums</A>
-                    </li>
-                    <li>
-                        <A href="/artists">Artists</A>
-                    </li>
-                    <li>
-                        <A href="/settings">Settings</A>
-                    </li>
-                    <li>
-                        Volume:{' '}
-                        <input
-                            ref={volumeInput!}
-                            type="number"
-                            value={Math.round(
-                                Math.max(
-                                    0,
-                                    Math.min(
-                                        100,
-                                        (playerState.currentPlaybackSession
-                                            ?.volume ?? 1) * 100,
-                                    ),
-                                ),
-                            )}
-                            min="0"
-                            max="100"
-                            onChange={(e) =>
-                                saveVolume(parseInt(e.target.value))
-                            }
-                        />
-                    </li>
-                </ul>
-                <Outlet />
-                <Modal
-                    show={() => showPlaybackQuality()}
-                    onClose={() => setShowPlaybackQuality(false)}
-                >
-                    <div class="playback-quality-modal-container">
-                        <div class="playback-quality-modal-header">
-                            <h1>Playback Quality</h1>
-                            <div
-                                class="playback-quality-modal-close"
-                                onClick={(e) => {
-                                    setShowPlaybackQuality(false);
-                                    e.stopImmediatePropagation();
-                                }}
-                            >
+            <section class="navigation-bar-and-main-content">
+                <aside class="navigation-bar-container">
+                    <div class="navigation-bar">
+                        <div class="navigation-bar-header">
+                            <h1>MoosicBox</h1>
+                            <A class="settings-link" href="/settings">
                                 <img
-                                    class="cross-icon"
-                                    src="/img/cross-white.svg"
-                                    alt="Close playlist quality modal"
+                                    class="settings-gear-icon"
+                                    src="/img/settings-gear-white.svg"
                                 />
+                            </A>
+                        </div>
+                        <ul>
+                            <li>
+                                <A href="/">Home</A>
+                            </li>
+                        </ul>
+                        <h1 class="my-collection-header">My Collection</h1>
+                        <ul>
+                            <li>
+                                <A href="/albums">Albums</A>
+                            </li>
+                            <li>
+                                <A href="/artists">Artists</A>
+                            </li>
+                        </ul>
+                    </div>
+                </aside>
+                <main class="main-content">
+                    <Outlet />
+                    <Modal
+                        show={() => showPlaybackQuality()}
+                        onClose={() => setShowPlaybackQuality(false)}
+                    >
+                        <div class="playback-quality-modal-container">
+                            <div class="playback-quality-modal-header">
+                                <h1>Playback Quality</h1>
+                                <div
+                                    class="playback-quality-modal-close"
+                                    onClick={(e) => {
+                                        setShowPlaybackQuality(false);
+                                        e.stopImmediatePropagation();
+                                    }}
+                                >
+                                    <img
+                                        class="cross-icon"
+                                        src="/img/cross-white.svg"
+                                        alt="Close playlist quality modal"
+                                    />
+                                </div>
+                            </div>
+                            <div class="playback-quality-modal-content">
+                                <PlaybackQuality />
                             </div>
                         </div>
-                        <div class="playback-quality-modal-content">
-                            <PlaybackQuality />
-                        </div>
-                    </div>
-                </Modal>
-                <Modal
-                    show={() => showPlaybackSessions()}
-                    onClose={() => setShowPlaybackSessions(false)}
-                >
-                    <div class="playback-sessions-modal-container">
-                        <div class="playback-sessions-modal-header">
-                            <h1>Playback Sessions</h1>
-                            <button
-                                class="playback-sessions-modal-header-new-button"
-                                onClick={() => createNewSession()}
-                            >
-                                New
-                            </button>
-                            <div
-                                class="playback-sessions-modal-close"
-                                onClick={(e) => {
-                                    setShowPlaybackSessions(false);
-                                    e.stopImmediatePropagation();
-                                }}
-                            >
-                                <img
-                                    class="cross-icon"
-                                    src="/img/cross-white.svg"
-                                    alt="Close playlist sessions modal"
-                                />
+                    </Modal>
+                    <Modal
+                        show={() => showPlaybackSessions()}
+                        onClose={() => setShowPlaybackSessions(false)}
+                    >
+                        <div class="playback-sessions-modal-container">
+                            <div class="playback-sessions-modal-header">
+                                <h1>Playback Sessions</h1>
+                                <button
+                                    class="playback-sessions-modal-header-new-button"
+                                    onClick={() => createNewSession()}
+                                >
+                                    New
+                                </button>
+                                <div
+                                    class="playback-sessions-modal-close"
+                                    onClick={(e) => {
+                                        setShowPlaybackSessions(false);
+                                        e.stopImmediatePropagation();
+                                    }}
+                                >
+                                    <img
+                                        class="cross-icon"
+                                        src="/img/cross-white.svg"
+                                        alt="Close playlist sessions modal"
+                                    />
+                                </div>
+                            </div>
+                            <div class="playback-sessions-modal-content">
+                                <PlaybackSessions />
                             </div>
                         </div>
-                        <div class="playback-sessions-modal-content">
-                            <PlaybackSessions />
-                        </div>
-                    </div>
-                </Modal>
-            </main>
-            <footer>
+                    </Modal>
+                </main>
+            </section>
+            <footer class="footer-player-footer">
                 <div class="footer-player-container">
                     <div class="footer-player">
                         <Player />

@@ -32,7 +32,6 @@ button {
 #root {
     min-height: calc(100% - 140px);
     padding-bottom: 120px;
-    padding-top: 20px;
 }
 
 #root.dark {
@@ -40,13 +39,70 @@ button {
     color: white;
 }
 
+.navigation-bar-container,
+.navigation-bar {
+    width: 15vw;
+    min-width: 200px;
+    height: 100vh;
+}
+
+.navigation-bar {
+    background: #080a0b;
+    position: fixed;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.navigation-bar-header {
+    display: flex;
+    padding-bottom: 20px;
+}
+
+.navigation-bar-header h1 {
+    margin: 0;
+}
+
+.navigation-bar-header > * {
+    margin: 0 10px;
+}
+
+.settings-link {
+    margin-left: auto;
+}
+
+.settings-gear-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.my-collection-header {
+    margin-top: 45px;
+}
+
+.navigation-bar ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style-type: none;
+    padding-left: 15px;
+}
+
+.navigation-bar-and-main-content {
+    display: flex;
+}
+
 header {
     text-align: center;
     flex: 0 1 auto;
 }
 
-main {
+.main-content {
     flex: 1 1 auto;
+}
+
+.footer-player-footer {
+    flex: 1 1 auto;
+    flex-basis: 100%;
 }
 
 h1,
