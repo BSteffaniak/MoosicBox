@@ -18,13 +18,19 @@ export default function albums() {
 
     function setSearchParam(name: string, value: string) {
         searchParams.set(name, value);
-        const newRelativePathQuery = `${window.location.pathname}?${searchParams}`;
+        const newRelativePathQuery =
+            searchParams.size === 0
+                ? window.location.pathname
+                : `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
     }
 
     function removeSearchParam(name: string) {
         searchParams.delete(name);
-        const newRelativePathQuery = `${window.location.pathname}?${searchParams}`;
+        const newRelativePathQuery =
+            searchParams.size === 0
+                ? window.location.pathname
+                : `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
     }
 
