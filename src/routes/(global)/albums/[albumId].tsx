@@ -315,7 +315,9 @@ export default function albumPage() {
                                     #
                                 </th>
                                 <th>Title</th>
-                                <th>Artist</th>
+                                <th class="album-page-tracks-artist-header">
+                                    Artist
+                                </th>
                                 <th>Time</th>
                             </tr>
                         </thead>

@@ -215,3 +215,20 @@
     font-weight: bold;
     pointer-events: none;
 }
+
+@media (max-width: 600px) {
+    .album-page-album-info {
+        flex-direction: column;
+    }
+
+    .album-page .album-icon-container,
+    .album-page .album-icon {
+        width: 250px !important;
+        height: 250px !important;
+    }
+
+    .album-page-tracks-artist-header,
+    .album-page-tracks-track-artist {
+        display: none;
+    }
+}
