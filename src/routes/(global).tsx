@@ -13,12 +13,7 @@ import '~/services/ws';
 import PlaybackSessions from '~/components/PlaybackSessions';
 import { createSession } from '~/services/ws';
 import Modal from '~/components/Modal/Modal';
-import {
-    isMasterPlayer,
-    isPlayerActive,
-    playerState,
-    setVolume,
-} from '~/services/player';
+import { playerState, setVolume } from '~/services/player';
 import PlaybackQuality from '~/components/PlaybackQuality';
 
 export default function global() {
@@ -98,8 +93,6 @@ export default function global() {
                         />
                     </li>
                 </ul>
-                {isMasterPlayer() ? 'master' : 'slave'}{' '}
-                {isPlayerActive() ? 'active' : 'inactive'}
                 <Outlet />
                 <Modal
                     show={() => showPlaybackQuality()}
