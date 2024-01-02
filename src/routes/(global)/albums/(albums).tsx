@@ -212,6 +212,7 @@ export default function albums() {
                     )}
                 />
             </header>
+            <div id="albums-header-offset"></div>
             {albums() && (
                 <div class="albums-container">
                     Showing {albums()?.length} album

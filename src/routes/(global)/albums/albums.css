@@ -17,3 +17,7 @@
     width: 100%;
     height: 45px;
 }
+
+#albums-header-offset {
+    height: 45px;
+}
