@@ -334,24 +334,21 @@ export default function albums() {
                     </div>
                 </div>
             )}
-            <header id="albums-header">
-                <div class="albums-header-controls">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchFilterValue()}
-                        onInput={debounce(
-                            (e) =>
-                                loadAlbums({
-                                    filters: {
-                                        search: e.target.value ?? undefined,
-                                    },
-                                }),
-                            200,
-                        )}
-                    />
-                </div>
-            </header>
+            <input
+                class="search-albums"
+                type="text"
+                placeholder="Search..."
+                value={searchFilterValue()}
+                onInput={debounce(
+                    (e) =>
+                        loadAlbums({
+                            filters: {
+                                search: e.target.value ?? undefined,
+                            },
+                        }),
+                    200,
+                )}
+            />
         </>
     );
 }

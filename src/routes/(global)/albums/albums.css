@@ -13,18 +13,6 @@
     font-size: 40px;
 }
 
-#albums-header {
-    position: fixed;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
-    top: 0px;
-    left: max(240px, min(280px, 15vw));
-    width: calc(100% - max(240px, min(280px, 15vw)));
-    margin: 10px 0;
-}
-
 .albums-header-sort-icon {
     cursor: pointer;
     width: 25px;
@@ -74,4 +62,24 @@
 .sort-chevron-icon {
     width: 15px;
     margin-left: auto;
+}
+
+.search-albums {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    top: 0;
+    right: 0;
+    margin: 20px 30px;
+    width: calc(min(100vw - max(240px, min(280px, 15vw)), max(100px, 30vw)));
+    height: 36px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 10px;
+}
+
+.search-albums:focus {
+    width: calc(100vw - max(240px, min(280px, 15vw)) - 90px);
 }
