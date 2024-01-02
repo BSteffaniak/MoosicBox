@@ -39,6 +39,10 @@ button {
     color: white;
 }
 
+.navigation-bar-container {
+    z-index: 1;
+}
+
 .navigation-bar-container,
 .navigation-bar {
     width: max(240px, min(280px, 15vw));
@@ -100,8 +104,10 @@ header {
 }
 
 .footer-player-footer {
+    position: relative;
     flex: 1 1 auto;
     flex-basis: 100%;
+    z-index: 2;
 }
 
 h1,
