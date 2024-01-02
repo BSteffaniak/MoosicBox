@@ -188,15 +188,6 @@ export default function albums() {
             )}
             <header id="albums-header">
                 <div class="albums-header-controls">
-                    <button onClick={() => loadAlbums({ sources: ['Local'] })}>
-                        Local
-                    </button>
-                    <button onClick={() => loadAlbums({ sources: ['Tidal'] })}>
-                        Tidal
-                    </button>
-                    <button onClick={() => loadAlbums({ sources: ['Qobuz'] })}>
-                        Qobuz
-                    </button>
                     <button onClick={() => loadAlbums({ sort: 'Artist' })}>
                         Album Artist
                     </button>
