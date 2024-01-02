@@ -371,188 +371,188 @@ export default function player() {
     return (
         <>
             <div ref={playerRef} class="player">
-                <div class="player-now-playing">
-                    <Show when={playerState.currentTrack}>
-                        {(currentTrack) => (
-                            <>
-                                <div class="player-album-icon">
-                                    <Album
-                                        album={currentTrack()}
-                                        size={70}
-                                        artist={false}
-                                        title={false}
-                                    />
-                                </div>
-                                <div class="player-now-playing-details">
-                                    <div class="player-now-playing-details-title">
-                                        <A
-                                            href={`/albums/${currentTrack()
-                                                ?.albumId}`}
-                                            title={currentTrack().title}
-                                        >
-                                            {currentTrack().title}
-                                        </A>
-                                    </div>
-                                    <div class="player-now-playing-details-artist">
-                                        <A
-                                            href={`/artists/${currentTrack()
-                                                ?.artistId}`}
-                                            title={currentTrack().artist}
-                                        >
-                                            {currentTrack().artist}
-                                        </A>
-                                    </div>
-                                    <div class="player-now-playing-details-album">
-                                        Playing from:{' '}
-                                        <A
-                                            href={`/albums/${currentTrack()
-                                                ?.albumId}`}
-                                            title={currentTrack().album}
-                                        >
-                                            {currentTrack().album}
-                                        </A>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </Show>
-                </div>
-                <div class="player-media-controls">
-                    <div class="player-media-controls-track">
-                        <button
-                            class="media-button button"
-                            onClick={() => previousTrack()}
-                        >
-                            <img
-                                class="previous-track-button"
-                                src="/img/next-button-white.svg"
-                                alt="Previous Track"
-                            />
-                        </button>
-                        <button
-                            class="media-button button"
-                            onClick={() => pause()}
-                            style={{
-                                display: playing() ? 'initial' : 'none',
-                            }}
-                        >
-                            <img
-                                class="pause-button"
-                                src="/img/pause-button-white.svg"
-                                alt="Pause"
-                            />
-                        </button>
-                        <button
-                            class="media-button button"
-                            onClick={() => play()}
-                            style={{
-                                display: !playing() ? 'initial' : 'none',
-                            }}
-                        >
-                            <img
-                                class="play-button"
-                                src="/img/play-button-white.svg"
-                                alt="Play"
-                            />
-                        </button>
-                        <button
-                            class="media-button button"
-                            onClick={() => nextTrack()}
-                        >
-                            <img
-                                class="next-track-button"
-                                src="/img/next-button-white.svg"
-                                alt="Next Track"
-                            />
-                        </button>
-                        <img
-                            class="show-playback-quality-icon"
-                            src="/img/more-options-white.svg"
-                            alt="Show Playback Quality"
-                            onClick={() => toggleShowPlaybackQuality()}
-                        />
+                <div class="player-media-controls-seeker-bar">
+                    <div
+                        ref={progressBar}
+                        class="player-media-controls-seeker-bar-progress"
+                        style={{ width: `${getProgressBarWidth()}%` }}
+                    ></div>
+                    <div
+                        ref={progressBarTrigger}
+                        class="player-media-controls-seeker-bar-progress-trigger"
+                        onClick={(e) => seekTo(e)}
+                    ></div>
+                    <div
+                        class="player-media-controls-seeker-bar-progress-tooltip"
+                        style={{
+                            left: `max(30px, min(100vw - 40px, ${
+                                (getSeekPosition() / currentTrackLength()) * 100
+                            }%))`,
+                            display:
+                                applyDrag() && dragging() ? 'block' : undefined,
+                        }}
+                    >
+                        {toTime(Math.round(getSeekPosition()))}
                     </div>
-                    <div class="player-media-controls-seeker">
-                        <div class="player-media-controls-seeker-current-time">
-                            {toTime(currentSeek() ?? 0)}
-                        </div>
-                        <div class="player-media-controls-seeker-bar">
-                            <div
-                                ref={progressBar}
-                                class="player-media-controls-seeker-bar-progress"
-                                style={{ width: `${getProgressBarWidth()}%` }}
-                            ></div>
-                            <div
-                                ref={progressBarTrigger}
-                                class="player-media-controls-seeker-bar-progress-trigger"
-                                onClick={(e) => seekTo(e)}
-                            ></div>
-                            <div
-                                class="player-media-controls-seeker-bar-progress-tooltip"
+                </div>
+                <div class="player-controls">
+                    <div class="player-now-playing">
+                        <Show when={playerState.currentTrack}>
+                            {(currentTrack) => (
+                                <>
+                                    <div class="player-album-icon">
+                                        <Album
+                                            album={currentTrack()}
+                                            size={70}
+                                            artist={false}
+                                            title={false}
+                                        />
+                                    </div>
+                                    <div class="player-now-playing-details">
+                                        <div class="player-now-playing-details-title">
+                                            <A
+                                                href={`/albums/${currentTrack()
+                                                    ?.albumId}`}
+                                                title={currentTrack().title}
+                                            >
+                                                {currentTrack().title}
+                                            </A>
+                                        </div>
+                                        <div class="player-now-playing-details-artist">
+                                            <A
+                                                href={`/artists/${currentTrack()
+                                                    ?.artistId}`}
+                                                title={currentTrack().artist}
+                                            >
+                                                {currentTrack().artist}
+                                            </A>
+                                        </div>
+                                        <div class="player-now-playing-details-album">
+                                            Playing from:{' '}
+                                            <A
+                                                href={`/albums/${currentTrack()
+                                                    ?.albumId}`}
+                                                title={currentTrack().album}
+                                            >
+                                                {currentTrack().album}
+                                            </A>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </Show>
+                    </div>
+                    <div class="player-media-controls">
+                        <div class="player-media-controls-track">
+                            <button
+                                class="media-button button"
+                                onClick={() => previousTrack()}
+                            >
+                                <img
+                                    class="previous-track-button"
+                                    src="/img/next-button-white.svg"
+                                    alt="Previous Track"
+                                />
+                            </button>
+                            <button
+                                class="media-button button"
+                                onClick={() => pause()}
                                 style={{
-                                    left: `${
-                                        (getSeekPosition() /
-                                            currentTrackLength()) *
-                                        100
-                                    }%`,
-                                    display:
-                                        applyDrag() && dragging()
-                                            ? 'block'
-                                            : undefined,
+                                    display: playing() ? 'initial' : 'none',
                                 }}
                             >
-                                {toTime(Math.round(getSeekPosition()))}
+                                <img
+                                    class="pause-button"
+                                    src="/img/pause-button-white.svg"
+                                    alt="Pause"
+                                />
+                            </button>
+                            <button
+                                class="media-button button"
+                                onClick={() => play()}
+                                style={{
+                                    display: !playing() ? 'initial' : 'none',
+                                }}
+                            >
+                                <img
+                                    class="play-button"
+                                    src="/img/play-button-white.svg"
+                                    alt="Play"
+                                />
+                            </button>
+                            <button
+                                class="media-button button"
+                                onClick={() => nextTrack()}
+                            >
+                                <img
+                                    class="next-track-button"
+                                    src="/img/next-button-white.svg"
+                                    alt="Next Track"
+                                />
+                            </button>
+                            <img
+                                class="show-playback-quality-icon"
+                                src="/img/more-options-white.svg"
+                                alt="Show Playback Quality"
+                                onClick={() => toggleShowPlaybackQuality()}
+                            />
+                        </div>
+                        <div class="player-media-controls-seeker">
+                            <div class="player-media-controls-seeker-current-time">
+                                {toTime(currentSeek() ?? 0)}
+                            </div>
+                            <div class="player-media-controls-seeker-total-time">
+                                {toTime(currentTrackLength())}
                             </div>
                         </div>
-                        <div class="player-media-controls-seeker-total-time">
-                            {toTime(currentTrackLength())}
+                    </div>
+                    <div class="player-track-options">
+                        <div class="player-track-options-buttons">
+                            <Volume />
+                            <img
+                                class="show-playback-sessions-icon"
+                                src="/img/speaker-white.svg"
+                                alt="Show Playback Sessions"
+                                onClick={() => toggleShowPlaybackSessions()}
+                            />
+                            <img
+                                class="show-playlist-icon"
+                                src="/img/playlist-white.svg"
+                                alt="Show Playlist"
+                                onClick={() => togglePlaylist()}
+                            />
                         </div>
                     </div>
                 </div>
-                <div class="player-track-options">
-                    <div class="player-track-options-buttons">
-                        <Volume />
-                        <img
-                            class="show-playback-sessions-icon"
-                            src="/img/speaker-white.svg"
-                            alt="Show Playback Sessions"
-                            onClick={() => toggleShowPlaybackSessions()}
-                        />
-                        <img
-                            class="show-playlist-icon"
-                            src="/img/playlist-white.svg"
-                            alt="Show Playlist"
-                            onClick={() => togglePlaylist()}
-                        />
+                <div
+                    class="playlist-slideout"
+                    ref={playlistSlideout}
+                    style={{
+                        transform: `translateX(${
+                            showingPlaylist() ? 0 : 100
+                        }%)`,
+                    }}
+                >
+                    <div
+                        ref={playlistSlideoutContentRef}
+                        class="playlist-slideout-content"
+                    >
+                        <Playlist />
                     </div>
-                </div>
-            </div>
-            <div
-                class="playlist-slideout"
-                ref={playlistSlideout}
-                style={{
-                    transform: `translateX(${showingPlaylist() ? 0 : 100}%)`,
-                }}
-            >
-                <div
-                    ref={playlistSlideoutContentRef}
-                    class="playlist-slideout-content"
-                >
-                    <Playlist />
-                </div>
-                <div
-                    ref={backToNowPlayingTopRef}
-                    class="playlist-slideout-back-to-now-playing-top"
-                    onClick={() => scrollPlaylistToNowPlaying()}
-                >
-                    Back to now playing
-                </div>
-                <div
-                    ref={backToNowPlayingBottomRef}
-                    class="playlist-slideout-back-to-now-playing-bottom"
-                    onClick={() => scrollPlaylistToNowPlaying()}
-                >
-                    Back to now playing
+                    <div
+                        ref={backToNowPlayingTopRef}
+                        class="playlist-slideout-back-to-now-playing-top"
+                        onClick={() => scrollPlaylistToNowPlaying()}
+                    >
+                        Back to now playing
+                    </div>
+                    <div
+                        ref={backToNowPlayingBottomRef}
+                        class="playlist-slideout-back-to-now-playing-bottom"
+                        onClick={() => scrollPlaylistToNowPlaying()}
+                    >
+                        Back to now playing
+                    </div>
                 </div>
             </div>
         </>

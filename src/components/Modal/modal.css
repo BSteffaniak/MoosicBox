@@ -23,7 +23,7 @@
 .moosicbox-modal-content {
     overflow: auto;
     overscroll-behavior: contain;
-    height: calc(100% - 100px);
+    height: calc(100% - 120px);
 }
 
 .moosicbox-modal {
