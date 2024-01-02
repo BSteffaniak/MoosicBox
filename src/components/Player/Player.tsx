@@ -34,6 +34,7 @@ import {
     showPlaybackQuality,
     showPlaybackSessions,
 } from '~/services/app';
+import Volume from '../Volume';
 
 let mouseX: number;
 
@@ -510,6 +511,7 @@ export default function player() {
                 </div>
                 <div class="player-track-options">
                     <div class="player-track-options-buttons">
+                        <Volume />
                         <img
                             class="show-playback-sessions-icon"
                             src="/img/speaker-white.svg"
