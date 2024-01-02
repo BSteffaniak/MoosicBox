@@ -498,12 +498,13 @@ export default function player() {
                             />
                         </div>
                         <div class="player-media-controls-seeker">
-                            <div class="player-media-controls-seeker-current-time">
+                            <span class="player-media-controls-seeker-current-time">
                                 {toTime(currentSeek() ?? 0)}
-                            </div>
-                            <div class="player-media-controls-seeker-total-time">
+                            </span>
+                            //
+                            <span class="player-media-controls-seeker-total-time">
                                 {toTime(currentTrackLength())}
-                            </div>
+                            </span>
                         </div>
                     </div>
                     <div class="player-track-options">
