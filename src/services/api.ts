@@ -199,7 +199,9 @@ export namespace Api {
     export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
     export type AlbumSort =
         | 'Artist'
+        | 'Artist-Desc'
         | 'Name'
+        | 'Name-Desc'
         | 'Release-Date'
         | 'Release-Date-Desc'
         | 'Date-Added'
