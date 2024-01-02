@@ -221,6 +221,7 @@ export default function albums() {
                     </button>
                     <input
                         type="text"
+                        placeholder="Search..."
                         value={searchFilterValue()}
                         onInput={debounce(
                             (e) =>
