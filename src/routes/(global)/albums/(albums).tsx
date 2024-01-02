@@ -167,8 +167,10 @@ export default function albums() {
             <div id="albums-header-offset"></div>
             {albums() && (
                 <div class="albums-container">
-                    Showing {albums()?.length} album
-                    {albums()?.length === 1 ? '' : 's'}
+                    <p>
+                        Showing {albums()?.length} album
+                        {albums()?.length === 1 ? '' : 's'}
+                    </p>
                     <div class="albums">
                         <For each={albums()}>
                             {(album) => (
