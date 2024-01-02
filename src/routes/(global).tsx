@@ -1,5 +1,5 @@
 import { A, Outlet } from 'solid-start';
-import { onMount } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import Player from '~/components/Player';
 import './(global)/global.css';
 import {
@@ -15,8 +15,21 @@ import { createSession } from '~/services/ws';
 import Modal from '~/components/Modal/Modal';
 import { playerState } from '~/services/player';
 import PlaybackQuality from '~/components/PlaybackQuality';
+import { isMobile } from '~/services/util';
+import { isServer } from 'solid-js/web';
 
 export default function global() {
+    const [navigationBarExpanded, setNavigationBarExpanded] =
+        createSignal(true);
+
+    onMount(() => {
+        if (isServer) return;
+
+        if (isMobile()) {
+            setNavigationBarExpanded(false);
+        }
+    });
+
     onMount(async () => {
         await triggerStartup();
     });
@@ -37,7 +50,11 @@ export default function global() {
     return (
         <div id="root" class="dark">
             <section class="navigation-bar-and-main-content">
-                <aside class="navigation-bar-container">
+                <aside
+                    class={`navigation-bar-container${
+                        navigationBarExpanded() ? ' expanded' : ' collapsed'
+                    }`}
+                >
                     <div class="navigation-bar">
                         <div class="navigation-bar-header">
                             <h1>MoosicBox</h1>
@@ -47,6 +64,24 @@ export default function global() {
                                     src="/img/settings-gear-white.svg"
                                 />
                             </A>
+                            {navigationBarExpanded() && (
+                                <img
+                                    class="collapse-navigation-bar"
+                                    src="/img/chevron-left-white.svg"
+                                    onClick={() =>
+                                        setNavigationBarExpanded(false)
+                                    }
+                                />
+                            )}
+                            {!navigationBarExpanded() && (
+                                <img
+                                    class="expand-navigation-bar"
+                                    src="/img/chevron-right-white.svg"
+                                    onClick={() =>
+                                        setNavigationBarExpanded(true)
+                                    }
+                                />
+                            )}
                         </div>
                         <ul>
                             <li>
@@ -64,7 +99,11 @@ export default function global() {
                         </ul>
                     </div>
                 </aside>
-                <main class="main-content">
+                <main
+                    class={`main-content${
+                        navigationBarExpanded() ? ' normal' : ' wide'
+                    }`}
+                >
                     <Outlet />
                     <Modal
                         show={() => showPlaybackQuality()}

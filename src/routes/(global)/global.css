@@ -47,6 +47,23 @@ button {
 .navigation-bar {
     width: max(240px, min(280px, 15vw));
     height: 100vh;
+    position: relative;
+}
+
+.navigation-bar-container {
+    transition: width 0.2s;
+}
+
+.navigation-bar-container.collapsed {
+    width: 60px;
+}
+
+.navigation-bar {
+    transition: transform 0.2s;
+}
+
+.navigation-bar-container.collapsed .navigation-bar {
+    transform: translateX(calc(-100% + 60px));
 }
 
 .navigation-bar {
@@ -59,6 +76,7 @@ button {
 .navigation-bar-header {
     display: flex;
     padding-bottom: 20px;
+    align-items: center;
 }
 
 .navigation-bar-header h1 {
@@ -92,6 +110,15 @@ button {
 
 .navigation-bar-and-main-content {
     display: flex;
+}
+
+.collapse-navigation-bar,
+.expand-navigation-bar {
+    cursor: pointer;
+    width: 22px;
+    position: relative;
+    bottom: 2px;
+    margin-right: 0;
 }
 
 header {
