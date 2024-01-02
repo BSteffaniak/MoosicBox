@@ -41,8 +41,7 @@ button {
 
 .navigation-bar-container,
 .navigation-bar {
-    width: 15vw;
-    min-width: 200px;
+    width: max(240px, min(280px, 15vw));
     height: 100vh;
 }
 

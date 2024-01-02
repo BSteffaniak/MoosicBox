@@ -13,8 +13,8 @@
     align-content: center;
     align-items: center;
     top: 0px;
-    left: max(15vw, 200px);
-    width: calc(100% - max(15vw, 200px));
+    left: max(240px, min(280px, 15vw));
+    width: calc(100% - max(240px, min(280px, 15vw)));
     padding: 10px 0;
 }
 
