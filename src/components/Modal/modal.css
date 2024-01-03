@@ -26,6 +26,10 @@
     height: calc(100% - 120px);
 }
 
+.moosicbox-modal-container {
+    z-index: 11;
+}
+
 .moosicbox-modal {
     position: fixed;
     left: 50%;
