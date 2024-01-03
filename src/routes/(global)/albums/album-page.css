@@ -223,12 +223,31 @@
 
     .album-page .album-icon-container,
     .album-page .album-icon {
-        width: 250px !important;
-        height: 250px !important;
+        width: 200px !important;
+        height: 200px !important;
     }
 
     .album-page-tracks-artist-header,
     .album-page-tracks-track-artist {
         display: none;
+    }
+
+    .album-page-album-info-details-album-title {
+        font-size: 38px;
+    }
+
+    .album-page-album-info-details-album-artist-text {
+        font-size: 26px;
+    }
+
+    .album-page-album-controls-playback-play-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+    }
+
+    .album-page-album-controls-playback-options-button {
+        width: 100px;
     }
 }

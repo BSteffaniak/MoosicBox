@@ -223,6 +223,9 @@
 .show-playback-quality-icon {
     width: 25px;
     cursor: pointer;
+}
+
+.player-media-controls-track .show-playback-quality-icon {
     position: absolute;
     right: -10px;
     top: 50%;
@@ -232,7 +235,6 @@
 .show-playback-sessions-icon {
     width: 25px;
     cursor: pointer;
-    margin: 0 10px;
 }
 
 .show-playlist-icon {
@@ -249,7 +251,7 @@
     position: fixed;
     right: 0;
     top: 40px;
-    bottom: 120px;
+    bottom: 140px;
     width: 30%;
     min-width: 500px;
     border-top-left-radius: 10px;
@@ -300,4 +302,42 @@
         rgba(8, 10, 11, 0.8) 50%,
         rgba(8, 10, 11, 0) 100%
     );
+}
+
+.player-track-options-mobile,
+.player-track-options-mobile-buttons {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .player-media-controls-track .show-playback-quality-icon,
+    .player-track-options .player-track-options-buttons,
+    .player-now-playing-details {
+        display: none;
+    }
+
+    .player-track-options-mobile {
+        display: flex;
+        position: relative;
+    }
+
+    .mobile-playback-options {
+        width: 25%;
+    }
+
+    .player-track-options-mobile-buttons {
+        display: flex;
+        padding: 10px;
+        border-radius: 10px;
+        justify-content: center;
+        column-gap: 15px;
+    }
+
+    .player-track-options-mobile-buttons.hidden {
+        display: none;
+    }
+
+    .playlist-slideout {
+        min-width: 90vw;
+    }
 }

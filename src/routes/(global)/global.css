@@ -30,8 +30,8 @@ button {
 }
 
 #root {
-    min-height: calc(100% - 140px);
-    padding-bottom: 120px;
+    min-height: calc(100% - 160px);
+    padding-bottom: 160px;
 }
 
 #root.dark {
@@ -170,17 +170,20 @@ p {
     align-items: end;
     text-align: center;
     width: 100%;
-    height: 148px;
+    background: #080a0b;
+}
+
+.footer-player-container-gradient {
     background: linear-gradient(
         to top,
-        rgba(8, 10, 11, 100) 79%,
+        rgba(8, 10, 11, 100) 0%,
         rgba(8, 10, 11, 0) 100%
     );
 }
 
 .footer-player {
     width: 100%;
-    height: 120px;
+    padding-bottom: 10px;
 }
 
 .dark .footer-player {

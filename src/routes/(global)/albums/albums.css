@@ -95,13 +95,18 @@
 }
 
 @media (max-width: 600px) {
+    .albums-container {
+        padding: 5px 10px;
+    }
+
     .albums {
-        grid-template-columns: repeat(auto-fill, 140px);
+        grid-template-columns: repeat(auto-fill, 120px);
+        grid-gap: 5px;
     }
 
     .albums .album-icon-container,
     .albums .album-icon {
-        width: 140px !important;
-        height: 140px !important;
+        width: 120px !important;
+        height: 120px !important;
     }
 }

@@ -78,6 +78,8 @@ export default function player() {
     const [seekPosition, setSeekPosition] = createSignal(currentSeek());
     const [showingPlaylist, setShowingPlaylist] = createSignal(false);
     const [playing, setPlaying] = createSignal(playerPlaying());
+    const [showTrackOptionsMobile, setShowTrackOptionsMobile] =
+        createSignal(false);
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -135,6 +137,10 @@ export default function player() {
         } else {
             openPlaylist();
         }
+    }
+
+    function toggleShowTrackOptionsMobile() {
+        setShowTrackOptionsMobile(!showTrackOptionsMobile());
     }
 
     function toggleShowPlaybackQuality() {
@@ -523,7 +529,40 @@ export default function player() {
                                 onClick={() => togglePlaylist()}
                             />
                         </div>
+                        <div class="player-track-options-mobile">
+                            <img
+                                class="mobile-playback-options"
+                                src="/img/more-options-white.svg"
+                                alt="Show Playback Options"
+                                onClick={() => toggleShowTrackOptionsMobile()}
+                            />
+                            <img
+                                class="show-playlist-icon"
+                                src="/img/playlist-white.svg"
+                                alt="Show Playlist"
+                                onClick={() => togglePlaylist()}
+                            />
+                        </div>
                     </div>
+                </div>
+                <div
+                    class={`player-track-options-mobile-buttons${
+                        showTrackOptionsMobile() ? ' visible' : ' hidden'
+                    }`}
+                >
+                    <Volume />
+                    <img
+                        class="show-playback-sessions-icon"
+                        src="/img/speaker-white.svg"
+                        alt="Show Playback Sessions"
+                        onClick={() => toggleShowPlaybackSessions()}
+                    />
+                    <img
+                        class="show-playback-quality-icon"
+                        src="/img/more-options-white.svg"
+                        alt="Show Playback Quality"
+                        onClick={() => toggleShowPlaybackQuality()}
+                    />
                 </div>
                 <div
                     class="playlist-slideout"
