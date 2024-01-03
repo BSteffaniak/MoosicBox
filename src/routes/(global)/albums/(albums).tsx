@@ -315,7 +315,7 @@ export default function albums() {
                             </div>
                         )}
                     </div>
-                    <p>
+                    <p class="albums-header-album-count">
                         Showing {albums()?.length} album
                         {albums()?.length === 1 ? '' : 's'}
                     </p>

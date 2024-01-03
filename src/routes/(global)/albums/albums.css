@@ -14,6 +14,10 @@
     font-size: 40px;
 }
 
+.albums-header-album-count {
+    margin-top: 0;
+}
+
 .albums-header-sort-icon {
     cursor: pointer;
     width: 25px;
@@ -57,7 +61,7 @@
 }
 
 #albums-header-offset {
-    height: 48px;
+    height: 52px;
 }
 
 .sort-chevron-icon {
