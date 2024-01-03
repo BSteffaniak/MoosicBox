@@ -25,6 +25,7 @@
     height: 100%;
     padding-top: 10px;
     align-items: center;
+    justify-content: space-between;
 }
 
 .player .player-now-playing {
