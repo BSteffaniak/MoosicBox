@@ -147,6 +147,7 @@
     padding: 1px 4px;
     border-radius: 3px;
     pointer-events: none;
+    z-index: 21;
 }
 
 .player .player-media-controls-seeker-bar-progress-trigger {
