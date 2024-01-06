@@ -106,11 +106,17 @@ export namespace Api {
         blur: boolean;
     }
 
+    export enum TrackSource {
+        LOCAL = 'LOCAL',
+        TIDAL = 'TIDAL',
+    }
+
     export interface AlbumVersionQuality {
         format: PlaybackQuality['format'] | null;
         bitDepth: number | null;
         sampleRate: number | null;
         channels: number | null;
+        source: TrackSource;
     }
 
     export interface Album {
@@ -154,6 +160,7 @@ export namespace Api {
         overallBitrate: number | null;
         sampleRate: number | null;
         channels: number | null;
+        source: TrackSource;
     }
 
     export const AudioFormat = {

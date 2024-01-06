@@ -27,7 +27,20 @@ export function displayAlbumVersionQuality(
 ): string {
     let str = '';
 
+    switch (version.source) {
+        case Api.TrackSource.LOCAL:
+            break;
+        case Api.TrackSource.TIDAL:
+            str += 'Tidal';
+            break;
+        default:
+            version.source satisfies never;
+    }
+
     if (version.format) {
+        if (str.length > 0) {
+            str += ' ';
+        }
         switch (version.format) {
             case Api.AudioFormat.AAC:
                 str += 'AAC';
