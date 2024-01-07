@@ -41,6 +41,7 @@ button {
 
 .navigation-bar-container {
     z-index: 1;
+    width: max(240px, min(280px, 15vw));
 }
 
 .navigation-bar-container,
@@ -127,8 +128,12 @@ header {
 }
 
 .main-content {
-    flex: 1 1 auto;
     padding-bottom: 20px;
+    width: calc(100% - max(240px, min(280px, 15vw)));
+}
+
+.main-content.wide {
+    width: calc(100% - 60px);
 }
 
 .footer-player-footer {

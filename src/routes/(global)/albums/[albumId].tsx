@@ -158,11 +158,17 @@ export default function albumPage() {
 
     return (
         <>
-            <A href="#" onClick={() => history.back()}>
-                Back
-            </A>
             <div class="album-page-container">
                 <div class="album-page">
+                    <div class="album-page-breadcrumbs">
+                        <A
+                            class="back-button"
+                            href="#"
+                            onClick={() => history.back()}
+                        >
+                            Back
+                        </A>
+                    </div>
                     <div class="album-page-header">
                         <div class="album-page-album-info">
                             <Show when={album()}>

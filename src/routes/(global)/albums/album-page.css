@@ -1,5 +1,9 @@
-.album-page-header {
-    padding: 0 50px;
+.album-page-breadcrumbs {
+    padding-bottom: 20px;
+}
+
+.album-page {
+    padding: 20px 60px;
 }
 
 .album-page-album-info {
@@ -8,7 +12,7 @@
 }
 
 .album-page-album-info-artwork {
-    padding: 20px;
+    padding-right: 20px;
 }
 
 .album-page-album-info-details {
@@ -59,7 +63,7 @@
 }
 
 .album-page-album-controls {
-    padding: 20px;
+    padding: 20px 0;
 }
 
 .album-page-album-controls-playback {
@@ -106,14 +110,14 @@
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    padding: 10px 40px;
+    padding: 10px 0;
 }
 
 .album-page-tracks td:first-child,
 .album-page-tracks th:first-child {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
-    padding-left: 30px;
+    padding-left: 8px;
 }
 
 .album-page-tracks td:last-child,
@@ -217,6 +221,10 @@
 }
 
 @media (max-width: 600px) {
+    .album-page {
+        padding: 0 10px;
+    }
+
     .album-page-album-info {
         flex-direction: column;
     }
