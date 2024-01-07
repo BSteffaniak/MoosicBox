@@ -203,137 +203,130 @@ export default function albums() {
     return (
         <>
             <div id="albums-header-offset"></div>
-            {albums() && (
-                <div class="albums-container">
-                    <div class="albums-header-container">
-                        <h1 class="albums-header-text">
-                            Albums{' '}
-                            <img
-                                class="albums-header-sort-icon"
-                                src="/img/more-options-white.svg"
-                                onClick={(event) => {
-                                    setShowAlbumSortControls(
-                                        !showAlbumSortControls(),
-                                    );
-                                    event.stopPropagation();
-                                }}
-                            />
-                        </h1>
-                        {showAlbumSortControls() && (
-                            <div
-                                class="albums-sort-controls"
-                                ref={albumSortControlsRef!}
-                            >
-                                <div
-                                    onClick={() =>
-                                        loadAlbums({ sort: 'Artist' })
-                                    }
-                                >
-                                    Album Artist{' '}
-                                    {currentAlbumSort() === 'Artist' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-up-white.svg"
-                                        />
-                                    )}
-                                    {currentAlbumSort() === 'Artist-Desc' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-down-white.svg"
-                                        />
-                                    )}
-                                </div>
-                                <div
-                                    onClick={() => loadAlbums({ sort: 'Name' })}
-                                >
-                                    Album Name
-                                    {currentAlbumSort() === 'Name' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-up-white.svg"
-                                        />
-                                    )}
-                                    {currentAlbumSort() === 'Name-Desc' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-down-white.svg"
-                                        />
-                                    )}
-                                </div>
-                                <div
-                                    onClick={() =>
-                                        loadAlbums({
-                                            sort:
-                                                getAlbumSort() ===
-                                                'Release-Date-Desc'
-                                                    ? 'Release-Date'
-                                                    : 'Release-Date-Desc',
-                                        })
-                                    }
-                                >
-                                    Album Release Date
-                                    {currentAlbumSort() === 'Release-Date' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-up-white.svg"
-                                        />
-                                    )}
-                                    {currentAlbumSort() ===
-                                        'Release-Date-Desc' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-down-white.svg"
-                                        />
-                                    )}
-                                </div>
-                                <div
-                                    onClick={() =>
-                                        loadAlbums({
-                                            sort:
-                                                getAlbumSort() ===
-                                                'Date-Added-Desc'
-                                                    ? 'Date-Added'
-                                                    : 'Date-Added-Desc',
-                                        })
-                                    }
-                                >
-                                    Album Date Added
-                                    {currentAlbumSort() === 'Date-Added' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-up-white.svg"
-                                        />
-                                    )}
-                                    {currentAlbumSort() ===
-                                        'Date-Added-Desc' && (
-                                        <img
-                                            class="sort-chevron-icon"
-                                            src="/img/chevron-down-white.svg"
-                                        />
-                                    )}
-                                </div>
+            <div class="albums-container">
+                <div class="albums-header-container">
+                    <h1 class="albums-header-text">
+                        Albums{' '}
+                        <img
+                            class="albums-header-sort-icon"
+                            src="/img/more-options-white.svg"
+                            onClick={(event) => {
+                                setShowAlbumSortControls(
+                                    !showAlbumSortControls(),
+                                );
+                                event.stopPropagation();
+                            }}
+                        />
+                    </h1>
+                    {showAlbumSortControls() && (
+                        <div
+                            class="albums-sort-controls"
+                            ref={albumSortControlsRef!}
+                        >
+                            <div onClick={() => loadAlbums({ sort: 'Artist' })}>
+                                Album Artist{' '}
+                                {currentAlbumSort() === 'Artist' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-up-white.svg"
+                                    />
+                                )}
+                                {currentAlbumSort() === 'Artist-Desc' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-down-white.svg"
+                                    />
+                                )}
                             </div>
-                        )}
-                    </div>
-                    <p class="albums-header-album-count">
-                        Showing {albums()?.length} album
-                        {albums()?.length === 1 ? '' : 's'}
-                    </p>
-                    <div class="albums">
-                        <For each={albums()}>
-                            {(album) => (
-                                <Album
-                                    album={album}
-                                    controls={true}
-                                    artist={true}
-                                    title={true}
-                                    versionQualities={true}
-                                />
-                            )}
-                        </For>
-                    </div>
+                            <div onClick={() => loadAlbums({ sort: 'Name' })}>
+                                Album Name
+                                {currentAlbumSort() === 'Name' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-up-white.svg"
+                                    />
+                                )}
+                                {currentAlbumSort() === 'Name-Desc' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-down-white.svg"
+                                    />
+                                )}
+                            </div>
+                            <div
+                                onClick={() =>
+                                    loadAlbums({
+                                        sort:
+                                            getAlbumSort() ===
+                                            'Release-Date-Desc'
+                                                ? 'Release-Date'
+                                                : 'Release-Date-Desc',
+                                    })
+                                }
+                            >
+                                Album Release Date
+                                {currentAlbumSort() === 'Release-Date' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-up-white.svg"
+                                    />
+                                )}
+                                {currentAlbumSort() === 'Release-Date-Desc' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-down-white.svg"
+                                    />
+                                )}
+                            </div>
+                            <div
+                                onClick={() =>
+                                    loadAlbums({
+                                        sort:
+                                            getAlbumSort() === 'Date-Added-Desc'
+                                                ? 'Date-Added'
+                                                : 'Date-Added-Desc',
+                                    })
+                                }
+                            >
+                                Album Date Added
+                                {currentAlbumSort() === 'Date-Added' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-up-white.svg"
+                                    />
+                                )}
+                                {currentAlbumSort() === 'Date-Added-Desc' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-down-white.svg"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
+                {albums() && (
+                    <>
+                        <p class="albums-header-album-count">
+                            Showing {albums()?.length} album
+                            {albums()?.length === 1 ? '' : 's'}
+                        </p>
+                        <div class="albums">
+                            <For each={albums()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        controls={true}
+                                        artist={true}
+                                        title={true}
+                                        versionQualities={true}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </>
+                )}
+            </div>
             <input
                 class="search-albums"
                 type="text"
