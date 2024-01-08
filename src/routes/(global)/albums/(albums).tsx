@@ -342,6 +342,7 @@ export default function albums() {
                     200,
                 )}
             />
+            <div class="search-backdrop"></div>
         </>
     );
 }

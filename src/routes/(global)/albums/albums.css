@@ -84,10 +84,28 @@
     border-radius: 10px;
     box-shadow: 0px 0px 4px 4px rgba(6, 8, 9, 0.3);
     width: calc(min(100vw - max(240px, min(280px, 15vw)), max(100px, 30vw)));
+    transition: width 0.1s;
+}
+
+.search-backdrop {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0;
+    background-color: #000;
+    pointer-events: none;
+    transition: opacity 0.1s;
+}
+
+.search-albums:focus ~ .search-backdrop {
+    opacity: 0.8;
 }
 
 .search-albums:focus {
     width: calc(100vw - max(240px, min(280px, 15vw)) - 90px);
+    z-index: 20;
 }
 
 .main-content.wide .search-albums {
