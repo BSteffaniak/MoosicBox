@@ -1,21 +1,65 @@
-.search-albums {
-    position: fixed;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
-    top: 0;
-    right: 0;
-    margin: 20px 30px;
+.search-input {
+    position: relative;
     height: 36px;
     padding: 0 10px;
+    text-indent: 20px;
+    padding-left: 20px;
     border: none;
-    border-radius: 10px;
+    border-radius: 100px;
     box-shadow: 0px 0px 4px 4px rgba(6, 8, 9, 0.3);
-    width: calc(min(100vw - max(240px, min(280px, 15vw)), max(100px, 30vw)));
-    transition: width 0.1s;
+    width: 100%;
     z-index: 13;
-    box-sizing: content-box;
+    box-sizing: border-box;
+}
+
+.search-container {
+    position: fixed;
+    left: calc(100% - 30px - 10px - 30px - 30px);
+    top: 0;
+    z-index: 13;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: end;
+    transition:
+        left 0.1s,
+        width 0.1s;
+    width: 40px;
+}
+
+.search-container:focus-within {
+    left: max(240px, min(280px, 15vw));
+    width: calc(100% - max(240px, min(280px, 15vw)) - 60px);
+}
+
+.main-content.wide .search-container:focus-within {
+    left: calc(60px);
+    width: calc(100% - 60px - 60px);
+}
+
+.search-label-container {
+    display: flex;
+    justify-content: end;
+    width: 100%;
+}
+
+.search-label {
+    width: 100%;
+    position: relative;
+    height: 100%;
+}
+
+.search-label:before {
+    content: '';
+    position: absolute;
+    padding: 0px;
+    left: 10px;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    background: url('/img/magnifying-glass.svg') center / contain no-repeat;
+    cursor: pointer;
+    z-index: 21;
 }
 
 .search-backdrop {
@@ -28,22 +72,19 @@
     background-color: #000;
     pointer-events: none;
     transition: opacity 0.1s;
-    z-index: 13;
+    z-index: 12;
 }
 
-.search-albums:focus ~ .search-backdrop {
+.search-input:focus ~ .search-backdrop {
     opacity: 0.8;
 }
 
-.search-albums:focus {
-    width: calc(100vw - max(240px, min(280px, 15vw)) - 90px);
+.search-input:not(:focus) {
+    cursor: pointer;
+}
+
+.search-input:focus {
+    border-radius: 10px;
+    width: 100%;
     z-index: 20;
-}
-
-.main-content.wide .search-albums {
-    width: calc(min(100vw - 60px - 90px, max(100px, 30vw)));
-}
-
-.main-content.wide .search-albums:focus {
-    width: calc(100vw - 60px - 90px);
 }

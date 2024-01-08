@@ -105,8 +105,8 @@ export default function global() {
                         navigationBarExpanded() ? ' normal' : ' wide'
                     }`}
                 >
-                    <Outlet />
                     <Search />
+                    <Outlet />
                     <Modal
                         show={() => showPlaybackQuality()}
                         onClose={() => setShowPlaybackQuality(false)}
