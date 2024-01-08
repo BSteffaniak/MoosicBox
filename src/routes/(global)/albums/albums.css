@@ -115,6 +115,10 @@
 }
 
 @media (max-width: 600px) {
+    .albums-header-container {
+        padding: 5px 10px 0 10px;
+    }
+
     .albums-container {
         padding: 5px 10px;
     }

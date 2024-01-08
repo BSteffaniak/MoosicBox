@@ -89,3 +89,18 @@
     width: 100%;
     z-index: 20;
 }
+
+@media (max-width: 600px) {
+    .search-container {
+        left: calc(100% - 30px - 10px - 10px - 10px);
+        padding: 10px;
+    }
+
+    .search-container:focus-within {
+        width: calc(100% - max(240px, min(280px, 15vw)) - 20px);
+    }
+
+    .main-content.wide .search-container:focus-within {
+        width: calc(100% - 60px - 20px);
+    }
+}
