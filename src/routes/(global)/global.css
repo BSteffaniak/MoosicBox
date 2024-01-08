@@ -40,7 +40,8 @@ button {
 }
 
 .navigation-bar-container {
-    z-index: 1;
+    background: #080a0b;
+    z-index: 17;
     width: max(240px, min(280px, 15vw));
 }
 
@@ -136,11 +137,28 @@ header {
     width: calc(100% - 60px);
 }
 
+@media (max-width: 600px) {
+    .navigation-bar-container.expanded .navigation-bar {
+        /*transform: translateX(calc(-100% + 60px));*/
+    }
+
+    .navigation-bar-container {
+        width: 60px;
+        height: 100vh;
+        position: relative;
+    }
+
+    .main-content {
+        width: calc(100% - 60px);
+    }
+}
+
 .footer-player-footer {
-    position: relative;
+    position: sticky;
+    bottom: 0;
     flex: 1 1 auto;
     flex-basis: 100%;
-    z-index: 2;
+    z-index: 18;
 }
 
 h1,
@@ -265,4 +283,8 @@ p {
     margin-left: auto;
     margin-right: auto;
     width: 34px;
+}
+
+.search-header-offset {
+    height: 60px;
 }

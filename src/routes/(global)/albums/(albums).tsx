@@ -202,9 +202,10 @@ export default function albums() {
 
     return (
         <>
-            <div id="albums-header-offset"></div>
-            <div class="albums-container">
-                <div class="albums-header-container">
+            <div class="albums-header-container">
+                <div class="albums-header-backdrop"></div>
+                <div class="search-header-offset"></div>
+                <div class="albums-header-text-container">
                     <h1 class="albums-header-text">
                         Albums{' '}
                         <img
@@ -305,6 +306,25 @@ export default function albums() {
                         </div>
                     )}
                 </div>
+                <input
+                    class="filter-albums"
+                    type="text"
+                    placeholder="Filter..."
+                    value={searchFilterValue()}
+                    onInput={debounce(async (e) => {
+                        await loadAlbums({
+                            filters: {
+                                search: e.target.value ?? undefined,
+                            },
+                        });
+                        document.documentElement.scroll({
+                            top: 0,
+                            behavior: 'instant',
+                        });
+                    }, 200)}
+                />
+            </div>
+            <div class="albums-container">
                 {albums() && (
                     <>
                         <p class="albums-header-album-count">
@@ -327,22 +347,6 @@ export default function albums() {
                     </>
                 )}
             </div>
-            <input
-                class="search-albums"
-                type="text"
-                placeholder="Search..."
-                value={searchFilterValue()}
-                onInput={debounce(
-                    (e) =>
-                        loadAlbums({
-                            filters: {
-                                search: e.target.value ?? undefined,
-                            },
-                        }),
-                    200,
-                )}
-            />
-            <div class="search-backdrop"></div>
         </>
     );
 }

@@ -10,7 +10,7 @@
 }
 
 .albums-header-text {
-    margin-top: 0;
+    margin: 0;
     font-size: 40px;
 }
 
@@ -24,16 +24,36 @@
 }
 
 .albums-header-container {
+    position: sticky;
+    top: 0;
+    display: inline-block;
+    z-index: 12;
+    padding: 15px 30px 0 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.albums-header-text-container {
     position: relative;
     display: inline-block;
+}
+
+.albums-header-backdrop {
+    background-color: #080a0b;
+    position: absolute;
+    left: -100vw;
+    right: 0;
+    top: -60px;
+    bottom: 0;
+    z-index: -1;
 }
 
 .albums-sort-controls {
     width: 200px;
     position: absolute;
     left: 100%;
-    top: 100%;
-    transform: translate(-50%, -30px);
+    top: calc(100% + 10px);
+    transform: translate(-50%, 0);
     border-radius: 10px;
     padding: 15px;
     background: #080a0b;
@@ -60,24 +80,17 @@
     background: rgba(8, 10, 11, 0.8);
 }
 
-#albums-header-offset {
-    height: 52px;
-}
-
 .sort-chevron-icon {
     width: 15px;
     margin-left: auto;
 }
 
-.search-albums {
-    position: fixed;
+.filter-albums {
     display: flex;
     justify-content: center;
     align-content: center;
     align-items: center;
-    top: 0;
-    right: 0;
-    margin: 20px 30px;
+    margin: 10px 0 20px 0;
     height: 36px;
     padding: 0 10px;
     border: none;
@@ -87,36 +100,28 @@
     transition: width 0.1s;
 }
 
-.search-backdrop {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    opacity: 0;
-    background-color: #000;
-    pointer-events: none;
-    transition: opacity 0.1s;
-}
-
-.search-albums:focus ~ .search-backdrop {
-    opacity: 0.8;
-}
-
-.search-albums:focus {
+.filter-albums:focus {
     width: calc(100vw - max(240px, min(280px, 15vw)) - 90px);
     z-index: 20;
 }
 
-.main-content.wide .search-albums {
+.main-content.wide .filter-albums {
     width: calc(min(100vw - 60px - 90px, max(100px, 30vw)));
 }
 
-.main-content.wide .search-albums:focus {
-    width: calc(100vw - 60px - 90px);
+.main-content.wide .filter-albums:focus {
+    width: calc(100% - 20px);
+}
+
+.albums-header-container .search-header-offset {
+    display: none;
 }
 
 @media (max-width: 600px) {
+    .albums-header-container .search-header-offset {
+        display: block;
+    }
+
     .albums-container {
         padding: 5px 10px;
     }
@@ -130,5 +135,9 @@
     .albums .album-icon {
         width: 120px !important;
         height: 120px !important;
+    }
+
+    .albums-header-container {
+        position: relative;
     }
 }

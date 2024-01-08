@@ -1,0 +1,49 @@
+.search-albums {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    top: 0;
+    right: 0;
+    margin: 20px 30px;
+    height: 36px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0px 0px 4px 4px rgba(6, 8, 9, 0.3);
+    width: calc(min(100vw - max(240px, min(280px, 15vw)), max(100px, 30vw)));
+    transition: width 0.1s;
+    z-index: 13;
+    box-sizing: content-box;
+}
+
+.search-backdrop {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    opacity: 0;
+    background-color: #000;
+    pointer-events: none;
+    transition: opacity 0.1s;
+    z-index: 13;
+}
+
+.search-albums:focus ~ .search-backdrop {
+    opacity: 0.8;
+}
+
+.search-albums:focus {
+    width: calc(100vw - max(240px, min(280px, 15vw)) - 90px);
+    z-index: 20;
+}
+
+.main-content.wide .search-albums {
+    width: calc(min(100vw - 60px - 90px, max(100px, 30vw)));
+}
+
+.main-content.wide .search-albums:focus {
+    width: calc(100vw - 60px - 90px);
+}

@@ -17,6 +17,7 @@ import { playerState } from '~/services/player';
 import PlaybackQuality from '~/components/PlaybackQuality';
 import { isMobile } from '~/services/util';
 import { isServer } from 'solid-js/web';
+import Search from '~/components/Search';
 
 export default function global() {
     const [navigationBarExpanded, setNavigationBarExpanded] =
@@ -105,6 +106,7 @@ export default function global() {
                     }`}
                 >
                     <Outlet />
+                    <Search />
                     <Modal
                         show={() => showPlaybackQuality()}
                         onClose={() => setShowPlaybackQuality(false)}

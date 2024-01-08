@@ -158,51 +158,65 @@ export default function artists() {
 
     return (
         <>
-            <header id="artists-header">
-                <button onClick={() => loadArtists({ sources: ['Local'] })}>
-                    Local
-                </button>
-                <button onClick={() => loadArtists({ sources: ['Tidal'] })}>
-                    Tidal
-                </button>
-                <button onClick={() => loadArtists({ sources: ['Qobuz'] })}>
-                    Qobuz
-                </button>
-                <button onClick={() => loadArtists({ sort: 'Name' })}>
-                    Name
-                </button>
-                <input
-                    type="text"
-                    value={searchFilterValue()}
-                    onInput={debounce(
-                        (e) =>
-                            loadArtists({
-                                filters: {
-                                    search: e.target.value ?? undefined,
-                                },
-                            }),
-                        200,
-                    )}
-                />
-            </header>
-            <div id="artists-header-offset"></div>
-            {artists() && (
-                <div class="artists-container">
-                    Showing {artists()?.length} artist
-                    {artists()?.length === 1 ? '' : 's'}
-                    <div class="artists">
-                        <For each={artists()}>
-                            {(artist) => (
-                                <Artist
-                                    artist={artist}
-                                    size={200}
-                                    title={true}
-                                />
+            <div class="search-header-offset"></div>
+            <div class="artists-page">
+                <header id="artists-header">
+                    <div class="search-header-offset"></div>
+                    <div class="artists-header-controls">
+                        <button
+                            onClick={() => loadArtists({ sources: ['Local'] })}
+                        >
+                            Local
+                        </button>
+                        <button
+                            onClick={() => loadArtists({ sources: ['Tidal'] })}
+                        >
+                            Tidal
+                        </button>
+                        <button
+                            onClick={() => loadArtists({ sources: ['Qobuz'] })}
+                        >
+                            Qobuz
+                        </button>
+                        <button onClick={() => loadArtists({ sort: 'Name' })}>
+                            Name
+                        </button>
+                        <input
+                            type="text"
+                            value={searchFilterValue()}
+                            onInput={debounce(
+                                (e) =>
+                                    loadArtists({
+                                        filters: {
+                                            search: e.target.value ?? undefined,
+                                        },
+                                    }),
+                                200,
                             )}
-                        </For>
+                        />
                     </div>
-                </div>
-            )}
+                </header>
+                <div id="artists-header-offset"></div>
+                {artists() && (
+                    <div class="artists-container">
+                        <p class="artists-header-artist-count">
+                            Showing {artists()?.length} artist
+                            {artists()?.length === 1 ? '' : 's'}
+                        </p>
+                        <div class="artists">
+                            <For each={artists()}>
+                                {(artist) => (
+                                    <Artist
+                                        artist={artist}
+                                        size={200}
+                                        title={true}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </div>
+                )}
+            </div>
         </>
     );
 }

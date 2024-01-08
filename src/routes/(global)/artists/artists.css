@@ -1,23 +1,46 @@
+.artists-page {
+    padding: 15px 30px;
+}
+
 .artists {
     display: grid;
     grid-template-columns: repeat(auto-fill, 200px);
     grid-gap: 15px;
-    padding: 15px 30px;
-    justify-content: space-between;
+    justify-content: space-evenly;
 }
 
 #artists-header {
     position: fixed;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
     top: 0px;
     z-index: 10;
     width: 100%;
     height: 45px;
 }
 
+.artists-header-controls {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+}
+
+.artists-header-artist-count {
+    margin-top: 0;
+}
+
 #artists-header-offset {
     height: 45px;
+}
+
+@media (max-width: 600px) {
+    .artists .artist-icon-container,
+    .artists .artist-icon {
+        width: 120px !important;
+        height: 120px !important;
+    }
+
+    .artists {
+        grid-template-columns: repeat(auto-fill, 120px);
+        grid-gap: 5px;
+    }
 }

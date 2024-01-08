@@ -93,19 +93,17 @@
 .artist-artist {
     margin-top: 3px;
     font-size: 14px;
-    color: #444;
 }
 
-.dark .artist-artist-text {
+.dark .artist-title-link {
     text-decoration: none;
-    color: #808080;
 }
 
-.artist-artist-text {
+.artist-link-link {
     cursor: pointer;
 }
 
-.artist-artist-text:hover {
+.artist-link-link:hover {
     text-decoration: underline;
 }
 

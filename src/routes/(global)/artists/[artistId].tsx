@@ -19,11 +19,18 @@ export default function albumPage() {
 
     return (
         <>
-            <A href="#" onClick={() => history.back()}>
-                Back
-            </A>
+            <div class="search-header-offset"></div>
             <div class="artist-page-container">
                 <div class="artist-page">
+                    <div class="artist-page-breadcrumbs">
+                        <A
+                            class="back-button"
+                            href="#"
+                            onClick={() => history.back()}
+                        >
+                            Back
+                        </A>
+                    </div>
                     <div class="artist-page-header">
                         <div class="artist-page-artist-info">
                             <div class="artist-page-artist-info-cover">
@@ -38,12 +45,13 @@ export default function albumPage() {
                                 </Show>
                             </div>
                             <div class="artist-page-artist-info-details">
-                                <div class="artist-page-artist-info-details-album-title">
+                                <h1 class="artist-page-artist-info-details-artist-title">
                                     {artist()?.title}
-                                </div>
+                                </h1>
                             </div>
                         </div>
                     </div>
+                    <h1 class="artist-page-albums-header">Albums</h1>
                     <div class="artist-page-albums">
                         <For each={albums()}>
                             {(album) => (

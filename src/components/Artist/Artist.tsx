@@ -8,7 +8,12 @@ function artistDetails(artist: Api.Artist, showTitle = true) {
         <div class="artist-details">
             {showTitle && (
                 <div class="artist-title">
-                    <span class="artist-title-text">{artist.title}</span>
+                    <A
+                        class="artist-title-link"
+                        href={`/artists/${artist.artistId}`}
+                    >
+                        <span class="artist-title-text">{artist.title}</span>
+                    </A>
                 </div>
             )}
         </div>
