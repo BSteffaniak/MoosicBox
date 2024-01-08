@@ -320,6 +320,7 @@
 
     .player-track-options-mobile {
         display: flex;
+        justify-content: end;
         position: relative;
     }
 
