@@ -204,7 +204,6 @@ export default function albums() {
         <>
             <div class="albums-header-container">
                 <div class="albums-header-backdrop"></div>
-                <div class="search-header-offset"></div>
                 <div class="albums-header-text-container">
                     <h1 class="albums-header-text">
                         Albums{' '}

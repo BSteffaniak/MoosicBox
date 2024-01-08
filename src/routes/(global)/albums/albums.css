@@ -114,15 +114,7 @@
     width: calc(100% - 20px);
 }
 
-.albums-header-container .search-header-offset {
-    display: none;
-}
-
 @media (max-width: 600px) {
-    .albums-header-container .search-header-offset {
-        display: block;
-    }
-
     .albums-container {
         padding: 5px 10px;
     }
