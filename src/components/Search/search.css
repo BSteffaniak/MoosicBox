@@ -76,6 +76,7 @@
 }
 
 .search-input:focus ~ .search-backdrop {
+    pointer-events: all;
     opacity: 0.8;
 }
 
