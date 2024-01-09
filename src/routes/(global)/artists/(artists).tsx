@@ -158,10 +158,8 @@ export default function artists() {
 
     return (
         <>
-            <div class="search-header-offset"></div>
             <div class="artists-page">
                 <header id="artists-header">
-                    <div class="search-header-offset"></div>
                     <div class="artists-header-controls">
                         <button
                             onClick={() => loadArtists({ sources: ['Local'] })}

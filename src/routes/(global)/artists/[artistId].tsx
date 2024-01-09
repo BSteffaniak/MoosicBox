@@ -19,7 +19,6 @@ export default function albumPage() {
 
     return (
         <>
-            <div class="search-header-offset"></div>
             <div class="artist-page-container">
                 <div class="artist-page">
                     <div class="artist-page-breadcrumbs">
