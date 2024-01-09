@@ -308,50 +308,59 @@ export default function player() {
 
     let backToNowPlayingTopTimeout: NodeJS.Timeout;
     let backToNowPlayingBottomTimeout: NodeJS.Timeout;
+    const scrollListener = () => {
+        if (!getCurrentTrack()) return;
+
+        if (
+            getCurrentTrack()!.getBoundingClientRect().top >
+            playlistSlideout!.offsetHeight
+        ) {
+            clearTimeout(backToNowPlayingBottomTimeout);
+            setBackToNowPlayingPosition(BackToNowPlayingPosition.bottom);
+            backToNowPlayingTopRef!.style.opacity = '0';
+            backToNowPlayingBottomRef!.style.display = 'block';
+            setTimeout(() => {
+                backToNowPlayingBottomRef!.style.opacity = '1';
+            }, 0);
+        } else if (getCurrentTrack()!.getBoundingClientRect().bottom < 0) {
+            clearTimeout(backToNowPlayingTopTimeout);
+            setBackToNowPlayingPosition(BackToNowPlayingPosition.top);
+            backToNowPlayingBottomRef!.style.opacity = '0';
+            backToNowPlayingTopRef!.style.display = 'block';
+            setTimeout(() => {
+                backToNowPlayingTopRef!.style.opacity = '1';
+            }, 0);
+        } else {
+            backToNowPlayingTopRef!.style.opacity = '0';
+            backToNowPlayingBottomRef!.style.opacity = '0';
+            if (backToNowPlayingPosition() === BackToNowPlayingPosition.top) {
+                backToNowPlayingTopTimeout = setTimeout(() => {
+                    backToNowPlayingTopRef!.style.display = 'none';
+                }, 300);
+            } else if (
+                backToNowPlayingPosition() === BackToNowPlayingPosition.bottom
+            ) {
+                backToNowPlayingBottomTimeout = setTimeout(() => {
+                    backToNowPlayingBottomRef!.style.display = 'none';
+                }, 300);
+            }
+            setBackToNowPlayingPosition(BackToNowPlayingPosition.none);
+        }
+    };
 
     onMount(() => {
-        playlistSlideoutContentRef?.addEventListener('scroll', () => {
-            if (!getCurrentTrack()) return;
+        if (isServer) return;
+        playlistSlideoutContentRef?.addEventListener('scroll', scrollListener);
 
-            if (
-                getCurrentTrack()!.getBoundingClientRect().top >
-                playlistSlideout!.offsetHeight
-            ) {
-                clearTimeout(backToNowPlayingBottomTimeout);
-                setBackToNowPlayingPosition(BackToNowPlayingPosition.bottom);
-                backToNowPlayingTopRef!.style.opacity = '0';
-                backToNowPlayingBottomRef!.style.display = 'block';
-                setTimeout(() => {
-                    backToNowPlayingBottomRef!.style.opacity = '1';
-                }, 0);
-            } else if (getCurrentTrack()!.getBoundingClientRect().bottom < 0) {
-                clearTimeout(backToNowPlayingTopTimeout);
-                setBackToNowPlayingPosition(BackToNowPlayingPosition.top);
-                backToNowPlayingBottomRef!.style.opacity = '0';
-                backToNowPlayingTopRef!.style.display = 'block';
-                setTimeout(() => {
-                    backToNowPlayingTopRef!.style.opacity = '1';
-                }, 0);
-            } else {
-                backToNowPlayingTopRef!.style.opacity = '0';
-                backToNowPlayingBottomRef!.style.opacity = '0';
-                if (
-                    backToNowPlayingPosition() === BackToNowPlayingPosition.top
-                ) {
-                    backToNowPlayingTopTimeout = setTimeout(() => {
-                        backToNowPlayingTopRef!.style.display = 'none';
-                    }, 300);
-                } else if (
-                    backToNowPlayingPosition() ===
-                    BackToNowPlayingPosition.bottom
-                ) {
-                    backToNowPlayingBottomTimeout = setTimeout(() => {
-                        backToNowPlayingBottomRef!.style.display = 'none';
-                    }, 300);
-                }
-                setBackToNowPlayingPosition(BackToNowPlayingPosition.none);
-            }
-        });
+        scrollListener();
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        playlistSlideoutContentRef?.removeEventListener(
+            'scroll',
+            scrollListener,
+        );
     });
 
     function getPlayingFrom(): Element | null {

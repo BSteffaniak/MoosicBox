@@ -17,6 +17,8 @@ let historyListener: () => void;
 
 export default function albums() {
     let albumSortControlsRef: HTMLDivElement | undefined;
+    let albumsHeaderContainerRef: HTMLDivElement;
+    let backToTopRef: HTMLDivElement;
 
     const [albums, setAlbums] = createSignal<Api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
@@ -33,6 +35,42 @@ export default function albums() {
         if (searchParams.has('sort')) {
             setCurrentAlbumSort(searchParams.get('sort') as Api.AlbumSort);
         }
+    });
+
+    let backToTopTimeout: NodeJS.Timeout;
+    const scrollListener = () => {
+        if (
+            document.documentElement.scrollTop >
+            albumsHeaderContainerRef.getBoundingClientRect().bottom
+        ) {
+            if (backToTopRef.style.display === 'block') {
+                return;
+            }
+            clearTimeout(backToTopTimeout);
+            backToTopRef.style.opacity = '0';
+            backToTopRef.style.display = 'block';
+            backToTopTimeout = setTimeout(() => {
+                backToTopRef.style.opacity = '1';
+            }, 0);
+        } else {
+            clearTimeout(backToTopTimeout);
+            backToTopRef.style.opacity = '0';
+            backToTopTimeout = setTimeout(() => {
+                backToTopRef.style.display = 'none';
+            }, 300);
+        }
+    };
+
+    onMount(() => {
+        if (isServer) return;
+        document.addEventListener('scroll', scrollListener);
+
+        scrollListener();
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        document.removeEventListener('scroll', scrollListener);
     });
 
     function setSearchParam(name: string, value: string) {
@@ -202,7 +240,24 @@ export default function albums() {
 
     return (
         <>
-            <div class="albums-header-container">
+            <div class="albums-back-to-top-container">
+                <div
+                    onClick={() =>
+                        document.documentElement.scroll({
+                            top: 0,
+                            behavior: 'smooth',
+                        })
+                    }
+                    class="albums-back-to-top"
+                    ref={backToTopRef!}
+                >
+                    Back to top
+                </div>
+            </div>
+            <div
+                class="albums-header-container"
+                ref={albumsHeaderContainerRef!}
+            >
                 <div class="albums-header-backdrop"></div>
                 <div class="albums-header-text-container">
                     <h1 class="albums-header-text">
