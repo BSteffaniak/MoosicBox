@@ -191,7 +191,7 @@ export namespace Api {
         tracks: Track[];
     }
 
-    export type ArtistSort = 'Name';
+    export type ArtistSort = 'Name' | 'Name-Desc';
 
     export type ArtistsRequest = {
         sources?: AlbumSource[];

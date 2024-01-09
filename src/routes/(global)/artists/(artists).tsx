@@ -1,5 +1,11 @@
 import './artists.css';
-import { createSignal, For, onCleanup } from 'solid-js';
+import {
+    createComputed,
+    createSignal,
+    For,
+    onCleanup,
+    onMount,
+} from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
 import { api, Api, once } from '~/services/api';
@@ -10,16 +16,34 @@ import { QueryParams } from '~/services/util';
 let historyListener: () => void;
 
 export default function artists() {
+    let backToTopRef: HTMLDivElement;
+    let artistSortControlsRef: HTMLDivElement | undefined;
+    let artistsHeaderContainerRef: HTMLDivElement;
+
     const [artists, setArtists] = createSignal<Api.Artist[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
+    const [currentArtistSort, setCurrentArtistSort] =
+        createSignal<Api.ArtistSort>('Name');
+    const [showArtistSortControls, setShowArtistSortControls] =
+        createSignal(false);
     const searchParams = new QueryParams(
         isServer ? {} : window.location.search,
     );
+
+    createComputed(() => {
+        if (searchParams.has('sort')) {
+            setCurrentArtistSort(searchParams.get('sort') as Api.ArtistSort);
+        }
+    });
 
     function setSearchParam(name: string, value: string) {
         searchParams.set(name, value);
         const newRelativePathQuery = `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
+
+        if (name === 'sort') {
+            setCurrentArtistSort(value as Api.ArtistSort);
+        }
     }
 
     function removeSearchParam(name: string) {
@@ -150,6 +174,57 @@ export default function artists() {
         }
     });
 
+    const handleArtistSortClick = (_event: MouseEvent) => {
+        if (!showArtistSortControls()) return;
+        setShowArtistSortControls(false);
+    };
+
+    onMount(() => {
+        if (isServer) return;
+        window.addEventListener('click', handleArtistSortClick);
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        window.removeEventListener('click', handleArtistSortClick);
+    });
+
+    let backToTopTimeout: NodeJS.Timeout;
+    const scrollListener = () => {
+        if (
+            document.documentElement.scrollTop >
+            artistsHeaderContainerRef.getBoundingClientRect().bottom
+        ) {
+            if (backToTopRef.style.display === 'block') {
+                return;
+            }
+            clearTimeout(backToTopTimeout);
+            backToTopRef.style.opacity = '0';
+            backToTopRef.style.display = 'block';
+            backToTopTimeout = setTimeout(() => {
+                backToTopRef.style.opacity = '1';
+            }, 0);
+        } else {
+            clearTimeout(backToTopTimeout);
+            backToTopRef.style.opacity = '0';
+            backToTopTimeout = setTimeout(() => {
+                backToTopRef.style.display = 'none';
+            }, 300);
+        }
+    };
+
+    onMount(() => {
+        if (isServer) return;
+        document.addEventListener('scroll', scrollListener);
+
+        scrollListener();
+    });
+
+    onCleanup(() => {
+        if (isServer) return;
+        document.removeEventListener('scroll', scrollListener);
+    });
+
     (async () => {
         if (isServer) return;
         setSearchFilterValue(getSearchFilter() ?? '');
@@ -158,43 +233,90 @@ export default function artists() {
 
     return (
         <>
-            <div class="artists-page">
-                <header id="artists-header">
-                    <div class="artists-header-controls">
-                        <button
-                            onClick={() => loadArtists({ sources: ['Local'] })}
-                        >
-                            Local
-                        </button>
-                        <button
-                            onClick={() => loadArtists({ sources: ['Tidal'] })}
-                        >
-                            Tidal
-                        </button>
-                        <button
-                            onClick={() => loadArtists({ sources: ['Qobuz'] })}
-                        >
-                            Qobuz
-                        </button>
-                        <button onClick={() => loadArtists({ sort: 'Name' })}>
-                            Name
-                        </button>
-                        <input
-                            type="text"
-                            value={searchFilterValue()}
-                            onInput={debounce(
-                                (e) =>
-                                    loadArtists({
-                                        filters: {
-                                            search: e.target.value ?? undefined,
-                                        },
-                                    }),
-                                200,
-                            )}
+            <div class="artists-back-to-top-container">
+                <div
+                    onClick={() =>
+                        document.documentElement.scroll({
+                            top: 0,
+                            behavior: 'smooth',
+                        })
+                    }
+                    class="artists-back-to-top"
+                    ref={backToTopRef!}
+                >
+                    Back to top
+                </div>
+            </div>
+            <header
+                class="artists-header-container"
+                ref={artistsHeaderContainerRef!}
+            >
+                <div class="artists-header-backdrop"></div>
+                <div class="artists-header-text-container">
+                    <h1 class="artists-header-text">
+                        Artists{' '}
+                        <img
+                            class="artists-header-sort-icon"
+                            src="/img/more-options-white.svg"
+                            onClick={(event) => {
+                                setShowArtistSortControls(
+                                    !showArtistSortControls(),
+                                );
+                                event.stopPropagation();
+                            }}
                         />
-                    </div>
-                </header>
-                <div id="artists-header-offset"></div>
+                    </h1>
+                    {showArtistSortControls() && (
+                        <div
+                            class="artists-sort-controls"
+                            ref={artistSortControlsRef!}
+                        >
+                            <div
+                                onClick={() =>
+                                    loadArtists({
+                                        sort:
+                                            getArtistSort() === 'Name-Desc'
+                                                ? 'Name'
+                                                : 'Name-Desc',
+                                    })
+                                }
+                            >
+                                Artist Name
+                                {currentArtistSort() === 'Name' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-up-white.svg"
+                                    />
+                                )}
+                                {currentArtistSort() === 'Name-Desc' && (
+                                    <img
+                                        class="sort-chevron-icon"
+                                        src="/img/chevron-down-white.svg"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <input
+                    class="filter-artists"
+                    type="text"
+                    placeholder="Filter..."
+                    value={searchFilterValue()}
+                    onInput={debounce(async (e) => {
+                        await loadArtists({
+                            filters: {
+                                search: e.target.value ?? undefined,
+                            },
+                        });
+                        document.documentElement.scroll({
+                            top: 0,
+                            behavior: 'instant',
+                        });
+                    }, 200)}
+                />
+            </header>
+            <div class="artists-page">
                 {artists() && (
                     <div class="artists-container">
                         <p class="artists-header-artist-count">

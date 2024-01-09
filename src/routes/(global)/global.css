@@ -123,11 +123,6 @@ button {
     margin-right: 0;
 }
 
-header {
-    text-align: center;
-    flex: 0 1 auto;
-}
-
 .main-content {
     padding-bottom: 20px;
     width: calc(100% - max(240px, min(280px, 15vw)));
