@@ -3,6 +3,8 @@ import { createSignal } from 'solid-js';
 import { debounce } from '@solid-primitives/scheduled';
 
 export default function searchInput() {
+    let searchInputRef: HTMLInputElement;
+
     const [searchFilterValue, setSearchFilterValue] = createSignal('');
 
     async function search(searchString: string) {
@@ -14,6 +16,7 @@ export default function searchInput() {
             <div class="search-label-container">
                 <label class="search-label">
                     <input
+                        ref={searchInputRef!}
                         class="search-input"
                         title="Search..."
                         type="text"
@@ -22,6 +25,9 @@ export default function searchInput() {
                         onInput={debounce(async (e) => {
                             await search(e.target.value ?? '');
                         }, 200)}
+                        onKeyUp={(e) =>
+                            e.key === 'Escape' && searchInputRef.blur()
+                        }
                     />
                     <div class="search-backdrop"></div>
                 </label>
