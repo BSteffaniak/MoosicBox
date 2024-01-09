@@ -228,9 +228,8 @@ p {
 }
 
 .playback-sessions-modal-container {
-    width: 70vw;
+    width: 100%;
     height: 70vh;
-    max-width: 1000px;
     max-height: calc(100vh - 230px);
 }
 
@@ -287,4 +286,9 @@ p {
 
 .search-header-offset {
     height: 60px;
+}
+
+@media (max-width: 600px) {
+    .playback-sessions-modal-container {
+    }
 }
