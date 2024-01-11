@@ -31,13 +31,21 @@ export default function albumPage() {
 
     let sourceImageRef: HTMLImageElement | undefined;
 
-    (async () => {
+    createComputed(async () => {
+        setAlbum(undefined);
+        setVersions(undefined);
+        setShowingArtwork(false);
+        setBlurringArtwork(undefined);
+        setSourceImage(undefined);
+        setActiveVersion(undefined);
+
         if (isServer) return;
+
         setAlbum(await api.getAlbum(parseInt(params.albumId)));
         const versions = await api.getAlbumVersions(parseInt(params.albumId));
         setVersions(versions);
         setActiveVersion(versions[0]);
-    })();
+    });
 
     async function playAlbumFrom(track: Api.Track) {
         const tracks = activeVersion()!.tracks;
@@ -328,7 +336,7 @@ export default function albumPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {activeVersion()?.tracks && (
+                            <Show when={activeVersion()?.tracks}>
                                 <For each={activeVersion()!.tracks}>
                                     {(track) => (
                                         <tr
@@ -389,7 +397,7 @@ export default function albumPage() {
                                         </tr>
                                     )}
                                 </For>
-                            )}
+                            </Show>
                         </tbody>
                     </table>
                 </div>
