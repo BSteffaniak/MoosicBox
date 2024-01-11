@@ -55,7 +55,9 @@ export function orderedEntries<T extends Parameters<typeof Object.entries>[0]>(
 export class QueryParams {
     private params: [string, string][];
 
-    public constructor(init?: Record<string, string> | QueryParams | string) {
+    public constructor(
+        init?: Record<string, string | undefined> | QueryParams | string,
+    ) {
         this.params = [];
 
         if (typeof init === 'string') {
@@ -73,9 +75,10 @@ export class QueryParams {
         } else if (init instanceof QueryParams) {
             this.params.push(...init.params);
         } else if (init) {
-            Object.entries(init).forEach(([key, value]) =>
-                this.params.push([key, value]),
-            );
+            Object.entries(init).forEach(([key, value]) => {
+                if (typeof value === 'undefined') return;
+                this.params.push([key, value]);
+            });
         }
     }
 
