@@ -82,6 +82,54 @@ export namespace Api {
         onSignatureTokenUpdatedListeners.trigger(url);
     }
 
+    export type GlobalSearchResultType = 'ARTIST' | 'ALBUM' | 'TRACK';
+    export type GlobalSearchResult =
+        | GlobalArtistSearchResult
+        | GlobalAlbumSearchResult
+        | GlobalTrackSearchResult;
+
+    export interface GlobalArtistSearchResult {
+        type: 'ARTIST';
+        artistId: number;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+    }
+
+    export interface GlobalAlbumSearchResult {
+        type: 'ALBUM';
+        artistId: number;
+        artist: string;
+        albumId: number;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+        dateReleased: string;
+        dateAdded: string;
+        versions: AlbumVersionQuality[];
+    }
+
+    export interface GlobalTrackSearchResult {
+        type: 'TRACK';
+        artistId: number;
+        artist: string;
+        albumId: number;
+        album: string;
+        trackId: number;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+        dateReleased: string;
+        dateAdded: string;
+        format: PlaybackQuality['format'];
+        bitDepth: number;
+        audioBitrate: number;
+        overallBitrate: number;
+        sampleRate: number;
+        channels: number;
+        source: TrackSource;
+    }
+
     export enum PlayerType {
         HOWLER = 'HOWLER',
     }
@@ -304,6 +352,12 @@ export interface ApiType {
         magicToken: string,
         signal?: AbortSignal,
     ): Promise<{ clientId: string; accessToken: string }>;
+    globalSearch(
+        query: string,
+        offset?: number,
+        limit?: number,
+        signal?: AbortSignal,
+    ): Promise<Api.GlobalSearchResult[]>;
 }
 
 async function getArtist(
@@ -565,6 +619,28 @@ async function magicToken(
     return await response.json();
 }
 
+async function globalSearch(
+    query: string,
+    offset?: number,
+    limit?: number,
+    signal?: AbortSignal,
+): Promise<Api.GlobalSearchResult[]> {
+    const queryParams = new QueryParams({
+        query,
+        offset: offset?.toString() ?? undefined,
+        limit: limit?.toString() ?? undefined,
+    });
+    const response = await request(
+        `${Api.apiUrl()}/search/global-search?${queryParams.toString()}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -653,4 +729,5 @@ export const api: ApiType = {
     validateSignatureTokenAndClient,
     validateSignatureToken,
     magicToken,
+    globalSearch,
 };

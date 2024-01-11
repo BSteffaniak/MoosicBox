@@ -8,7 +8,7 @@
     border-radius: 100px;
     box-shadow: 0px 0px 4px 4px rgba(6, 8, 9, 0.3);
     width: 100%;
-    z-index: 13;
+    z-index: 18;
     box-sizing: border-box;
 }
 
@@ -16,7 +16,7 @@
     position: fixed;
     left: calc(100% - 30px - 10px - 30px - 30px);
     top: 0;
-    z-index: 13;
+    z-index: 18;
     padding: 20px 30px;
     display: flex;
     justify-content: end;
@@ -75,7 +75,7 @@
     z-index: 12;
 }
 
-.search-input:focus ~ .search-backdrop {
+.search-container:focus-within .search-backdrop {
     pointer-events: all;
     opacity: 0.8;
 }
@@ -84,10 +84,58 @@
     cursor: pointer;
 }
 
-.search-input:focus {
+.search-container:focus-within {
     border-radius: 10px;
-    width: 100%;
     z-index: 20;
+}
+
+.search-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 72px;
+    z-index: 18;
+    min-width: calc(100vw - max(240px, min(280px, 15vw)) - 60px);
+    max-height: calc(100vh - 72px - 380px);
+    overflow: auto;
+    overflow-x: hidden;
+    margin: 20px 30px;
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    background: rgba(8, 10, 11, 0.8);
+    border-radius: 20px;
+    overscroll-behavior: contain;
+    display: none;
+}
+
+.search-container:focus-within .search-results {
+    display: block;
+}
+
+.search-results-result {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.search-results-result-icon {
+    padding-right: 10px;
+}
+
+.search-results-result-link {
+    display: block;
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.search-results-result-link:focus,
+.search-results-result-link:hover {
+    background-color: #333333;
+    text-decoration: underline;
 }
 
 @media (max-width: 600px) {
@@ -96,11 +144,19 @@
         padding: 10px;
     }
 
+    .search-results {
+        position: fixed;
+        margin: 5px 10px;
+        padding: 5px 10px;
+    }
+
     .search-container:focus-within {
-        width: calc(100% - max(240px, min(280px, 15vw)) - 20px);
+        left: calc(0px);
+        width: calc(100% - 20px);
     }
 
     .main-content.wide .search-container:focus-within {
-        width: calc(100% - 60px - 20px);
+        left: calc(0px);
+        width: calc(100% - 20px);
     }
 }
