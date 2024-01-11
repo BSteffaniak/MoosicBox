@@ -44,6 +44,7 @@ type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 type ArtistProps = {
     artist: Api.Artist;
     size: number;
+    imageRequestSize: number;
     title: boolean;
     blur: boolean;
     route: boolean;
@@ -51,9 +52,14 @@ type ArtistProps = {
 };
 
 export default function artist(
-    props: PartialBy<ArtistProps, 'size' | 'title' | 'blur' | 'route'>,
+    props: PartialBy<
+        ArtistProps,
+        'size' | 'imageRequestSize' | 'title' | 'blur' | 'route'
+    >,
 ) {
     props.size = props.size ?? 200;
+    props.imageRequestSize =
+        props.imageRequestSize ?? Math.round(Math.max(200, props.size) * 1.33);
     props.title = props.title ?? false;
     props.route = props.route ?? true;
 

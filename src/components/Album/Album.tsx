@@ -99,8 +99,8 @@ function albumImage(props: AlbumProps, blur: boolean) {
             }}
             src={api.getAlbumArtwork(
                 props.album,
-                blur ? 16 : Math.round(props.size * 1.33),
-                blur ? 16 : Math.round(props.size * 1.33),
+                blur ? 16 : props.imageRequestSize,
+                blur ? 16 : props.imageRequestSize,
             )}
             alt={`${props.album.title} by ${props.album.artist}`}
             title={`${props.album.title} by ${props.album.artist}`}
@@ -116,6 +116,7 @@ type AlbumProps = {
     album: Api.Album | Api.Track;
     controls?: boolean;
     size: number;
+    imageRequestSize: number;
     artist: boolean;
     year: boolean;
     title: boolean;
@@ -129,6 +130,7 @@ export default function album(
     props: PartialBy<
         AlbumProps,
         | 'size'
+        | 'imageRequestSize'
         | 'artist'
         | 'title'
         | 'blur'
@@ -138,6 +140,8 @@ export default function album(
     >,
 ) {
     props.size = props.size ?? 200;
+    props.imageRequestSize =
+        props.imageRequestSize ?? Math.round(Math.max(200, props.size) * 1.33);
     props.artist = props.artist ?? false;
     props.title = props.title ?? false;
     props.route = props.route ?? true;
