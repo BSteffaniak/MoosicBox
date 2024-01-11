@@ -10,6 +10,35 @@
     width: 100%;
     z-index: 18;
     box-sizing: border-box;
+    transition:
+        text-indent 0.1s,
+        padding 0.1s;
+}
+
+.search-container:focus-within .search-input {
+    padding-right: 30px;
+    padding-left: 40px;
+    text-indent: 0;
+}
+
+.cancel-search-icon {
+    cursor: pointer;
+    position: absolute;
+    right: calc(6px + 30px);
+    top: 50%;
+    transform: translateY(-50%);
+    bottom: 0;
+    width: 25px;
+    height: 25px;
+    z-index: 18;
+    opacity: 0;
+    transition: opacity 0.1s;
+    pointer-events: none;
+}
+
+.search-container:focus-within .cancel-search-icon {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .search-container {

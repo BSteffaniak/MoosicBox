@@ -169,6 +169,14 @@ export default function searchInput() {
                     />
                     <div class="search-backdrop"></div>
                 </label>
+                <img
+                    src={'/img/cross.svg'}
+                    class="cancel-search-icon"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        closeSearch();
+                    }}
+                />
             </div>
             <div
                 class="search-results"
