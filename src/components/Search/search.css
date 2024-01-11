@@ -191,4 +191,8 @@ a.search-results-result-link {
         left: calc(0px);
         width: calc(100% - 20px);
     }
+
+    .cancel-search-icon {
+        right: calc(6px + 10px);
+    }
 }
