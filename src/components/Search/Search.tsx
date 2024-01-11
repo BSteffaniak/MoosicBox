@@ -74,6 +74,7 @@ export default function searchInput() {
 
         if (!searchString.trim()) return;
 
+        searchResultsRef.scroll({ top: 0, behavior: 'instant' });
         const results = await api.globalSearch(searchString, 0, 20);
         setSearchResults(results);
     }
