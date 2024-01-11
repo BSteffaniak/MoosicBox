@@ -46,6 +46,7 @@
 .player-album-details {
     display: flex;
     flex-direction: row;
+    align-items: center;
     height: 70px;
     padding: 10px 0;
 }
