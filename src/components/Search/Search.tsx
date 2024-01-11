@@ -99,7 +99,19 @@ export default function searchInput() {
                             <Artist size={50} artist={artist} route={false} />
                         </div>
                         <div class="search-results-result-details">
-                            Artist - {artist.title}
+                            <span class="search-results-result-details-type">
+                                Artist
+                            </span>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                -
+                            </span>{' '}
+                            <A
+                                href={`/artists/${artist.artistId}`}
+                                class="search-results-result-details-artist"
+                                tabindex="-1"
+                            >
+                                {artist.title}
+                            </A>
                         </div>
                     </div>
                 );
@@ -118,7 +130,29 @@ export default function searchInput() {
                             />
                         </div>
                         <div class="search-results-result-details">
-                            Album - {album.title} by {album.artist}
+                            <span class="search-results-result-details-type">
+                                Album
+                            </span>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                -
+                            </span>{' '}
+                            <A
+                                href={`/albums/${album.albumId}`}
+                                class="search-results-result-details-album"
+                                tabindex="-1"
+                            >
+                                {album.title}
+                            </A>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                by
+                            </span>{' '}
+                            <A
+                                href={`/artists/${album.artistId}`}
+                                class="search-results-result-details-artist"
+                                tabindex="-1"
+                            >
+                                {album.artist}
+                            </A>
                         </div>
                     </div>
                 );
@@ -142,8 +176,39 @@ export default function searchInput() {
                             />
                         </div>
                         <div class="search-results-result-details">
-                            Track - {track.title} - {track.album} by{' '}
-                            {track.artist}
+                            <span class="search-results-result-details-type">
+                                Track
+                            </span>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                -
+                            </span>{' '}
+                            <A
+                                href={`/albums/${track.albumId}`}
+                                class="search-results-result-details-track"
+                                tabindex="-1"
+                            >
+                                {track.title}
+                            </A>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                on
+                            </span>{' '}
+                            <A
+                                href={`/albums/${track.albumId}`}
+                                class="search-results-result-details-album"
+                                tabindex="-1"
+                            >
+                                {track.album}
+                            </A>{' '}
+                            <span class="search-results-result-details-stop-word">
+                                by
+                            </span>{' '}
+                            <A
+                                href={`/artists/${track.artistId}`}
+                                class="search-results-result-details-artist"
+                                tabindex="-1"
+                            >
+                                {track.artist}
+                            </A>
                         </div>
                     </div>
                 );

@@ -150,11 +150,15 @@
     padding: 10px;
 }
 
+.search-results-result-details-stop-word {
+    color: #808080;
+}
+
 .search-results-result-icon {
     padding-right: 10px;
 }
 
-.search-results-result-link {
+a.search-results-result-link {
     display: block;
     text-decoration: none;
     border-radius: 10px;
@@ -164,7 +168,6 @@
 .search-results-result-link:focus,
 .search-results-result-link:hover {
     background-color: #333333;
-    text-decoration: underline;
 }
 
 @media (max-width: 600px) {
