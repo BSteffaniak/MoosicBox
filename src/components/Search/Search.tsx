@@ -71,6 +71,9 @@ export default function searchInput() {
     async function search(searchString: string) {
         setSearchFilterValue(searchString);
         setSearchResults(undefined);
+
+        if (!searchString.trim()) return;
+
         const results = await api.globalSearch(searchString, 0, 20);
         setSearchResults(results);
     }
@@ -169,23 +172,25 @@ export default function searchInput() {
             </div>
             <div
                 class="search-results"
-                style={{ display: searchResults() ? undefined : 'none' }}
+                style={{
+                    display: searchFilterValue()?.trim() ? undefined : 'none',
+                }}
                 ref={searchResultsRef!}
             >
-                <Show when={searchResults()}>
-                    {(results) => (
-                        <For each={results()}>
-                            {(result) => (
-                                <A
-                                    href={searchResultLink(result)}
-                                    class="search-results-result-link"
-                                    onClick={() => closeSearch()}
-                                >
-                                    {searchResult(result)}
-                                </A>
-                            )}
-                        </For>
-                    )}
+                <Show when={!searchResults()}>Loading...</Show>
+                <Show when={searchResults()?.length === 0}>No results</Show>
+                <Show when={(searchResults()?.length ?? 0) !== 0}>
+                    <For each={searchResults()}>
+                        {(result) => (
+                            <A
+                                href={searchResultLink(result)}
+                                class="search-results-result-link"
+                                onClick={() => closeSearch()}
+                            >
+                                {searchResult(result)}
+                            </A>
+                        )}
+                    </For>
                 </Show>
             </div>
         </div>
