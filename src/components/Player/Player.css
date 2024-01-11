@@ -43,8 +43,15 @@
     white-space: nowrap;
 }
 
-.player-album-icon {
-    padding: 10px 20px;
+.player-album-details {
+    display: flex;
+    flex-direction: row;
+    height: 70px;
+    padding: 10px 0;
+}
+
+.player-album-details-icon {
+    padding: 0 20px;
 }
 
 .dark .player-now-playing-details-title {

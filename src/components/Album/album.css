@@ -10,7 +10,6 @@
 
 .album {
     text-align: center;
-    display: inline-block;
 }
 
 .album-controls {
@@ -80,9 +79,12 @@
     top: 2px;
 }
 
+.album-icon {
+    display: block;
+}
+
 .album-icon-container {
     position: relative;
-    display: inline-block;
     overflow: hidden;
 }
 
