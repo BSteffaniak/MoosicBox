@@ -163,7 +163,6 @@ export default function searchInput() {
                             await search(e.target.value ?? '');
                         }, 200)}
                         onKeyUp={(e) => e.key === 'Escape' && closeSearch()}
-                        /*onBlur={() => closeSearch()}*/
                     />
                     <div class="search-backdrop"></div>
                 </label>
