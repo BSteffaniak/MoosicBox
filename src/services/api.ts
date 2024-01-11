@@ -124,7 +124,7 @@ export namespace Api {
         title: string;
         artist: string;
         artistId: number;
-        containsArtwork: boolean;
+        containsCover: boolean;
         blur: boolean;
         dateReleased: string;
         dateAdded: string;
@@ -141,7 +141,7 @@ export namespace Api {
         dateReleased: string;
         artist: string;
         artistId: number;
-        containsArtwork: boolean;
+        containsCover: boolean;
         blur: boolean;
         bytes: number;
         format: PlaybackQuality['format'];
@@ -267,7 +267,7 @@ export interface ApiType {
         album:
             | {
                   albumId: number;
-                  containsArtwork: boolean;
+                  containsCover: boolean;
               }
             | undefined,
         width: number,
@@ -278,7 +278,7 @@ export interface ApiType {
         album:
             | {
                   albumId: number;
-                  containsArtwork: boolean;
+                  containsCover: boolean;
               }
             | undefined,
         signal?: AbortSignal,
@@ -326,13 +326,13 @@ function getAlbumArtwork(
     album:
         | {
               albumId: number;
-              containsArtwork: boolean;
+              containsCover: boolean;
           }
         | undefined,
     width: number,
     height: number,
 ): string {
-    if (album?.containsArtwork) {
+    if (album?.containsCover) {
         return Api.getPath(`albums/${album.albumId}/${width}x${height}`);
     }
     return '/img/album.svg';
@@ -342,11 +342,11 @@ function getAlbumSourceArtwork(
     album:
         | {
               albumId: number;
-              containsArtwork: boolean;
+              containsCover: boolean;
           }
         | undefined,
 ): string {
-    if (album?.containsArtwork) {
+    if (album?.containsCover) {
         return Api.getPath(`albums/${album.albumId}/source`);
     }
     return '/img/album.svg';
