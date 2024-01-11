@@ -76,7 +76,7 @@ export const onVolumeChanged = onVolumeChangedListener.on;
 export const offVolumeChanged = onVolumeChangedListener.off;
 
 export function setVolume(volume: number) {
-    console.log('Setting volume to', volume);
+    console.debug('Setting volume to', volume);
     updatePlayback({ volume });
 }
 
