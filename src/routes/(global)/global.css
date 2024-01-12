@@ -149,7 +149,7 @@ button {
 }
 
 .footer-player-footer {
-    position: sticky;
+    position: fixed;
     bottom: 0;
     flex: 1 1 auto;
     flex-basis: 100%;
