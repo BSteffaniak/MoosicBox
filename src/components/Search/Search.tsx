@@ -21,6 +21,7 @@ export default function searchInput() {
     let searchInputRef: HTMLInputElement;
     let searchResultsRef: HTMLDivElement;
 
+    const [loading, setLoading] = createSignal(false);
     const [searchFilterValue, setSearchFilterValue] = createSignal('');
     const [searchResults, setSearchResults] =
         createSignal<Api.GlobalSearchResult[]>();
@@ -70,13 +71,20 @@ export default function searchInput() {
 
     async function search(searchString: string) {
         setSearchFilterValue(searchString);
-        setSearchResults(undefined);
 
         if (!searchString.trim()) return;
 
         searchResultsRef.scroll({ top: 0, behavior: 'instant' });
-        const results = await api.globalSearch(searchString, 0, 20);
-        setSearchResults(results);
+
+        try {
+            setLoading(true);
+            const results = await api.globalSearch(searchString, 0, 20);
+            setSearchResults(results);
+        } catch {
+            setSearchResults(undefined);
+        } finally {
+            setLoading(false);
+        }
     }
 
     function searchResultLink(result: Api.GlobalSearchResult): string {
@@ -245,13 +253,12 @@ export default function searchInput() {
                 />
             </div>
             <div
-                class="search-results"
+                class={`search-results${loading() ? ' loading' : ' loaded'}`}
                 style={{
                     display: searchFilterValue()?.trim() ? undefined : 'none',
                 }}
                 ref={searchResultsRef!}
             >
-                <Show when={!searchResults()}>Loading...</Show>
                 <Show when={searchResults()?.length === 0}>No results</Show>
                 <Show when={(searchResults()?.length ?? 0) !== 0}>
                     <For each={searchResults()}>

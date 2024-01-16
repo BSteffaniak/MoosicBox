@@ -139,6 +139,10 @@
     display: none;
 }
 
+.search-results.loading .search-results-result {
+    opacity: 0.4;
+}
+
 .search-container:focus-within .search-results {
     display: block;
 }
