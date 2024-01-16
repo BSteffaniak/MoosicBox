@@ -33,6 +33,9 @@ export function displayAlbumVersionQuality(
         case Api.TrackSource.TIDAL:
             str += 'Tidal';
             break;
+        case Api.TrackSource.QOBUZ:
+            str += 'Qobuz';
+            break;
         default:
             version.source satisfies never;
     }

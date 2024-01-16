@@ -157,6 +157,7 @@ export namespace Api {
     export enum TrackSource {
         LOCAL = 'LOCAL',
         TIDAL = 'TIDAL',
+        QOBUZ = 'QOBUZ',
     }
 
     export interface AlbumVersionQuality {
