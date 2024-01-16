@@ -2,6 +2,7 @@
     "name": "@moosicbox/moosicbox-ui",
     "scripts": {
         "dev": "sst bind \"solid-start dev --host --port 3000\"",
+        "solid:dev": "solid-start dev --host --port 3000",
         "build": "solid-start build",
         "start": "solid-start start",
         "test": "vitest run",
