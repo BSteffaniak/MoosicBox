@@ -20,6 +20,7 @@ export default function albums() {
     let albumsHeaderContainerRef: HTMLDivElement;
     let backToTopRef: HTMLDivElement;
 
+    const [loading, setLoading] = createSignal(false);
     const [albums, setAlbums] = createSignal<Api.Album[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const [currentAlbumSort, setCurrentAlbumSort] =
@@ -138,6 +139,7 @@ export default function albums() {
         if (typeof request?.filters?.search === 'string')
             setSearchFilter(request.filters.search);
 
+        setLoading(true);
         setAlbums(
             await once('albums', (signal) =>
                 api.getAlbums(
@@ -152,6 +154,7 @@ export default function albums() {
                 ),
             ),
         );
+        setLoading(false);
 
         setCurrentAlbumSearch(albums());
     }
@@ -378,7 +381,9 @@ export default function albums() {
                     }, 200)}
                 />
             </div>
-            <div class="albums-container">
+            <div
+                class={`albums-container${loading() ? ' loading' : ' loaded'}`}
+            >
                 {albums() && (
                     <>
                         <p class="albums-header-album-count">

@@ -2,6 +2,10 @@
     padding: 15px 30px;
 }
 
+.albums-container.loading {
+    opacity: 0.4;
+}
+
 .albums {
     display: grid;
     grid-template-columns: repeat(auto-fill, 200px);

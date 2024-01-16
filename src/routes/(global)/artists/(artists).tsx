@@ -20,6 +20,7 @@ export default function artists() {
     let artistSortControlsRef: HTMLDivElement | undefined;
     let artistsHeaderContainerRef: HTMLDivElement;
 
+    const [loading, setLoading] = createSignal(false);
     const [artists, setArtists] = createSignal<Api.Artist[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const [currentArtistSort, setCurrentArtistSort] =
@@ -95,6 +96,7 @@ export default function artists() {
         if (typeof request?.filters?.search === 'string')
             setSearchFilter(request.filters.search);
 
+        setLoading(true);
         setArtists(
             await once('artists', (signal) =>
                 api.getArtists(
@@ -109,6 +111,7 @@ export default function artists() {
                 ),
             ),
         );
+        setLoading(false);
 
         setCurrentArtistSearch(artists());
     }
@@ -318,7 +321,11 @@ export default function artists() {
             </header>
             <div class="artists-page">
                 {artists() && (
-                    <div class="artists-container">
+                    <div
+                        class={`artists-container${
+                            loading() ? ' loading' : ' loaded'
+                        }`}
+                    >
                         <p class="artists-header-artist-count">
                             Showing {artists()?.length} artist
                             {artists()?.length === 1 ? '' : 's'}

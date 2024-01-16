@@ -2,6 +2,10 @@
     padding: 15px 30px;
 }
 
+.artists-container.loading {
+    opacity: 0.4;
+}
+
 .artists {
     display: grid;
     grid-template-columns: repeat(auto-fill, 200px);
