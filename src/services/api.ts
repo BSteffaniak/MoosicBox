@@ -358,7 +358,7 @@ export interface ApiType {
         offset?: number,
         limit?: number,
         signal?: AbortSignal,
-    ): Promise<Api.GlobalSearchResult[]>;
+    ): Promise<{ position: number; results: Api.GlobalSearchResult[] }>;
 }
 
 async function getArtist(
@@ -625,7 +625,7 @@ async function globalSearch(
     offset?: number,
     limit?: number,
     signal?: AbortSignal,
-): Promise<Api.GlobalSearchResult[]> {
+): Promise<{ position: number; results: Api.GlobalSearchResult[] }> {
     const queryParams = new QueryParams({
         query,
         offset: offset?.toString() ?? undefined,

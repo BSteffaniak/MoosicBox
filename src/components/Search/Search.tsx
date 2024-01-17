@@ -78,8 +78,8 @@ export default function searchInput() {
 
         try {
             setLoading(true);
-            const results = await api.globalSearch(searchString, 0, 20);
-            setSearchResults(results);
+            const response = await api.globalSearch(searchString, 0, 20);
+            setSearchResults(response.results);
         } catch {
             setSearchResults(undefined);
         } finally {
