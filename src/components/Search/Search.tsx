@@ -80,7 +80,8 @@ export default function searchInput() {
             setLoading(true);
             const response = await api.globalSearch(searchString, 0, 20);
             setSearchResults(response.results);
-        } catch {
+        } catch (e) {
+            console.error('Failed to run global search', e);
             setSearchResults(undefined);
         } finally {
             setLoading(false);
