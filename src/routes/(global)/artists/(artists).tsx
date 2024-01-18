@@ -96,22 +96,28 @@ export default function artists() {
         if (typeof request?.filters?.search === 'string')
             setSearchFilter(request.filters.search);
 
-        setLoading(true);
-        setArtists(
-            await once('artists', (signal) =>
-                api.getArtists(
-                    {
-                        sources: getArtistSources(),
-                        sort: getArtistSort(),
-                        filters: {
-                            search: getSearchFilter(),
+        try {
+            setLoading(true);
+            setArtists(
+                await once('artists', (signal) =>
+                    api.getArtists(
+                        {
+                            sources: getArtistSources(),
+                            sort: getArtistSort(),
+                            filters: {
+                                search: getSearchFilter(),
+                            },
                         },
-                    },
-                    signal,
+                        signal,
+                    ),
                 ),
-            ),
-        );
-        setLoading(false);
+            );
+        } catch (e) {
+            console.error('Failed to fetch artists', e);
+            setArtists(undefined);
+        } finally {
+            setLoading(false);
+        }
 
         setCurrentArtistSearch(artists());
     }
