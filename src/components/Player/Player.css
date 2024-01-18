@@ -31,7 +31,7 @@
 .player .player-now-playing {
     display: flex;
     align-items: center;
-    width: 25%;
+    width: 35%;
 }
 
 .player .player-now-playing-details {
@@ -49,6 +49,7 @@
     align-items: center;
     height: 70px;
     padding: 10px 0;
+    width: 100%;
 }
 
 .player-album-details-icon {
@@ -99,7 +100,7 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    width: 50%;
+    width: max(200px, 30%);
     max-width: 1000px;
 }
 
@@ -176,7 +177,7 @@
 }
 
 .player .player-track-options {
-    width: 25%;
+    width: 35%;
 }
 
 .player .player-track-options-buttons {
@@ -350,5 +351,12 @@
 
     .playlist-slideout {
         min-width: 90vw;
+    }
+
+    .player .player-now-playing-details {
+        display: none;
+    }
+
+    .player .player-media-controls {
     }
 }
