@@ -198,27 +198,35 @@ export default function artists() {
         window.removeEventListener('click', handleArtistSortClick);
     });
 
+    function showBackToTop() {
+        if (backToTopRef.style.display === 'block') return;
+        clearTimeout(backToTopTimeout);
+        backToTopRef.style.opacity = '0';
+        backToTopRef.style.display = 'block';
+        backToTopTimeout = setTimeout(() => {
+            backToTopRef.style.opacity = '1';
+        }, 0);
+    }
+
+    function hideBackToTop() {
+        if (backToTopRef.style.opacity === '0') return;
+        clearTimeout(backToTopTimeout);
+        backToTopRef.style.opacity = '0';
+        backToTopTimeout = setTimeout(() => {
+            backToTopRef.style.display = 'none';
+        }, 300);
+    }
+
     let backToTopTimeout: NodeJS.Timeout;
     const scrollListener = () => {
+        console.log(document.documentElement.scrollTop);
         if (
             document.documentElement.scrollTop >
             artistsHeaderContainerRef.getBoundingClientRect().bottom
         ) {
-            if (backToTopRef.style.display === 'block') {
-                return;
-            }
-            clearTimeout(backToTopTimeout);
-            backToTopRef.style.opacity = '0';
-            backToTopRef.style.display = 'block';
-            backToTopTimeout = setTimeout(() => {
-                backToTopRef.style.opacity = '1';
-            }, 0);
+            showBackToTop();
         } else {
-            clearTimeout(backToTopTimeout);
-            backToTopRef.style.opacity = '0';
-            backToTopTimeout = setTimeout(() => {
-                backToTopRef.style.display = 'none';
-            }, 300);
+            hideBackToTop();
         }
     };
 
@@ -253,7 +261,17 @@ export default function artists() {
                     class="artists-back-to-top"
                     ref={backToTopRef!}
                 >
-                    Back to top
+                    <div class="artists-back-to-top-content">
+                        <img
+                            class="artists-back-to-top-chevron"
+                            src="/img/chevron-up-white.svg"
+                        />
+                        Back to top
+                        <img
+                            class="artists-back-to-top-chevron"
+                            src="/img/chevron-up-white.svg"
+                        />
+                    </div>
                 </div>
             </div>
             <header

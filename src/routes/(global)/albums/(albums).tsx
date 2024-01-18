@@ -38,27 +38,34 @@ export default function albums() {
         }
     });
 
+    function showBackToTop() {
+        if (backToTopRef.style.display === 'block') return;
+        clearTimeout(backToTopTimeout);
+        backToTopRef.style.opacity = '0';
+        backToTopRef.style.display = 'block';
+        backToTopTimeout = setTimeout(() => {
+            backToTopRef.style.opacity = '1';
+        }, 0);
+    }
+
+    function hideBackToTop() {
+        if (backToTopRef.style.opacity === '0') return;
+        clearTimeout(backToTopTimeout);
+        backToTopRef.style.opacity = '0';
+        backToTopTimeout = setTimeout(() => {
+            backToTopRef.style.display = 'none';
+        }, 300);
+    }
+
     let backToTopTimeout: NodeJS.Timeout;
     const scrollListener = () => {
         if (
             document.documentElement.scrollTop >
             albumsHeaderContainerRef.getBoundingClientRect().bottom
         ) {
-            if (backToTopRef.style.display === 'block') {
-                return;
-            }
-            clearTimeout(backToTopTimeout);
-            backToTopRef.style.opacity = '0';
-            backToTopRef.style.display = 'block';
-            backToTopTimeout = setTimeout(() => {
-                backToTopRef.style.opacity = '1';
-            }, 0);
+            showBackToTop();
         } else {
-            clearTimeout(backToTopTimeout);
-            backToTopRef.style.opacity = '0';
-            backToTopTimeout = setTimeout(() => {
-                backToTopRef.style.display = 'none';
-            }, 300);
+            hideBackToTop();
         }
     };
 
@@ -254,7 +261,17 @@ export default function albums() {
                     class="albums-back-to-top"
                     ref={backToTopRef!}
                 >
-                    Back to top
+                    <div class="albums-back-to-top-content">
+                        <img
+                            class="albums-back-to-top-chevron"
+                            src="/img/chevron-up-white.svg"
+                        />
+                        Back to top
+                        <img
+                            class="albums-back-to-top-chevron"
+                            src="/img/chevron-up-white.svg"
+                        />
+                    </div>
                 </div>
             </div>
             <div
