@@ -219,7 +219,6 @@ export default function artists() {
 
     let backToTopTimeout: NodeJS.Timeout;
     const scrollListener = () => {
-        console.log(document.documentElement.scrollTop);
         if (
             document.documentElement.scrollTop >
             artistsHeaderContainerRef.getBoundingClientRect().bottom
