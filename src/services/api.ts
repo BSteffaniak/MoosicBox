@@ -179,7 +179,7 @@ export namespace Api {
     export interface TidalArtist {
         id: number;
         title: string;
-        cover: string;
+        containsCover: boolean;
         blur: boolean;
         type: 'TIDAL';
     }
@@ -216,7 +216,7 @@ export namespace Api {
         title: string;
         artist: string;
         artistId: number;
-        cover: string;
+        containsCover: boolean;
         copyright: string;
         dateReleased: string;
         numberOfTracks: number;
@@ -254,10 +254,10 @@ export namespace Api {
         title: string;
         artist: string;
         artistId: number;
+        containsCover: boolean;
         album: string;
         albumId: number;
         duration: number;
-        cover: string;
         copyright: string;
         numberOfTracks: number;
         audioQuality: 'LOSSLESS' | 'HIRES';
@@ -351,7 +351,7 @@ export namespace Api {
             params.push(`signature=${encodeURIComponent(signatureToken)}`);
         }
 
-        const query = `${containsQuery ? '' : '?'}${params.join('&')}`;
+        const query = `${containsQuery ? '&' : '?'}${params.join('&')}`;
 
         return `${Api.apiUrl()}/${path}${query}`;
     }
@@ -365,16 +365,11 @@ export namespace Api {
 export interface ApiType {
     getArtist(artistId: number, signal?: AbortSignal): Promise<Api.Artist>;
     getArtistCover(
-        artist:
-            | {
-                  artistId: number;
-                  containsCover: boolean;
-              }
-            | {
-                  cover: string;
-              }
-            | undefined,
+        artist: Artist | Album | Track | undefined,
+        width: number,
+        height: number,
     ): string;
+    getArtistSourceCover(artist: Artist | Album | Track | undefined): string;
     getArtistAlbums(
         artistId: number,
         signal?: AbortSignal,
@@ -385,29 +380,13 @@ export interface ApiType {
         signal?: AbortSignal,
     ): Promise<Api.Album[]>;
     getAlbumArtwork(
-        album:
-            | {
-                  albumId: number;
-                  containsCover: boolean;
-              }
-            | {
-                  cover: string;
-              }
-            | undefined,
+        album: Album | Track | undefined,
         width: number,
         height: number,
         signal?: AbortSignal,
     ): string;
     getAlbumSourceArtwork(
-        album:
-            | {
-                  albumId: number;
-                  containsCover: boolean;
-              }
-            | {
-                  cover: string;
-              }
-            | undefined,
+        album: Album | Track | undefined,
         signal?: AbortSignal,
     ): string;
     getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
@@ -489,47 +468,76 @@ async function getArtist(
 }
 
 function getAlbumArtwork(
-    album:
-        | {
-              albumId: number;
-              containsCover: boolean;
-          }
-        | {
-              cover: string;
-          }
-        | undefined,
+    album: Album | Track | undefined,
     width: number,
     height: number,
 ): string {
-    if (typeof album !== 'undefined') {
-        if ('cover' in album && typeof album.cover === 'string') {
-            return album.cover;
-        } else if ('containsCover' in album && album.containsCover) {
-            return Api.getPath(`albums/${album.albumId}/${width}x${height}`);
-        }
+    if (!album) return '/img/album.svg';
+
+    const albumType = album.type;
+
+    switch (albumType) {
+        case 'LIBRARY':
+            if (album.containsCover) {
+                return Api.getPath(
+                    `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                );
+            }
+            break;
+
+        case 'TIDAL':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(
+                        `albums/${album.id}/${width}x${height}?source=${albumType}`,
+                    );
+                }
+            }
+            break;
+
+        default:
+            albumType satisfies never;
     }
+
     return '/img/album.svg';
 }
 
-function getAlbumSourceArtwork(
-    album:
-        | {
-              albumId: number;
-              containsCover: boolean;
-          }
-        | {
-              cover: string;
-          }
-        | undefined,
-): string {
-    if (typeof album !== 'undefined') {
-        if ('cover' in album && typeof album.cover === 'string') {
-            return album.cover;
-        }
-        if ('containsCover' in album && album?.containsCover) {
-            return Api.getPath(`albums/${album.albumId}/source`);
-        }
+function getAlbumSourceArtwork(album: Album | Track | undefined): string {
+    if (!album) return '/img/album.svg';
+
+    const albumType = album.type;
+
+    switch (albumType) {
+        case 'LIBRARY':
+            if (album.containsCover) {
+                return Api.getPath(
+                    `albums/${album.albumId}/source?source=${albumType}`,
+                );
+            }
+            break;
+
+        case 'TIDAL':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/source?source=${albumType}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(
+                        `albums/${album.id}/source?source=${albumType}`,
+                    );
+                }
+            }
+            break;
+
+        default:
+            albumType satisfies never;
     }
+
     return '/img/album.svg';
 }
 
@@ -584,23 +592,78 @@ async function getAlbums(
 }
 
 function getArtistCover(
-    artist:
-        | {
-              artistId: number;
-              containsCover: boolean;
-          }
-        | {
-              cover: string;
-          }
-        | undefined,
+    artist: Artist | Album | Track | undefined,
+    width: number,
+    height: number,
 ): string {
-    if (typeof artist !== 'undefined') {
-        if ('cover' in artist && typeof artist.cover === 'string') {
-            return artist.cover;
-        } else if ('containsCover' in artist && artist.containsCover) {
-            return Api.getPath(`artists/${artist.artistId}/300x300`);
-        }
+    if (!artist) return '/img/album.svg';
+
+    const artistType = artist.type;
+
+    switch (artistType) {
+        case 'LIBRARY':
+            if (artist.containsCover) {
+                return Api.getPath(
+                    `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                );
+            }
+            break;
+
+        case 'TIDAL':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.id}/${width}x${height}?source=${artistType}`,
+                    );
+                }
+            }
+            break;
+
+        default:
+            artistType satisfies never;
     }
+
+    return '/img/album.svg';
+}
+
+function getArtistSourceCover(
+    artist: Artist | Album | Track | undefined,
+): string {
+    if (!artist) return '/img/album.svg';
+
+    const artistType = artist.type;
+
+    switch (artistType) {
+        case 'LIBRARY':
+            if (artist.containsCover) {
+                return Api.getPath(
+                    `artists/${artist.artistId}/source?source=${artistType}`,
+                );
+            }
+            break;
+
+        case 'TIDAL':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/source?source=${artistType}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.id}/source?source=${artistType}`,
+                    );
+                }
+            }
+            break;
+
+        default:
+            artistType satisfies never;
+    }
+
     return '/img/album.svg';
 }
 
@@ -987,6 +1050,7 @@ export async function once<T>(
 export const api: ApiType = {
     getArtist,
     getArtistCover,
+    getArtistSourceCover,
     getArtistAlbums,
     getAlbum,
     getAlbums,

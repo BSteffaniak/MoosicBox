@@ -41,7 +41,11 @@ function artistImage(props: ArtistProps, blur: boolean) {
                 filter: blur ? `blur(${props.size / 20}px)` : undefined,
                 cursor: props.onClick ? `pointer` : undefined,
             }}
-            src={api.getArtistCover(props.artist)}
+            src={api.getArtistCover(
+                props.artist,
+                props.imageRequestSize,
+                props.imageRequestSize,
+            )}
             alt={`${props.artist.title}`}
             title={`${props.artist.title}`}
             loading="lazy"
