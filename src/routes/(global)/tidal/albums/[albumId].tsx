@@ -12,53 +12,78 @@ import {
 import { isServer } from 'solid-js/web';
 import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
-import {
-    displayAlbumVersionQuality,
-    displayDate,
-    toTime,
-} from '~/services/formatting';
+import { displayDate, toTime } from '~/services/formatting';
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api, trackId } from '~/services/api';
 
 export default function albumPage() {
     const params = useParams();
-    const [album, setAlbum] = createSignal<Api.Album>();
-    const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
+    const [libraryArtist, setLibraryArtist] = createSignal<
+        Api.Artist | null | undefined
+    >();
+    const [album, setAlbum] = createSignal<Api.TidalAlbum>();
+    const [tracks, setTracks] = createSignal<Api.TidalTrack[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
-    const [activeVersion, setActiveVersion] = createSignal<Api.AlbumVersion>();
 
     let sourceImageRef: HTMLImageElement | undefined;
 
     createComputed(async () => {
         setAlbum(undefined);
-        setVersions(undefined);
         setShowingArtwork(false);
         setBlurringArtwork(undefined);
         setSourceImage(undefined);
-        setActiveVersion(undefined);
 
         if (isServer) return;
 
-        setAlbum(await api.getAlbum(parseInt(params.albumId)));
-        const versions = await api.getAlbumVersions(parseInt(params.albumId));
-        setVersions(versions);
-        setActiveVersion(versions[0]);
+        Promise.all([
+            (async () => {
+                const album = await api.getTidalAlbum(parseInt(params.albumId));
+                setAlbum(album);
+                try {
+                    setLibraryArtist(
+                        await api.getArtistFromTidalArtistId(album.artistId),
+                    );
+                } catch {
+                    setLibraryArtist(null);
+                }
+                return album;
+            })(),
+            (async () => {
+                setTracks(
+                    (await api.getTidalAlbumTracks(parseInt(params.albumId)))
+                        .items,
+                );
+            })(),
+        ]);
     });
 
-    async function playAlbumFrom(track: Api.Track) {
-        const tracks = activeVersion()!.tracks;
-        const playlist = tracks.slice(tracks.indexOf(track));
+    function artistRoute(): string | undefined {
+        if (typeof libraryArtist() === 'undefined') return;
+
+        if (libraryArtist()) {
+            return `/artists/${libraryArtist()!.artistId}`;
+        }
+        if (album()) {
+            return `/tidal/artists/${album()!.artistId}`;
+        }
+    }
+
+    async function playAlbumFrom(track: Api.TidalTrack) {
+        if (!tracks()) return;
+
+        const playlist = tracks()!.slice(tracks()!.indexOf(track));
 
         playPlaylist(playlist);
     }
 
     function albumDuration(): number {
+        if (!tracks()) return 0;
+
         let duration = 0;
 
-        const tracks = activeVersion()!.tracks;
-        tracks.forEach((track) => (duration += track.duration));
+        tracks()!.forEach((track) => (duration += track.duration));
 
         return duration;
     }
@@ -197,21 +222,21 @@ export default function albumPage() {
                                                 {album().title}
                                             </div>
                                             <div class="album-page-album-info-details-album-artist">
-                                                <A
-                                                    href={`/artists/${
-                                                        album().artistId
-                                                    }`}
-                                                    class="album-page-album-info-details-album-artist-text"
-                                                >
-                                                    {album().artist}
-                                                </A>
+                                                {artistRoute() ? (
+                                                    <A
+                                                        href={artistRoute()!}
+                                                        class="album-page-album-info-details-album-artist-text"
+                                                    >
+                                                        {album().artist}
+                                                    </A>
+                                                ) : (
+                                                    <span class="album-page-album-info-details-album-artist-text">
+                                                        {album().artist}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div class="album-page-album-info-details-tracks">
-                                                <Show
-                                                    when={
-                                                        activeVersion()?.tracks
-                                                    }
-                                                >
+                                                <Show when={tracks()}>
                                                     {(tracks) => (
                                                         <>
                                                             {tracks().length}{' '}
@@ -232,49 +257,6 @@ export default function albumPage() {
                                                     'LLLL dd, yyyy',
                                                 )}
                                             </div>
-                                            <div
-                                                class={`album-page-album-info-details-versions${
-                                                    (versions()?.length ?? 0) >
-                                                    1
-                                                        ? ' multiple'
-                                                        : ''
-                                                }`}
-                                            >
-                                                <For each={versions()}>
-                                                    {(version, index) => (
-                                                        <>
-                                                            <span
-                                                                class={`album-page-album-info-details-versions-version${
-                                                                    version ===
-                                                                    activeVersion()
-                                                                        ? ' active'
-                                                                        : ''
-                                                                }`}
-                                                                onClick={() =>
-                                                                    setActiveVersion(
-                                                                        version,
-                                                                    )
-                                                                }
-                                                            >
-                                                                {displayAlbumVersionQuality(
-                                                                    version,
-                                                                )}
-                                                            </span>
-                                                            <>
-                                                                {index() <
-                                                                    versions()!
-                                                                        .length -
-                                                                        1 && (
-                                                                    <span>
-                                                                        {' '}
-                                                                        /{' '}
-                                                                    </span>
-                                                                )}
-                                                            </>
-                                                        </>
-                                                    )}
-                                                </For>
-                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -287,10 +269,8 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        if (activeVersion()) {
-                                            playPlaylist(
-                                                activeVersion()!.tracks,
-                                            );
+                                        if (tracks()) {
+                                            playPlaylist(tracks()!);
                                         }
                                         return false;
                                     }}
@@ -306,9 +286,9 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        addTracksToQueue(
-                                            activeVersion()!.tracks,
-                                        );
+                                        if (tracks()) {
+                                            addTracksToQueue(tracks()!);
+                                        }
                                         return false;
                                     }}
                                 >
@@ -336,14 +316,14 @@ export default function albumPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            <Show when={activeVersion()?.tracks}>
-                                <For each={activeVersion()!.tracks}>
+                            <Show when={tracks()}>
+                                <For each={tracks()!}>
                                     {(track) => (
                                         <tr
                                             class={`album-page-tracks-track${
                                                 trackId(
                                                     playerState.currentTrack,
-                                                ) === track.trackId
+                                                ) === trackId(track)
                                                     ? ' playing'
                                                     : ''
                                             }`}
@@ -360,7 +340,7 @@ export default function albumPage() {
                                                 <div class="album-page-tracks-track-no-container">
                                                     {trackId(
                                                         playerState.currentTrack,
-                                                    ) === track.trackId ? (
+                                                    ) === trackId(track) ? (
                                                         <img
                                                             class="audio-icon"
                                                             src="/img/audio-white.svg"
@@ -382,13 +362,18 @@ export default function albumPage() {
                                                 {track.title}
                                             </td>
                                             <td class="album-page-tracks-track-artist">
-                                                <A
-                                                    href={`/artists/${album()
-                                                        ?.artistId}`}
-                                                    class="album-page-tracks-track-artist-text"
-                                                >
-                                                    {track.artist}
-                                                </A>
+                                                {artistRoute() ? (
+                                                    <A
+                                                        href={artistRoute()!}
+                                                        class="album-page-tracks-track-artist-text"
+                                                    >
+                                                        {track.artist}
+                                                    </A>
+                                                ) : (
+                                                    <span class="album-page-tracks-track-artist-text">
+                                                        {track.artist}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td class="album-page-tracks-track-time">
                                                 {toTime(

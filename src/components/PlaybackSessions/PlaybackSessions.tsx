@@ -1,6 +1,6 @@
 import './playback-sessions.css';
 import { For, Index, createComputed, createSignal } from 'solid-js';
-import { Api } from '~/services/api';
+import { Api, Track } from '~/services/api';
 import {
     containsPlayer,
     playerState,
@@ -15,7 +15,7 @@ import Modal from '../Modal/Modal';
 import { appState } from '~/services/app';
 
 const queuedTracksCache: {
-    [id: number]: { position?: number; tracks: Api.Track[] };
+    [id: number]: { position?: number; tracks: Track[] };
 } = {};
 
 export default function playbackSessionsFunc() {
@@ -141,9 +141,16 @@ export default function playbackSessionsFunc() {
 
         if (
             cache?.position === session.position &&
-            cache?.tracks.every(
-                (t, i) => session.playlist.tracks[i]?.trackId === t.trackId,
-            )
+            cache?.tracks.every((t, i) => {
+                const track = session.playlist.tracks[i];
+
+                return (
+                    ('trackId' in track &&
+                        'trackId' in t &&
+                        track.trackId === t?.trackId) ||
+                    ('id' in track && 'id' in t && track.id === t?.id)
+                );
+            })
         ) {
             return cache.tracks;
         }

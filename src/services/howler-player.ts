@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js';
 import { Howl, HowlCallback } from 'howler';
-import { Api } from './api';
+import { Api, Track, api } from './api';
 import {
     PlayerType,
     currentSeek,
@@ -29,24 +29,36 @@ export function createPlayer(id: number): PlayerType {
     let endHandle: HowlCallback;
     let loadHandle: HowlCallback;
 
-    function getTrackUrl(track: Api.Track): string {
-        const query = new QueryParams({
-            trackId: track.trackId.toString(),
-        });
+    async function getTrackUrl(track: Track): Promise<string> {
+        const trackType = track.type;
 
-        const clientId = Api.clientId();
-        const signatureToken = Api.signatureToken();
+        switch (trackType) {
+            case 'LIBRARY': {
+                const query = new QueryParams({
+                    trackId: track.trackId.toString(),
+                });
 
-        if (clientId && signatureToken) {
-            query.set('clientId', clientId);
-            query.set('signature', signatureToken);
+                const clientId = Api.clientId();
+                const signatureToken = Api.signatureToken();
+
+                if (clientId && signatureToken) {
+                    query.set('clientId', clientId);
+                    query.set('signature', signatureToken);
+                }
+
+                if (playbackQuality().format !== Api.AudioFormat.SOURCE) {
+                    query.set('format', playbackQuality().format);
+                }
+
+                return `${Api.apiUrl()}/track?${query}`;
+            }
+            case 'TIDAL': {
+                return await api.getTidalTrackFileUrl(track.id, 'HIGH');
+            }
+            default:
+                trackType satisfies never;
+                throw new Error(`Invalid track type '${trackType}'`);
         }
-
-        if (playbackQuality().format !== Api.AudioFormat.SOURCE) {
-            query.set('format', playbackQuality().format);
-        }
-
-        return `${Api.apiUrl()}/track?${query}`;
     }
 
     function refreshCurrentSeek() {
@@ -60,7 +72,7 @@ export function createPlayer(id: number): PlayerType {
         }
     }
 
-    function setTrack(): boolean {
+    async function setTrack(): Promise<boolean> {
         if (!sound()) {
             if (typeof playlistPosition() === 'undefined') {
                 console.debug('No track to play');
@@ -71,20 +83,41 @@ export function createPlayer(id: number): PlayerType {
 
             let format: string | undefined;
 
-            switch (track.format) {
-                case Api.AudioFormat.AAC:
-                    format = 'm4a';
+            const trackType = track.type;
+
+            switch (trackType) {
+                case 'LIBRARY': {
+                    const trackFormat = track.format;
+                    switch (trackFormat) {
+                        case Api.AudioFormat.AAC:
+                            format = 'm4a';
+                            break;
+                        case Api.AudioFormat.FLAC:
+                            format = 'flac';
+                            break;
+                        case Api.AudioFormat.MP3:
+                            format = 'mp3';
+                            break;
+                        case Api.AudioFormat.SOURCE:
+                            break;
+                        default:
+                            trackFormat satisfies never;
+                            throw new Error(
+                                `Invalid track format '${trackFormat}'`,
+                            );
+                    }
                     break;
-                case Api.AudioFormat.FLAC:
-                    format = 'flac';
+                }
+                case 'TIDAL':
+                    format = 'source';
                     break;
-                case Api.AudioFormat.MP3:
-                    format = 'mp3';
-                    break;
+                default:
+                    trackType satisfies never;
+                    throw new Error(`Invalid track type '${trackType}'`);
             }
 
             const howl = new Howl({
-                src: [getTrackUrl(track)],
+                src: [await getTrackUrl(track)],
                 format,
                 html5: true,
             });
@@ -102,11 +135,11 @@ export function createPlayer(id: number): PlayerType {
     let ended: boolean = true;
     let loaded = false;
 
-    function play(): boolean {
+    async function play(): Promise<boolean> {
         const initialSeek = !sound() ? currentSeek() : undefined;
 
         if (!sound() || ended) {
-            if (!setTrack()) return false;
+            if (!(await setTrack())) return false;
 
             sound()!.on(
                 'end',

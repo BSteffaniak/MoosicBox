@@ -1,11 +1,11 @@
 import './album.css';
-import { Api, api } from '~/services/api';
+import { Album, Api, Track, api } from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
 import { displayAlbumVersionQualities } from '~/services/formatting';
 
-function albumControls(album: Api.Album | Api.Track) {
+function albumControls(album: Album | Track) {
     return (
         <div class="album-controls">
             <button
@@ -35,7 +35,60 @@ function albumControls(album: Api.Album | Api.Track) {
 }
 
 function albumDetails(
-    album: Api.Album | Api.Track,
+    album: Album | Track,
+    showArtist = true,
+    showTitle = true,
+    showYear = true,
+    showVersionQualities = true,
+    route = true,
+) {
+    const albumType = album.type;
+
+    switch (albumType) {
+        case 'LIBRARY':
+            if ('number' in album) {
+                return libraryTrackAlbumDetails(
+                    album as Api.Track,
+                    showArtist,
+                    showTitle,
+                    showYear,
+                    route,
+                );
+            } else {
+                return libraryAlbumDetails(
+                    album as Api.Album,
+                    showArtist,
+                    showTitle,
+                    showYear,
+                    showVersionQualities,
+                    route,
+                );
+            }
+        case 'TIDAL':
+            if ('number' in album) {
+                return tidalTrackAlbumDetails(
+                    album as Api.TidalTrack,
+                    showArtist,
+                    showTitle,
+                    route,
+                );
+            } else {
+                return tidalAlbumDetails(
+                    album as Api.TidalAlbum,
+                    showArtist,
+                    showTitle,
+                    showYear,
+                    route,
+                );
+            }
+        default:
+            albumType satisfies never;
+            throw new Error(`Invalid albumType: ${albumType}`);
+    }
+}
+
+function libraryAlbumDetails(
+    album: Album | Track,
     showArtist = true,
     showTitle = true,
     showYear = true,
@@ -47,8 +100,137 @@ function albumDetails(
             {showTitle && (
                 <div class="album-title">
                     {route ? (
+                        <A href={albumRoute(album)} class="album-title-text">
+                            {album.title}
+                        </A>
+                    ) : (
+                        <span class="album-title-text">{album.title}</span>
+                    )}
+                </div>
+            )}
+            {showArtist && (
+                <div class="album-artist">
+                    <A
+                        href={`/artists/${album.artistId}`}
+                        class="album-artist-text"
+                    >
+                        {album.artist}
+                    </A>
+                </div>
+            )}
+            {showYear && 'dateReleased' in album && (
+                <div class="album-year">
+                    <span class="album-year-text">
+                        {album.dateReleased?.substring(0, 4)}
+                    </span>
+                </div>
+            )}
+            {'versions' in album && showVersionQualities && (
+                <div class="album-version-qualities">
+                    <span class="album-version-qualities-text">
+                        {album.versions.length > 0 &&
+                            displayAlbumVersionQualities(album.versions)}
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function libraryTrackAlbumDetails(
+    track: Api.Track,
+    showArtist = true,
+    showTitle = true,
+    showYear = true,
+    route = true,
+) {
+    return (
+        <div class="album-details">
+            {showTitle && (
+                <div class="album-title">
+                    {route ? (
                         <A
-                            href={`/albums/${album.albumId}`}
+                            href={`/albums/${track.albumId}`}
+                            class="album-title-text"
+                        >
+                            {track.title}
+                        </A>
+                    ) : (
+                        <span class="album-title-text">{track.title}</span>
+                    )}
+                </div>
+            )}
+            {showArtist && (
+                <div class="album-artist">
+                    <A
+                        href={`/artists/${track.artistId}`}
+                        class="album-artist-text"
+                    >
+                        {track.artist}
+                    </A>
+                </div>
+            )}
+            {showYear && (
+                <div class="album-year">
+                    <span class="album-year-text">
+                        {track.dateReleased?.substring(0, 4)}
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function tidalTrackAlbumDetails(
+    track: Api.TidalTrack,
+    showArtist = true,
+    showTitle = true,
+    route = true,
+) {
+    return (
+        <div class="album-details">
+            {showTitle && (
+                <div class="album-title">
+                    {route ? (
+                        <A
+                            href={`/albums/${track.albumId}`}
+                            class="album-title-text"
+                        >
+                            {track.title}
+                        </A>
+                    ) : (
+                        <span class="album-title-text">{track.title}</span>
+                    )}
+                </div>
+            )}
+            {showArtist && (
+                <div class="album-artist">
+                    <A
+                        href={`/artists/${track.artistId}`}
+                        class="album-artist-text"
+                    >
+                        {track.artist}
+                    </A>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function tidalAlbumDetails(
+    album: Api.TidalAlbum,
+    showArtist = true,
+    showTitle = true,
+    showYear = true,
+    route = true,
+) {
+    return (
+        <div class="album-details">
+            {showTitle && (
+                <div class="album-title">
+                    {route ? (
+                        <A
+                            href={`/tidal/albums/${album.id}`}
                             class="album-title-text"
                         >
                             {album.title}
@@ -68,23 +250,37 @@ function albumDetails(
                     </A>
                 </div>
             )}
-            {showYear && (
+            {showYear && 'dateReleased' in album && (
                 <div class="album-year">
                     <span class="album-year-text">
                         {album.dateReleased?.substring(0, 4)}
                     </span>
                 </div>
             )}
-            {'versions' in album && showVersionQualities && (
-                <div class="album-version-qualities">
-                    <span class="album-version-qualities-text">
-                        {album.versions.length > 0 &&
-                            displayAlbumVersionQualities(album.versions)}
-                    </span>
-                </div>
-            )}
         </div>
     );
+}
+
+function albumRoute(album: Album | Track): string {
+    const albumType = album.type;
+
+    switch (albumType) {
+        case 'LIBRARY':
+            if ('number' in album) {
+                return `/albums/${(album as Api.Track).albumId}`;
+            } else {
+                return `/albums/${(album as Api.Album).albumId}`;
+            }
+        case 'TIDAL':
+            if ('number' in album) {
+                return `/tidal/albums/${(album as Api.TidalTrack).albumId}`;
+            } else {
+                return `/tidal/albums/${(album as Api.TidalAlbum).id}`;
+            }
+        default:
+            albumType satisfies never;
+            throw new Error(`Invalid albumType: ${albumType}`);
+    }
 }
 
 function albumImage(props: AlbumProps, blur: boolean) {
@@ -113,7 +309,7 @@ function albumImage(props: AlbumProps, blur: boolean) {
 type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 type AlbumProps = {
-    album: Api.Album | Api.Track;
+    album: Album | Track;
     controls?: boolean;
     size: number;
     imageRequestSize: number;
@@ -151,7 +347,9 @@ export default function album(
 
     createComputed(() => {
         setBlur(
-            typeof props.blur === 'boolean' ? props.blur : props.album.blur,
+            typeof props.blur === 'boolean'
+                ? props.blur
+                : 'blur' in props.album && props.album.blur,
         );
     });
 
@@ -162,7 +360,7 @@ export default function album(
                 style={{ width: `${props.size}px`, height: `${props.size}px` }}
             >
                 {props.route ? (
-                    <A href={`/albums/${props.album.albumId}`}>
+                    <A href={albumRoute(props.album)}>
                         {albumImage(props as AlbumProps, blur())}
                         {props.controls && albumControls(props.album)}
                     </A>

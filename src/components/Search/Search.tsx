@@ -103,10 +103,18 @@ export default function searchInput() {
         switch (result.type) {
             case 'ARTIST': {
                 const artist = result as Api.GlobalArtistSearchResult;
+                const libraryArtist: Api.Artist = {
+                    ...artist,
+                    type: 'LIBRARY',
+                };
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
-                            <Artist size={50} artist={artist} route={false} />
+                            <Artist
+                                size={50}
+                                artist={libraryArtist}
+                                route={false}
+                            />
                         </div>
                         <div class="search-results-result-details">
                             <span class="search-results-result-details-type">
@@ -128,6 +136,7 @@ export default function searchInput() {
             }
             case 'ALBUM': {
                 const album = result as Api.GlobalAlbumSearchResult;
+                const libraryAlbum: Api.Album = { ...album, type: 'LIBRARY' };
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
@@ -136,7 +145,7 @@ export default function searchInput() {
                                 artist={false}
                                 year={false}
                                 route={false}
-                                album={album}
+                                album={libraryAlbum}
                             />
                         </div>
                         <div class="search-results-result-details">
@@ -168,11 +177,11 @@ export default function searchInput() {
                 );
             }
             case 'TRACK': {
-                const album = {
+                const libraryAlbum: Api.Album = {
                     ...result,
                     versions: [result],
-                    type: 'ALBUM',
-                } as Api.GlobalAlbumSearchResult;
+                    type: 'LIBRARY',
+                };
                 const track = result as Api.GlobalTrackSearchResult;
                 return (
                     <div class="search-results-result">
@@ -182,7 +191,7 @@ export default function searchInput() {
                                 artist={false}
                                 year={false}
                                 route={false}
-                                album={album}
+                                album={libraryAlbum}
                             />
                         </div>
                         <div class="search-results-result-details">

@@ -1,6 +1,6 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api } from './api';
+import { Api, Track, TrackType } from './api';
 import { onStartup, setAppState } from './app';
 import { PartialUpdateSession } from './types';
 import { createListener } from './util';
@@ -202,7 +202,7 @@ export interface CreateSessionRequest {
 }
 
 export interface CreateSessionPlaylistRequest {
-    tracks: Api.Track[];
+    tracks: Track[];
 }
 
 export interface CreateSession {
@@ -211,7 +211,7 @@ export interface CreateSession {
 }
 
 export interface CreateSessionPlaylist {
-    tracks: number[];
+    tracks: SessionPlaylistTrack[];
 }
 
 export interface UpdateSession {
@@ -225,9 +225,15 @@ export interface UpdateSession {
     playlist?: UpdateSessionPlaylist;
 }
 
+interface SessionPlaylistTrack {
+    id: number;
+    type: TrackType;
+    data?: string;
+}
+
 interface UpdateSessionPlaylist {
     sessionPlaylistId: number;
-    tracks: number[];
+    tracks: SessionPlaylistTrack[];
 }
 
 interface CreateSessionMessage extends OutboundMessage {
@@ -306,6 +312,21 @@ export function activateSession(sessionId: number) {
     updateSession({ sessionId, active: true });
 }
 
+function toSessionPlaylistTrack(track: Track): SessionPlaylistTrack {
+    if (track.type === 'LIBRARY') {
+        return {
+            id: track.trackId,
+            type: track.type,
+        };
+    } else {
+        return {
+            id: track.id,
+            type: track.type,
+            data: JSON.stringify(track),
+        };
+    }
+}
+
 export function createSession(session: CreateSessionRequest) {
     send<CreateSessionMessage>({
         type: OutboundMessageType.CREATE_SESSION,
@@ -313,7 +334,7 @@ export function createSession(session: CreateSessionRequest) {
             ...session,
             playlist: {
                 ...session.playlist,
-                tracks: session.playlist.tracks.map((t) => t.trackId),
+                tracks: session.playlist.tracks.map(toSessionPlaylistTrack),
             },
         },
     });
@@ -325,7 +346,7 @@ export function updateSession(session: PartialUpdateSession) {
     if (session.playlist) {
         payload.playlist = {
             ...session.playlist,
-            tracks: session.playlist.tracks.map((t) => t.trackId),
+            tracks: session.playlist.tracks.map(toSessionPlaylistTrack),
         };
     } else {
         delete payload.playlist;

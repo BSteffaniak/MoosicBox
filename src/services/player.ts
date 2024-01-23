@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import { Api, api } from './api';
+import { Album, Api, Track, api } from './api';
 import { createStore, produce } from 'solid-js/store';
 import { createListener, orderedEntries } from './util';
 import { PartialBy, PartialUpdateSession } from './types';
@@ -17,7 +17,7 @@ interface PlayerState {
     playing: boolean;
     currentPlaybackSession?: Api.PlaybackSession;
     playbackSessions: Api.PlaybackSession[];
-    currentTrack?: Api.Track;
+    currentTrack?: Track;
 }
 
 export const [playerState, setPlayerState] = createStore<PlayerState>({
@@ -143,7 +143,7 @@ export const setCurrentTrackLength = (
 };
 
 export const [currentAlbum, setCurrentAlbum] = makePersisted(
-    createSignal<Api.Album | Api.Track | undefined>(undefined, {
+    createSignal<Album | Track | undefined>(undefined, {
         equals: false,
     }),
     {
@@ -180,7 +180,7 @@ export const setPlaylistPosition = (
 };
 
 const [_playlist, _setPlaylist] = makePersisted(
-    createSignal<Api.Track[]>([], { equals: false }),
+    createSignal<Track[]>([], { equals: false }),
     { name: `player.v1.playlist` },
 );
 const onPlaylistChangedListener =
@@ -364,21 +364,45 @@ const playAlbumListener = createListener<() => void>();
 export const onPlayAlbum = playAlbumListener.on;
 export const offPlayAlbum = playAlbumListener.off;
 
-export async function playAlbum(album: Api.Album | Api.Track) {
+export async function playAlbum(album: Album | Track) {
     console.debug('playAlbum', album);
     setCurrentAlbum(album);
 
-    const versions = await api.getAlbumVersions(album.albumId);
-    const tracks = versions[0].tracks;
+    const albumType = 'type' in album ? album.type : 'TRACK';
 
-    await playPlaylist(tracks);
+    switch (albumType) {
+        case 'LIBRARY': {
+            album = album as Api.Album;
+            const versions = await api.getAlbumVersions(album.albumId);
+            const tracks = versions[0].tracks;
+            await playPlaylist(tracks);
+            break;
+        }
+        case 'TRACK': {
+            album = album as Api.Track;
+            const versions = await api.getAlbumVersions(album.albumId);
+            const tracks = versions[0].tracks;
+            await playPlaylist(tracks);
+            break;
+        }
+        case 'TIDAL': {
+            album = album as Api.TidalAlbum;
+            const page = await api.getTidalAlbumTracks(album.id);
+            const tracks = page.items;
+            await playPlaylist(tracks);
+            break;
+        }
+        default:
+            albumType satisfies never;
+            throw new Error(`Invalid album type '${albumType}'`);
+    }
 }
 
 const playPlaylistListener = createListener<() => void>();
 export const onPlayPlaylist = playPlaylistListener.on;
 export const offPlayPlaylist = playPlaylistListener.off;
 
-export async function playPlaylist(tracks: Api.Track[]) {
+export async function playPlaylist(tracks: Track[]) {
     console.debug('playPlaylist', tracks);
     const firstTrack = tracks[0];
     setCurrentAlbum(firstTrack);
@@ -395,15 +419,37 @@ const addAlbumToQueueListener = createListener<() => void>();
 export const onAddAlbumToQueue = addAlbumToQueueListener.on;
 export const offAddAlbumToQueue = addAlbumToQueueListener.off;
 
-export async function addAlbumToQueue(album: Api.Album | Api.Track) {
+export async function addAlbumToQueue(album: Album | Track) {
     console.debug('addAlbumToQueue', album);
-    const versions = await api.getAlbumVersions(album.albumId);
-    const tracks = versions[0].tracks;
 
-    return addTracksToQueue(tracks);
+    const albumType = 'type' in album ? album.type : 'TRACK';
+
+    switch (albumType) {
+        case 'LIBRARY': {
+            album = album as Api.Album;
+            const versions = await api.getAlbumVersions(album.albumId);
+            const tracks = versions[0].tracks;
+            return addTracksToQueue(tracks);
+        }
+        case 'TRACK': {
+            album = album as Api.Track;
+            const versions = await api.getAlbumVersions(album.albumId);
+            const tracks = versions[0].tracks;
+            return addTracksToQueue(tracks);
+        }
+        case 'TIDAL': {
+            album = album as Api.TidalAlbum;
+            const page = await api.getTidalAlbumTracks(album.id);
+            const tracks = page.items;
+            return addTracksToQueue(tracks);
+        }
+        default:
+            albumType satisfies never;
+            throw new Error(`Invalid album type '${albumType}'`);
+    }
 }
 
-export async function addTracksToQueue(tracks: Api.Track[]) {
+export async function addTracksToQueue(tracks: Track[]) {
     console.debug('addTracksToQueue', tracks);
     updatePlayback({
         tracks: [...playlist(), ...tracks],
@@ -553,7 +599,7 @@ export type PlaybackUpdate = {
     position?: number;
     seek?: number;
     volume?: number;
-    tracks?: Api.Track[];
+    tracks?: Track[];
 };
 
 async function updatePlayback(

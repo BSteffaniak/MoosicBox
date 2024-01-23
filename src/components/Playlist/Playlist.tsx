@@ -8,18 +8,18 @@ import {
     removeTrackFromPlaylist,
 } from '~/services/player';
 import Album from '../Album';
-import { Api } from '~/services/api';
+import { Track, trackId } from '~/services/api';
 import { A } from 'solid-start';
 
 export default function playlist() {
-    const [playlist, setPlaylist] = createSignal<Api.Track[]>([]);
+    const [playlist, setPlaylist] = createSignal<Track[]>([]);
     const [currentlyPlayingIndex, setCurrentlyPlayingIndex] =
         createSignal<number>();
 
     function updateCurrentlyPlayingIndex() {
         setCurrentlyPlayingIndex(
             playlist().findIndex(
-                (track) => track.trackId === playerState.currentTrack?.trackId,
+                (track) => trackId(track) === trackId(playerState.currentTrack),
             ),
         );
     }
@@ -50,8 +50,8 @@ export default function playlist() {
                 <For each={playlist()}>
                     {(track, index) => (
                         <>
-                            {playerState.currentTrack?.trackId ===
-                                track.trackId && (
+                            {trackId(playerState.currentTrack) ===
+                                trackId(track) && (
                                 <div class="playlist-tracks-playing-from">
                                     Playing from:{' '}
                                     <A href={`/albums/${track.albumId}`}>
@@ -66,13 +66,13 @@ export default function playlist() {
                             )}
                             <div
                                 class={`playlist-tracks-track${
-                                    playerState.currentTrack?.trackId ===
-                                    track.trackId
+                                    trackId(playerState.currentTrack) ===
+                                    trackId(track)
                                         ? ' current'
                                         : ''
                                 }${
-                                    playerState.currentTrack?.trackId ===
-                                        track.trackId && playing()
+                                    trackId(playerState.currentTrack) ===
+                                        trackId(track) && playing()
                                         ? ' playing'
                                         : ''
                                 }${

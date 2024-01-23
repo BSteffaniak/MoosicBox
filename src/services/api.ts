@@ -9,6 +9,26 @@ function getDefaultApiUrl(): string {
     return `${window.location.protocol}//${window.location.hostname}:8000`;
 }
 
+export type ArtistType = Api.Artist['type'] | Api.TidalArtist['type'];
+export type Artist = Api.Artist | Api.TidalArtist;
+
+export type AlbumType = Api.Album['type'] | Api.TidalAlbum['type'];
+export type Album = Api.Album | Api.TidalAlbum;
+
+export type TrackType = Api.Track['type'] | Api.TidalTrack['type'];
+export type Track = Api.Track | Api.TidalTrack;
+
+type GenericTrack = Track;
+
+export function trackId(track: Track | undefined): number | undefined {
+    if (!track) return undefined;
+    return 'trackId' in track
+        ? track.trackId
+        : 'id' in track
+        ? track.id
+        : undefined;
+}
+
 export namespace Api {
     const onApiUrlUpdatedListeners = createListener<(url: string) => void>();
     export const onApiUrlUpdated = onApiUrlUpdatedListeners.on;
@@ -152,6 +172,16 @@ export namespace Api {
         title: string;
         containsCover: boolean;
         blur: boolean;
+        tidalId?: number;
+        type: 'LIBRARY';
+    }
+
+    export interface TidalArtist {
+        id: number;
+        title: string;
+        cover: string;
+        blur: boolean;
+        type: 'TIDAL';
     }
 
     export enum TrackSource {
@@ -178,6 +208,22 @@ export namespace Api {
         dateReleased: string;
         dateAdded: string;
         versions: AlbumVersionQuality[];
+        type: 'LIBRARY';
+    }
+
+    export interface TidalAlbum {
+        id: number;
+        title: string;
+        artist: string;
+        artistId: number;
+        cover: string;
+        copyright: string;
+        dateReleased: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        blur: boolean;
+        type: 'TIDAL';
     }
 
     export interface Track {
@@ -199,6 +245,24 @@ export namespace Api {
         overallBitrate: number;
         sampleRate: number;
         channels: number;
+        type: 'LIBRARY';
+    }
+
+    export interface TidalTrack {
+        id: number;
+        number: number;
+        title: string;
+        artist: string;
+        artistId: number;
+        album: string;
+        albumId: number;
+        duration: number;
+        cover: string;
+        copyright: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        type: 'TIDAL';
     }
 
     export interface AlbumVersion {
@@ -237,7 +301,7 @@ export namespace Api {
 
     export interface PlaybackSessionPlaylist {
         sessionPlaylistId: number;
-        tracks: Track[];
+        tracks: GenericTrack[];
     }
 
     export type ArtistSort = 'Name' | 'Name-Desc';
@@ -291,6 +355,11 @@ export namespace Api {
 
         return `${Api.apiUrl()}/${path}${query}`;
     }
+
+    export type PagingResponse<T> = {
+        items: T[];
+        count: number;
+    };
 }
 
 export interface ApiType {
@@ -300,6 +369,9 @@ export interface ApiType {
             | {
                   artistId: number;
                   containsCover: boolean;
+              }
+            | {
+                  cover: string;
               }
             | undefined,
     ): string;
@@ -318,6 +390,9 @@ export interface ApiType {
                   albumId: number;
                   containsCover: boolean;
               }
+            | {
+                  cover: string;
+              }
             | undefined,
         width: number,
         height: number,
@@ -328,6 +403,9 @@ export interface ApiType {
             | {
                   albumId: number;
                   containsCover: boolean;
+              }
+            | {
+                  cover: string;
               }
             | undefined,
         signal?: AbortSignal,
@@ -359,6 +437,39 @@ export interface ApiType {
         limit?: number,
         signal?: AbortSignal,
     ): Promise<{ position: number; results: Api.GlobalSearchResult[] }>;
+    getArtistFromTidalArtistId(
+        tidalArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Artist>;
+    getArtistFromTidalAlbumId(
+        tidalAlbumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Artist>;
+    getTidalArtist(
+        tidalArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.TidalArtist>;
+    getTidalArtistAlbums(
+        tidalArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.PagingResponse<Api.TidalAlbum>>;
+    getAlbumFromTidalAlbumId(
+        tidalAlbumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Album>;
+    getTidalAlbum(
+        tidalAlbumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.TidalAlbum>;
+    getTidalAlbumTracks(
+        tidalAlbumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.PagingResponse<Api.TidalTrack>>;
+    getTidalTrackFileUrl(
+        tidalTrackId: number,
+        audioQuality: 'HIGH',
+        signal?: AbortSignal,
+    ): Promise<string>;
 }
 
 async function getArtist(
@@ -383,12 +494,19 @@ function getAlbumArtwork(
               albumId: number;
               containsCover: boolean;
           }
+        | {
+              cover: string;
+          }
         | undefined,
     width: number,
     height: number,
 ): string {
-    if (album?.containsCover) {
-        return Api.getPath(`albums/${album.albumId}/${width}x${height}`);
+    if (typeof album !== 'undefined') {
+        if ('cover' in album && typeof album.cover === 'string') {
+            return album.cover;
+        } else if ('containsCover' in album && album.containsCover) {
+            return Api.getPath(`albums/${album.albumId}/${width}x${height}`);
+        }
     }
     return '/img/album.svg';
 }
@@ -399,10 +517,18 @@ function getAlbumSourceArtwork(
               albumId: number;
               containsCover: boolean;
           }
+        | {
+              cover: string;
+          }
         | undefined,
 ): string {
-    if (album?.containsCover) {
-        return Api.getPath(`albums/${album.albumId}/source`);
+    if (typeof album !== 'undefined') {
+        if ('cover' in album && typeof album.cover === 'string') {
+            return album.cover;
+        }
+        if ('containsCover' in album && album?.containsCover) {
+            return Api.getPath(`albums/${album.albumId}/source`);
+        }
     }
     return '/img/album.svg';
 }
@@ -463,10 +589,17 @@ function getArtistCover(
               artistId: number;
               containsCover: boolean;
           }
+        | {
+              cover: string;
+          }
         | undefined,
 ): string {
-    if (artist?.containsCover) {
-        return Api.getPath(`artists/${artist.artistId}/300x300`);
+    if (typeof artist !== 'undefined') {
+        if ('cover' in artist && typeof artist.cover === 'string') {
+            return artist.cover;
+        } else if ('containsCover' in artist && artist.containsCover) {
+            return Api.getPath(`artists/${artist.artistId}/300x300`);
+        }
     }
     return '/img/album.svg';
 }
@@ -642,6 +775,144 @@ async function globalSearch(
     return await response.json();
 }
 
+async function getArtistFromTidalArtistId(
+    tidalArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Artist> {
+    const query = new QueryParams({
+        tidalArtistId: `${tidalArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getArtistFromTidalAlbumId(
+    tidalAlbumId: number,
+    signal?: AbortSignal,
+): Promise<Api.Artist> {
+    const query = new QueryParams({
+        tidalAlbumId: `${tidalAlbumId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getTidalArtist(
+    tidalArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.TidalArtist> {
+    const query = new QueryParams({
+        artistId: `${tidalArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/tidal/artists?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getTidalArtistAlbums(
+    tidalArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.PagingResponse<Api.TidalAlbum>> {
+    const query = new QueryParams({
+        artistId: `${tidalArtistId}`,
+    });
+
+    const response = await request(
+        `${Api.apiUrl()}/tidal/artists/albums?${query}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
+async function getAlbumFromTidalAlbumId(
+    tidalAlbumId: number,
+    signal?: AbortSignal,
+): Promise<Api.Album> {
+    const query = new QueryParams({
+        tidalAlbumId: `${tidalAlbumId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getTidalAlbum(
+    tidalAlbumId: number,
+    signal?: AbortSignal,
+): Promise<Api.TidalAlbum> {
+    const query = new QueryParams({
+        albumId: `${tidalAlbumId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/tidal/albums?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getTidalAlbumTracks(
+    tidalAlbumId: number,
+    signal?: AbortSignal,
+): Promise<Api.PagingResponse<Api.TidalTrack>> {
+    const query = new QueryParams({
+        albumId: `${tidalAlbumId}`,
+    });
+
+    const response = await request(
+        `${Api.apiUrl()}/tidal/albums/tracks?${query}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
+async function getTidalTrackFileUrl(
+    tidalTrackId: number,
+    audioQuality: 'HIGH',
+    signal?: AbortSignal,
+): Promise<string> {
+    const query = new QueryParams({
+        audioQuality,
+        trackId: `${tidalTrackId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/tidal/track/url?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    const { urls } = await response.json();
+
+    return urls[0];
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -731,4 +1002,12 @@ export const api: ApiType = {
     validateSignatureToken,
     magicToken,
     globalSearch,
+    getArtistFromTidalArtistId,
+    getArtistFromTidalAlbumId,
+    getAlbumFromTidalAlbumId,
+    getTidalArtist,
+    getTidalArtistAlbums,
+    getTidalAlbum,
+    getTidalAlbumTracks,
+    getTidalTrackFileUrl,
 };

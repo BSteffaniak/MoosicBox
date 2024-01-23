@@ -1,17 +1,28 @@
 import './artist.css';
-import { Api, api } from '~/services/api';
+import { Api, Artist, api } from '~/services/api';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
 
-function artistDetails(artist: Api.Artist, showTitle = true) {
+function artistRoute(artist: Artist): string {
+    const artistType = artist.type;
+
+    switch (artistType) {
+        case 'LIBRARY':
+            return `/artists/${(artist as Api.Artist).artistId}`;
+        case 'TIDAL':
+            return `/tidal/artists/${(artist as Api.TidalArtist).id}`;
+        default:
+            artistType satisfies never;
+            throw new Error(`Invalid artistType: ${artistType}`);
+    }
+}
+
+function artistDetails(artist: Artist, showTitle = true) {
     return (
         <div class="artist-details">
             {showTitle && (
                 <div class="artist-title">
-                    <A
-                        class="artist-title-link"
-                        href={`/artists/${artist.artistId}`}
-                    >
+                    <A class="artist-title-link" href={artistRoute(artist)}>
                         <span class="artist-title-text">{artist.title}</span>
                     </A>
                 </div>
@@ -42,7 +53,7 @@ function artistImage(props: ArtistProps, blur: boolean) {
 type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 type ArtistProps = {
-    artist: Api.Artist;
+    artist: Artist;
     size: number;
     imageRequestSize: number;
     title: boolean;
@@ -78,7 +89,7 @@ export default function artist(
                 style={{ width: `${props.size}px`, height: `${props.size}px` }}
             >
                 {props.route ? (
-                    <A href={`/artists/${props.artist.artistId}`}>
+                    <A href={artistRoute(props.artist)}>
                         {artistImage(props as ArtistProps, blur())}
                     </A>
                 ) : (

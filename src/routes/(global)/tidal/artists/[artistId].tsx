@@ -8,41 +8,27 @@ import { Api, api } from '~/services/api';
 
 export default function albumPage() {
     const params = useParams();
-    const [artist, setArtist] = createSignal<Api.Artist>();
-    const [albums, setAlbums] = createSignal<Api.Album[]>();
-    const [tidalAlbums, setTidalAlbums] = createSignal<Api.TidalAlbum[]>();
+    const [artist, setArtist] = createSignal<Api.TidalArtist>();
+    const [albums, setAlbums] = createSignal<Api.TidalAlbum[]>();
 
     createEffect(async () => {
         if (isServer) return;
-        const [{ tidalAlbums }, _albums] = await Promise.all([
+        await Promise.all([
             (async () => {
-                const artist = await api.getArtist(parseInt(params.artistId));
-                setArtist(artist);
-                const returned: {
-                    artist: Api.Artist;
-                    tidalAlbums?: Api.TidalAlbum[];
-                } = {
-                    artist,
-                };
-                if (typeof artist.tidalId === 'number') {
-                    returned.tidalAlbums = (
-                        await api.getTidalArtistAlbums(artist.tidalId)
-                    ).items;
-                }
-                return returned;
-            })(),
-            (async () => {
-                const albums = await api.getArtistAlbums(
+                const artist = await api.getTidalArtist(
                     parseInt(params.artistId),
                 );
+                setArtist(artist);
+                return artist;
+            })(),
+            (async () => {
+                const albums = (
+                    await api.getTidalArtistAlbums(parseInt(params.artistId))
+                ).items;
                 setAlbums(albums);
                 return albums;
             })(),
         ]);
-
-        if (tidalAlbums) {
-            setTidalAlbums(tidalAlbums);
-        }
     });
 
     return (
@@ -78,7 +64,7 @@ export default function albumPage() {
                             </div>
                         </div>
                     </div>
-                    <h1 class="artist-page-albums-header">Albums in Library</h1>
+                    <h1 class="artist-page-albums-header">Albums on Tidal</h1>
                     <div class="artist-page-albums">
                         <For each={albums()}>
                             {(album) => (
@@ -93,25 +79,6 @@ export default function albumPage() {
                             )}
                         </For>
                     </div>
-                    <Show when={(tidalAlbums()?.length ?? 0) > 0}>
-                        <h1 class="artist-page-albums-header">
-                            Albums on Tidal
-                        </h1>
-                        <div class="artist-page-albums">
-                            <For each={tidalAlbums()}>
-                                {(album) => (
-                                    <Album
-                                        album={album}
-                                        artist={true}
-                                        title={true}
-                                        controls={true}
-                                        versionQualities={true}
-                                        size={200}
-                                    />
-                                )}
-                            </For>
-                        </div>
-                    </Show>
                 </div>
             </div>
         </>
