@@ -21,13 +21,10 @@ export default function albumPage() {
                 setArtist(artist);
                 return artist;
             })(),
-            (async () => {
-                const albums = (
-                    await api.getTidalArtistAlbums(parseInt(params.artistId))
-                ).items;
-                setAlbums(albums);
-                return albums;
-            })(),
+            await api.getAllTidalArtistAlbums(
+                parseInt(params.artistId),
+                setAlbums,
+            ),
         ]);
     });
 

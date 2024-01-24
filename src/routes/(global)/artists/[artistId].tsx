@@ -14,20 +14,25 @@ export default function albumPage() {
 
     createEffect(async () => {
         if (isServer) return;
-        const [{ tidalAlbums }, _albums] = await Promise.all([
+        await Promise.all([
             (async () => {
                 const artist = await api.getArtist(parseInt(params.artistId));
                 setArtist(artist);
                 const returned: {
                     artist: Api.Artist;
-                    tidalAlbums?: Api.TidalAlbum[];
+                    tidalAlbums?: {
+                        lps: Api.TidalAlbum[];
+                        epsAndSingles: Api.TidalAlbum[];
+                        compilations: Api.TidalAlbum[];
+                    };
                 } = {
                     artist,
                 };
                 if (typeof artist.tidalId === 'number') {
-                    returned.tidalAlbums = (
-                        await api.getTidalArtistAlbums(artist.tidalId)
-                    ).items;
+                    returned.tidalAlbums = await api.getAllTidalArtistAlbums(
+                        artist.tidalId,
+                        setTidalAlbums,
+                    );
                 }
                 return returned;
             })(),
@@ -39,10 +44,6 @@ export default function albumPage() {
                 return albums;
             })(),
         ]);
-
-        if (tidalAlbums) {
-            setTidalAlbums(tidalAlbums);
-        }
     });
 
     return (

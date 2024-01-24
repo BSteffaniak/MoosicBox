@@ -1,6 +1,6 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import { createSignal } from 'solid-js';
+import { Setter, createSignal } from 'solid-js';
 import { QueryParams, createListener } from './util';
 
 function getDefaultApiUrl(): string {
@@ -243,6 +243,8 @@ export namespace Api {
         type: 'TIDAL';
     }
 
+    export type TidalAlbumType = 'LP' | 'EPS_AND_SINGLES' | 'COMPILATIONS';
+
     export interface Track {
         trackId: number;
         number: number;
@@ -468,8 +470,18 @@ export interface ApiType {
         tidalArtistId: number,
         signal?: AbortSignal,
     ): Promise<Api.TidalArtist>;
+    getAllTidalArtistAlbums(
+        tidalArtistId: number,
+        setter?: Setter<Api.TidalAlbum[] | undefined>,
+        signal?: AbortSignal,
+    ): Promise<{
+        lps: Api.TidalAlbum[];
+        epsAndSingles: Api.TidalAlbum[];
+        compilations: Api.TidalAlbum[];
+    }>;
     getTidalArtistAlbums(
         tidalArtistId: number,
+        albumType?: Api.TidalAlbumType,
         signal?: AbortSignal,
     ): Promise<Api.PagingResponse<Api.TidalAlbum>>;
     getAlbumFromTidalAlbumId(
@@ -930,13 +942,107 @@ async function getTidalArtist(
     return await response.json();
 }
 
+export function sortTidalAlbumsByDateDesc(
+    albums: Api.TidalAlbum[],
+): Api.TidalAlbum[] {
+    return albums.toSorted((a, b) =>
+        b.dateReleased.localeCompare(a.dateReleased),
+    );
+}
+
+async function getAllTidalArtistAlbums(
+    tidalArtistId: number,
+    setter?: Setter<Api.TidalAlbum[] | undefined>,
+    signal?: AbortSignal,
+): Promise<{
+    lps: Api.TidalAlbum[];
+    epsAndSingles: Api.TidalAlbum[];
+    compilations: Api.TidalAlbum[];
+}> {
+    const albums: Awaited<ReturnType<typeof getAllTidalArtistAlbums>> = {
+        lps: [],
+        epsAndSingles: [],
+        compilations: [],
+    };
+
+    await Promise.all([
+        (async () => {
+            const page = await api.getTidalArtistAlbums(
+                tidalArtistId,
+                'LP',
+                signal,
+            );
+
+            albums.lps = page.items;
+
+            if (setter) {
+                const { lps, epsAndSingles, compilations } = albums;
+                setter(
+                    sortTidalAlbumsByDateDesc([
+                        ...lps,
+                        ...epsAndSingles,
+                        ...compilations,
+                    ]),
+                );
+            }
+        })(),
+        (async () => {
+            const page = await api.getTidalArtistAlbums(
+                tidalArtistId,
+                'EPS_AND_SINGLES',
+                signal,
+            );
+
+            if (setter) {
+                albums.epsAndSingles = page.items;
+
+                const { lps, epsAndSingles, compilations } = albums;
+                setter(
+                    sortTidalAlbumsByDateDesc([
+                        ...lps,
+                        ...epsAndSingles,
+                        ...compilations,
+                    ]),
+                );
+            }
+        })(),
+        (async () => {
+            const page = await api.getTidalArtistAlbums(
+                tidalArtistId,
+                'COMPILATIONS',
+                signal,
+            );
+
+            if (setter) {
+                albums.compilations = page.items;
+
+                const { lps, epsAndSingles, compilations } = albums;
+                setter(
+                    sortTidalAlbumsByDateDesc([
+                        ...lps,
+                        ...epsAndSingles,
+                        ...compilations,
+                    ]),
+                );
+            }
+        })(),
+    ]);
+
+    return albums;
+}
+
 async function getTidalArtistAlbums(
     tidalArtistId: number,
+    albumType?: Api.TidalAlbumType,
     signal?: AbortSignal,
 ): Promise<Api.PagingResponse<Api.TidalAlbum>> {
     const query = new QueryParams({
         artistId: `${tidalArtistId}`,
     });
+
+    if (albumType) {
+        query.set('albumType', albumType);
+    }
 
     const response = await request(
         `${Api.apiUrl()}/tidal/artists/albums?${query}`,
@@ -1130,6 +1236,7 @@ export const api: ApiType = {
     getArtistFromTidalAlbumId,
     getAlbumFromTidalAlbumId,
     getTidalArtist,
+    getAllTidalArtistAlbums,
     getTidalArtistAlbums,
     getTidalAlbum,
     getTidalAlbumTracks,
