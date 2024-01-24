@@ -484,6 +484,10 @@ export interface ApiType {
         tidalAlbumId: number,
         signal?: AbortSignal,
     ): Promise<Api.PagingResponse<Api.TidalTrack>>;
+    getTidalTrack(
+        tidalTrackId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.TidalTrack>;
     getTidalTrackFileUrl(
         tidalTrackId: number,
         audioQuality: 'HIGH',
@@ -996,6 +1000,22 @@ async function getTidalAlbumTracks(
     return await response.json();
 }
 
+async function getTidalTrack(
+    tidalTrackId: number,
+    signal?: AbortSignal,
+): Promise<Api.TidalTrack> {
+    const query = new QueryParams({
+        trackId: `${tidalTrackId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/tidal/track?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 async function getTidalTrackFileUrl(
     tidalTrackId: number,
     audioQuality: 'HIGH',
@@ -1113,5 +1133,6 @@ export const api: ApiType = {
     getTidalArtistAlbums,
     getTidalAlbum,
     getTidalAlbumTracks,
+    getTidalTrack,
     getTidalTrackFileUrl,
 };
