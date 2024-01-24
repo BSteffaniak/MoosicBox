@@ -29,6 +29,23 @@ export function trackId(track: Track | undefined): number | undefined {
         : undefined;
 }
 
+export function toSessionPlaylistTrack(
+    track: Track,
+): Api.UpdateSessionPlaylistTrack {
+    if (track.type === 'LIBRARY') {
+        return {
+            id: track.trackId,
+            type: track.type,
+        };
+    } else {
+        return {
+            id: track.id,
+            type: track.type,
+            data: JSON.stringify(track),
+        };
+    }
+}
+
 export namespace Api {
     const onApiUrlUpdatedListeners = createListener<(url: string) => void>();
     export const onApiUrlUpdated = onApiUrlUpdatedListeners.on;
@@ -285,6 +302,29 @@ export namespace Api {
 
     export interface PlaybackQuality {
         format: keyof typeof AudioFormat;
+    }
+
+    export interface UpdatePlaybackSession {
+        sessionId: number;
+        name?: string;
+        active?: boolean;
+        playing?: boolean;
+        position?: number;
+        seek?: number;
+        volume?: number;
+        activePlayers?: Player[];
+        playlist?: UpdatePlaybackSessionPlaylist;
+    }
+
+    export interface UpdatePlaybackSessionPlaylist {
+        sessionPlaylistId: number;
+        tracks: UpdateSessionPlaylistTrack[];
+    }
+
+    export interface UpdateSessionPlaylistTrack {
+        id: number;
+        type: TrackType;
+        data?: string;
     }
 
     export interface PlaybackSession {

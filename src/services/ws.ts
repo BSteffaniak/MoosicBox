@@ -1,6 +1,6 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api, Track, TrackType } from './api';
+import { Api, Track, toSessionPlaylistTrack } from './api';
 import { onStartup, setAppState } from './app';
 import { PartialUpdateSession } from './types';
 import { createListener } from './util';
@@ -211,29 +211,7 @@ export interface CreateSession {
 }
 
 export interface CreateSessionPlaylist {
-    tracks: SessionPlaylistTrack[];
-}
-
-export interface UpdateSession {
-    sessionId: number;
-    name?: string;
-    active?: boolean;
-    playing?: boolean;
-    position?: number;
-    seek?: number;
-    volume?: number;
-    playlist?: UpdateSessionPlaylist;
-}
-
-interface SessionPlaylistTrack {
-    id: number;
-    type: TrackType;
-    data?: string;
-}
-
-interface UpdateSessionPlaylist {
-    sessionPlaylistId: number;
-    tracks: SessionPlaylistTrack[];
+    tracks: Api.UpdateSessionPlaylistTrack[];
 }
 
 interface CreateSessionMessage extends OutboundMessage {
@@ -243,7 +221,7 @@ interface CreateSessionMessage extends OutboundMessage {
 
 interface UpdateSessionMessage extends OutboundMessage {
     type: OutboundMessageType.UPDATE_SESSION;
-    payload: UpdateSession;
+    payload: Api.UpdatePlaybackSession;
 }
 
 interface DeleteSessionMessage extends OutboundMessage {
@@ -312,21 +290,6 @@ export function activateSession(sessionId: number) {
     updateSession({ sessionId, active: true });
 }
 
-function toSessionPlaylistTrack(track: Track): SessionPlaylistTrack {
-    if (track.type === 'LIBRARY') {
-        return {
-            id: track.trackId,
-            type: track.type,
-        };
-    } else {
-        return {
-            id: track.id,
-            type: track.type,
-            data: JSON.stringify(track),
-        };
-    }
-}
-
 export function createSession(session: CreateSessionRequest) {
     send<CreateSessionMessage>({
         type: OutboundMessageType.CREATE_SESSION,
@@ -340,13 +303,15 @@ export function createSession(session: CreateSessionRequest) {
     });
 }
 
-export function updateSession(session: PartialUpdateSession) {
-    const payload: UpdateSession = { ...session, playlist: undefined };
+export function updateSession(session: Api.UpdatePlaybackSession) {
+    const payload: Api.UpdatePlaybackSession = {
+        ...session,
+        playlist: undefined,
+    };
 
     if (session.playlist) {
         payload.playlist = {
             ...session.playlist,
-            tracks: session.playlist.tracks.map(toSessionPlaylistTrack),
         };
     } else {
         delete payload.playlist;

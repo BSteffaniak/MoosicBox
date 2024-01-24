@@ -3,7 +3,7 @@ import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import { Album, Api, Track, api } from './api';
+import { Album, Api, Track, api, toSessionPlaylistTrack } from './api';
 import { createStore, produce } from 'solid-js/store';
 import { createListener, orderedEntries } from './util';
 import { PartialBy, PartialUpdateSession } from './types';
@@ -645,7 +645,9 @@ async function updatePlayback(
                     sessionUpdate.volume = value;
                     break;
                 case 'tracks':
-                    sessionUpdate.playlist = { tracks: value };
+                    sessionUpdate.playlist = {
+                        tracks: value,
+                    };
                     break;
                 case 'quality':
                     break;
@@ -672,7 +674,10 @@ function updateCurrentPlaybackSession(
         PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
         'playlist'
     > & {
-        playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'sessionPlaylistId'>;
+        playlist?: PartialBy<
+            Omit<Api.UpdatePlaybackSessionPlaylist, 'tracks'>,
+            'sessionPlaylistId'
+        > & { tracks: Track[] };
     },
 ) {
     const session = playerState.currentPlaybackSession;
@@ -687,7 +692,10 @@ function updatePlaybackSession(
         PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
         'playlist'
     > & {
-        playlist?: PartialBy<Api.PlaybackSessionPlaylist, 'sessionPlaylistId'>;
+        playlist?: PartialBy<
+            Omit<Api.UpdatePlaybackSessionPlaylist, 'tracks'>,
+            'sessionPlaylistId'
+        > & { tracks: Track[] };
     },
 ) {
     setPlayerState(
@@ -705,7 +713,26 @@ function updatePlaybackSession(
                         playlist.sessionPlaylistId;
                 }
                 updateSessionPartial(state, request as PartialUpdateSession);
-                ws.updateSession(request as PartialUpdateSession);
+
+                const updatePlaybackSession: Api.UpdatePlaybackSession = {
+                    ...request,
+                    sessionId: session.sessionId!,
+                    playlist: undefined,
+                };
+
+                if (request.playlist) {
+                    updatePlaybackSession.playlist = {
+                        ...request.playlist,
+                        sessionPlaylistId: request.playlist.sessionPlaylistId!,
+                        tracks: request.playlist.tracks.map(
+                            toSessionPlaylistTrack,
+                        ),
+                    };
+                } else {
+                    delete updatePlaybackSession.playlist;
+                }
+
+                ws.updateSession(updatePlaybackSession);
             }
         }),
     );
