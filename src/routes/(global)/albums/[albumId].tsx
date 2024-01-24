@@ -19,6 +19,7 @@ import {
 } from '~/services/formatting';
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api, trackId } from '~/services/api';
+import { artistRoute } from '~/components/Artist/Artist';
 
 export default function albumPage() {
     const params = useParams();
@@ -198,9 +199,7 @@ export default function albumPage() {
                                             </div>
                                             <div class="album-page-album-info-details-album-artist">
                                                 <A
-                                                    href={`/artists/${
-                                                        album().artistId
-                                                    }`}
+                                                    href={artistRoute(album())}
                                                     class="album-page-album-info-details-album-artist-text"
                                                 >
                                                     {album().artist}
@@ -383,8 +382,7 @@ export default function albumPage() {
                                             </td>
                                             <td class="album-page-tracks-track-artist">
                                                 <A
-                                                    href={`/artists/${album()
-                                                        ?.artistId}`}
+                                                    href={artistRoute(track)}
                                                     class="album-page-tracks-track-artist-text"
                                                 >
                                                     {track.artist}

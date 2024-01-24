@@ -14,7 +14,8 @@ import { A, useParams } from 'solid-start';
 import Album from '~/components/Album';
 import { displayDate, toTime } from '~/services/formatting';
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
-import { Api, api, trackId } from '~/services/api';
+import { Album as ApiAlbum, Api, api, Track, trackId } from '~/services/api';
+import { artistRoute as rootArtistRoute } from '~/components/Artist/Artist';
 
 export default function albumPage() {
     const params = useParams();
@@ -59,15 +60,14 @@ export default function albumPage() {
         ]);
     });
 
-    function artistRoute(): string | undefined {
+    function artistRoute(album: ApiAlbum | Track): string | undefined {
         if (typeof libraryArtist() === 'undefined') return;
 
-        if (libraryArtist()) {
-            return `/artists/${libraryArtist()!.artistId}`;
+        if (libraryArtist() && libraryArtist()?.tidalId === album.artistId) {
+            return rootArtistRoute(libraryArtist()!);
         }
-        if (album()) {
-            return `/tidal/artists/${album()!.artistId}`;
-        }
+
+        return rootArtistRoute(album);
     }
 
     async function playAlbumFrom(track: Api.TidalTrack) {
@@ -222,9 +222,13 @@ export default function albumPage() {
                                                 {album().title}
                                             </div>
                                             <div class="album-page-album-info-details-album-artist">
-                                                {artistRoute() ? (
+                                                {artistRoute(album()) ? (
                                                     <A
-                                                        href={artistRoute()!}
+                                                        href={
+                                                            artistRoute(
+                                                                album(),
+                                                            )!
+                                                        }
                                                         class="album-page-album-info-details-album-artist-text"
                                                     >
                                                         {album().artist}
@@ -362,9 +366,11 @@ export default function albumPage() {
                                                 {track.title}
                                             </td>
                                             <td class="album-page-tracks-track-artist">
-                                                {artistRoute() ? (
+                                                {artistRoute(track) ? (
                                                     <A
-                                                        href={artistRoute()!}
+                                                        href={
+                                                            artistRoute(track)!
+                                                        }
                                                         class="album-page-tracks-track-artist-text"
                                                     >
                                                         {track.artist}
