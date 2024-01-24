@@ -261,7 +261,7 @@ function tidalAlbumDetails(
     );
 }
 
-function albumRoute(album: Album | Track): string {
+export function albumRoute(album: Album | Track): string {
     const albumType = album.type;
 
     switch (albumType) {

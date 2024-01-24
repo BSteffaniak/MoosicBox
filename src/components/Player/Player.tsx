@@ -35,6 +35,8 @@ import {
     showPlaybackSessions,
 } from '~/services/app';
 import Volume from '../Volume';
+import { albumRoute } from '../Album/Album';
+import { artistRoute } from '../Artist/Artist';
 
 let mouseX: number;
 
@@ -427,8 +429,9 @@ export default function player() {
                                         <div class="player-now-playing-details">
                                             <div class="player-now-playing-details-title">
                                                 <A
-                                                    href={`/albums/${currentTrack()
-                                                        ?.albumId}`}
+                                                    href={albumRoute(
+                                                        currentTrack(),
+                                                    )}
                                                     title={currentTrack().title}
                                                 >
                                                     {currentTrack().title}
@@ -436,8 +439,9 @@ export default function player() {
                                             </div>
                                             <div class="player-now-playing-details-artist">
                                                 <A
-                                                    href={`/artists/${currentTrack()
-                                                        ?.artistId}`}
+                                                    href={artistRoute(
+                                                        currentTrack(),
+                                                    )}
                                                     title={
                                                         currentTrack().artist
                                                     }
@@ -448,8 +452,9 @@ export default function player() {
                                             <div class="player-now-playing-details-album">
                                                 Playing from:{' '}
                                                 <A
-                                                    href={`/albums/${currentTrack()
-                                                        ?.albumId}`}
+                                                    href={albumRoute(
+                                                        currentTrack(),
+                                                    )}
                                                     title={currentTrack().album}
                                                 >
                                                     {currentTrack().album}
