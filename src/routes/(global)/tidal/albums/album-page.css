@@ -87,7 +87,8 @@
     padding-right: 5px;
 }
 
-.album-page-album-controls-playback-options-button {
+.album-page-album-controls-playback-options-button,
+.album-page-album-controls-playback-add-to-library-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -99,7 +100,8 @@
     margin-right: 10px;
 }
 
-.album-page-album-controls-playback-options-button img {
+.album-page-album-controls-playback-options-button img,
+.album-page-album-controls-playback-add-to-library-button img {
     width: 18px;
     padding-right: 5px;
 }

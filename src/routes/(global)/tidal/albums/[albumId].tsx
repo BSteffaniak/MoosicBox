@@ -19,6 +19,9 @@ import { artistRoute as rootArtistRoute } from '~/components/Artist/Artist';
 
 export default function albumPage() {
     const params = useParams();
+    const [libraryAlbum, setLibraryAlbum] = createSignal<
+        Api.Album | null | undefined
+    >();
     const [libraryArtist, setLibraryArtist] = createSignal<
         Api.Artist | null | undefined
     >();
@@ -29,6 +32,24 @@ export default function albumPage() {
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
 
     let sourceImageRef: HTMLImageElement | undefined;
+
+    async function loadLibraryArtist() {
+        try {
+            setLibraryArtist(
+                await api.getArtistFromTidalArtistId(album()!.artistId),
+            );
+        } catch {
+            setLibraryArtist(null);
+        }
+    }
+
+    async function loadLibraryAlbum() {
+        try {
+            setLibraryAlbum(await api.getAlbumFromTidalAlbumId(album()!.id));
+        } catch {
+            setLibraryAlbum(null);
+        }
+    }
 
     createComputed(async () => {
         setAlbum(undefined);
@@ -42,13 +63,7 @@ export default function albumPage() {
             (async () => {
                 const album = await api.getTidalAlbum(parseInt(params.albumId));
                 setAlbum(album);
-                try {
-                    setLibraryArtist(
-                        await api.getArtistFromTidalArtistId(album.artistId),
-                    );
-                } catch {
-                    setLibraryArtist(null);
-                }
+                await Promise.all([loadLibraryArtist(), loadLibraryAlbum()]);
                 return album;
             })(),
             (async () => {
@@ -302,6 +317,27 @@ export default function albumPage() {
                                     />{' '}
                                     Options
                                 </button>
+                                <Show when={album() && libraryAlbum() === null}>
+                                    <button
+                                        class="album-page-album-controls-playback-add-to-library-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            (async () => {
+                                                await api.addAlbumToLibrary({
+                                                    tidalAlbumId: album()!.id,
+                                                });
+                                                await Promise.all([
+                                                    loadLibraryArtist(),
+                                                    loadLibraryAlbum(),
+                                                ]);
+                                            })();
+                                            return false;
+                                        }}
+                                    >
+                                        Add to Library
+                                    </button>
+                                </Show>
                             </div>
                             <div class="album-page-album-controls-options"></div>
                         </div>

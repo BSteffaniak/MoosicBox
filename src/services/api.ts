@@ -505,6 +505,13 @@ export interface ApiType {
         audioQuality: 'HIGH',
         signal?: AbortSignal,
     ): Promise<string>;
+    addAlbumToLibrary(
+        albumId: {
+            tidalAlbumId?: number;
+            qobuzAlbumId?: number;
+        },
+        signal?: AbortSignal,
+    ): Promise<void>;
 }
 
 async function getArtist(
@@ -1142,6 +1149,31 @@ async function getTidalTrackFileUrl(
     return urls[0];
 }
 
+async function addAlbumToLibrary(
+    albumId: {
+        tidalAlbumId?: number;
+        qobuzAlbumId?: number;
+    },
+    signal?: AbortSignal,
+): Promise<void> {
+    const query = new QueryParams({
+        tidalAlbumId: albumId.tidalAlbumId
+            ? `${albumId.tidalAlbumId}`
+            : undefined,
+        qobuzAlbumId: albumId.qobuzAlbumId
+            ? `${albumId.qobuzAlbumId}`
+            : undefined,
+    });
+
+    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -1242,4 +1274,5 @@ export const api: ApiType = {
     getTidalAlbumTracks,
     getTidalTrack,
     getTidalTrackFileUrl,
+    addAlbumToLibrary,
 };
