@@ -4,6 +4,7 @@ import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
 import { displayAlbumVersionQualities } from '~/services/formatting';
+import { artistRoute } from '../Artist/Artist';
 
 function albumControls(album: Album | Track) {
     return (
@@ -42,59 +43,6 @@ function albumDetails(
     showVersionQualities = true,
     route = true,
 ) {
-    const albumType = album.type;
-
-    switch (albumType) {
-        case 'LIBRARY':
-            if ('number' in album) {
-                return libraryTrackAlbumDetails(
-                    album as Api.Track,
-                    showArtist,
-                    showTitle,
-                    showYear,
-                    route,
-                );
-            } else {
-                return libraryAlbumDetails(
-                    album as Api.Album,
-                    showArtist,
-                    showTitle,
-                    showYear,
-                    showVersionQualities,
-                    route,
-                );
-            }
-        case 'TIDAL':
-            if ('number' in album) {
-                return tidalTrackAlbumDetails(
-                    album as Api.TidalTrack,
-                    showArtist,
-                    showTitle,
-                    route,
-                );
-            } else {
-                return tidalAlbumDetails(
-                    album as Api.TidalAlbum,
-                    showArtist,
-                    showTitle,
-                    showYear,
-                    route,
-                );
-            }
-        default:
-            albumType satisfies never;
-            throw new Error(`Invalid albumType: ${albumType}`);
-    }
-}
-
-function libraryAlbumDetails(
-    album: Album | Track,
-    showArtist = true,
-    showTitle = true,
-    showYear = true,
-    showVersionQualities = true,
-    route = true,
-) {
     return (
         <div class="album-details">
             {showTitle && (
@@ -110,10 +58,7 @@ function libraryAlbumDetails(
             )}
             {showArtist && (
                 <div class="album-artist">
-                    <A
-                        href={`/artists/${album.artistId}`}
-                        class="album-artist-text"
-                    >
+                    <A href={artistRoute(album)} class="album-artist-text">
                         {album.artist}
                     </A>
                 </div>
@@ -130,130 +75,6 @@ function libraryAlbumDetails(
                     <span class="album-version-qualities-text">
                         {album.versions.length > 0 &&
                             displayAlbumVersionQualities(album.versions)}
-                    </span>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function libraryTrackAlbumDetails(
-    track: Api.Track,
-    showArtist = true,
-    showTitle = true,
-    showYear = true,
-    route = true,
-) {
-    return (
-        <div class="album-details">
-            {showTitle && (
-                <div class="album-title">
-                    {route ? (
-                        <A
-                            href={`/albums/${track.albumId}`}
-                            class="album-title-text"
-                        >
-                            {track.title}
-                        </A>
-                    ) : (
-                        <span class="album-title-text">{track.title}</span>
-                    )}
-                </div>
-            )}
-            {showArtist && (
-                <div class="album-artist">
-                    <A
-                        href={`/artists/${track.artistId}`}
-                        class="album-artist-text"
-                    >
-                        {track.artist}
-                    </A>
-                </div>
-            )}
-            {showYear && (
-                <div class="album-year">
-                    <span class="album-year-text">
-                        {track.dateReleased?.substring(0, 4)}
-                    </span>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function tidalTrackAlbumDetails(
-    track: Api.TidalTrack,
-    showArtist = true,
-    showTitle = true,
-    route = true,
-) {
-    return (
-        <div class="album-details">
-            {showTitle && (
-                <div class="album-title">
-                    {route ? (
-                        <A
-                            href={`/albums/${track.albumId}`}
-                            class="album-title-text"
-                        >
-                            {track.title}
-                        </A>
-                    ) : (
-                        <span class="album-title-text">{track.title}</span>
-                    )}
-                </div>
-            )}
-            {showArtist && (
-                <div class="album-artist">
-                    <A
-                        href={`/artists/${track.artistId}`}
-                        class="album-artist-text"
-                    >
-                        {track.artist}
-                    </A>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function tidalAlbumDetails(
-    album: Api.TidalAlbum,
-    showArtist = true,
-    showTitle = true,
-    showYear = true,
-    route = true,
-) {
-    return (
-        <div class="album-details">
-            {showTitle && (
-                <div class="album-title">
-                    {route ? (
-                        <A
-                            href={`/tidal/albums/${album.id}`}
-                            class="album-title-text"
-                        >
-                            {album.title}
-                        </A>
-                    ) : (
-                        <span class="album-title-text">{album.title}</span>
-                    )}
-                </div>
-            )}
-            {showArtist && (
-                <div class="album-artist">
-                    <A
-                        href={`/artists/${album.artistId}`}
-                        class="album-artist-text"
-                    >
-                        {album.artist}
-                    </A>
-                </div>
-            )}
-            {showYear && 'dateReleased' in album && (
-                <div class="album-year">
-                    <span class="album-year-text">
-                        {album.dateReleased?.substring(0, 4)}
                     </span>
                 </div>
             )}
