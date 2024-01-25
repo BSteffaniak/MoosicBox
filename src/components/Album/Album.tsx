@@ -158,7 +158,8 @@ export default function album(
 ) {
     props.size = props.size ?? 200;
     props.imageRequestSize =
-        props.imageRequestSize ?? Math.round(Math.max(200, props.size) * 1.33);
+        props.imageRequestSize ??
+        Math.ceil(Math.round(Math.max(200, props.size) * 1.33) / 20) * 20;
     props.artist = props.artist ?? false;
     props.title = props.title ?? false;
     props.route = props.route ?? true;
