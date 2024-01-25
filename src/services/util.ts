@@ -144,3 +144,18 @@ export function isMobile() {
     })(navigator.userAgent || (('opera' in window && window.opera) as string));
     return check;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function areEqualShallow(a: any, b: any) {
+    for (const key in a) {
+        if (!(key in b) || a[key] !== b[key]) {
+            return false;
+        }
+    }
+    for (const key in b) {
+        if (!(key in a) || a[key] !== b[key]) {
+            return false;
+        }
+    }
+    return true;
+}

@@ -225,6 +225,8 @@ export namespace Api {
         dateReleased: string;
         dateAdded: string;
         versions: AlbumVersionQuality[];
+        tidalId?: number;
+        qobuzId?: number;
         type: 'LIBRARY';
     }
 
@@ -507,6 +509,13 @@ export interface ApiType {
         signal?: AbortSignal,
     ): Promise<string>;
     addAlbumToLibrary(
+        albumId: {
+            tidalAlbumId?: number;
+            qobuzAlbumId?: number;
+        },
+        signal?: AbortSignal,
+    ): Promise<void>;
+    removeAlbumFromLibrary(
         albumId: {
             tidalAlbumId?: number;
             qobuzAlbumId?: number;
@@ -1190,6 +1199,31 @@ async function addAlbumToLibrary(
     return await response.json();
 }
 
+async function removeAlbumFromLibrary(
+    albumId: {
+        tidalAlbumId?: number;
+        qobuzAlbumId?: number;
+    },
+    signal?: AbortSignal,
+): Promise<void> {
+    const query = new QueryParams({
+        tidalAlbumId: albumId.tidalAlbumId
+            ? `${albumId.tidalAlbumId}`
+            : undefined,
+        qobuzAlbumId: albumId.qobuzAlbumId
+            ? `${albumId.qobuzAlbumId}`
+            : undefined,
+    });
+
+    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -1291,4 +1325,5 @@ export const api: ApiType = {
     getTidalTrack,
     getTidalTrackFileUrl,
     addAlbumToLibrary,
+    removeAlbumFromLibrary,
 };

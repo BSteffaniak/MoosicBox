@@ -51,6 +51,13 @@ export default function albumPage() {
         }
     }
 
+    async function removeAlbumFromLibrary() {
+        await api.removeAlbumFromLibrary({
+            tidalAlbumId: album()!.id,
+        });
+        await Promise.all([loadLibraryArtist(), loadLibraryAlbum()]);
+    }
+
     createComputed(async () => {
         setAlbum(undefined);
         setShowingArtwork(false);
@@ -336,6 +343,19 @@ export default function albumPage() {
                                         }}
                                     >
                                         Add to Library
+                                    </button>
+                                </Show>
+                                <Show when={album() && libraryAlbum()}>
+                                    <button
+                                        class="album-page-album-controls-playback-remove-from-library-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            removeAlbumFromLibrary();
+                                            return false;
+                                        }}
+                                    >
+                                        Remove from Library
                                     </button>
                                 </Show>
                             </div>

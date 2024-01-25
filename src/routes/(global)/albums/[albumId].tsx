@@ -10,7 +10,7 @@ import {
     Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { A, useParams } from 'solid-start';
+import { A, useNavigate, useParams } from 'solid-start';
 import Album from '~/components/Album';
 import {
     displayAlbumVersionQuality,
@@ -20,8 +20,10 @@ import {
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import { Api, api, trackId } from '~/services/api';
 import { artistRoute } from '~/components/Artist/Artist';
+import { areEqualShallow } from '~/services/util';
 
 export default function albumPage() {
+    const navigate = useNavigate();
     const params = useParams();
     const [album, setAlbum] = createSignal<Api.Album>();
     const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
@@ -31,6 +33,57 @@ export default function albumPage() {
     const [activeVersion, setActiveVersion] = createSignal<Api.AlbumVersion>();
 
     let sourceImageRef: HTMLImageElement | undefined;
+
+    async function loadAlbum() {
+        const album = await api.getAlbum(parseInt(params.albumId));
+        setAlbum(album);
+        return album;
+    }
+
+    async function loadVersions() {
+        const versions = await api.getAlbumVersions(parseInt(params.albumId));
+        setVersions(versions);
+
+        if (activeVersion()) {
+            const version = versions.find((v) =>
+                areEqualShallow(v, activeVersion()!),
+            );
+            setActiveVersion(version ?? versions[0]);
+        } else {
+            setActiveVersion(versions[0]);
+        }
+
+        return versions;
+    }
+
+    async function loadDetails() {
+        return await Promise.all([loadAlbum(), loadVersions()]);
+    }
+
+    async function removeAlbumFromLibrary() {
+        const promises = [];
+        if (album()?.tidalId) {
+            promises.push(
+                api.removeAlbumFromLibrary({
+                    tidalAlbumId: album()!.tidalId,
+                }),
+            );
+        }
+        if (album()?.qobuzId) {
+            promises.push(
+                api.removeAlbumFromLibrary({
+                    qobuzAlbumId: album()!.qobuzId,
+                }),
+            );
+        }
+        await Promise.all(promises);
+
+        if (album()?.tidalId) {
+            navigate(`/tidal/albums/${album()?.tidalId}`);
+        } else if (album()?.qobuzId) {
+            navigate(`/qobuz/albums/${album()?.qobuzId}`);
+        }
+    }
 
     createComputed(async () => {
         setAlbum(undefined);
@@ -42,10 +95,7 @@ export default function albumPage() {
 
         if (isServer) return;
 
-        setAlbum(await api.getAlbum(parseInt(params.albumId)));
-        const versions = await api.getAlbumVersions(parseInt(params.albumId));
-        setVersions(versions);
-        setActiveVersion(versions[0]);
+        await loadDetails();
     });
 
     async function playAlbumFrom(track: Api.Track) {
@@ -317,6 +367,21 @@ export default function albumPage() {
                                     />{' '}
                                     Options
                                 </button>
+                                <Show
+                                    when={album()?.tidalId || album()?.qobuzId}
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-remove-from-library-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            removeAlbumFromLibrary();
+                                            return false;
+                                        }}
+                                    >
+                                        Remove from Library
+                                    </button>
+                                </Show>
                             </div>
                             <div class="album-page-album-controls-options"></div>
                         </div>
