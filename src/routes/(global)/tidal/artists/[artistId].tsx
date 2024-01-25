@@ -11,6 +11,7 @@ export default function albumPage() {
     const [artist, setArtist] = createSignal<Api.TidalArtist>();
     const [albums, setAlbums] = createSignal<Api.TidalAlbum[]>();
     const [compilations, setCompilations] = createSignal<Api.TidalAlbum[]>();
+    const [epsAndSingles, setEpsAndSingles] = createSignal<Api.TidalAlbum[]>();
 
     createEffect(async () => {
         if (isServer) return;
@@ -24,8 +25,12 @@ export default function albumPage() {
             })(),
             api.getAllTidalArtistAlbums(parseInt(params.artistId), setAlbums, [
                 'LP',
-                'EPS_AND_SINGLES',
             ]),
+            api.getAllTidalArtistAlbums(
+                parseInt(params.artistId),
+                setEpsAndSingles,
+                ['EPS_AND_SINGLES'],
+            ),
             api.getAllTidalArtistAlbums(
                 parseInt(params.artistId),
                 setCompilations,
@@ -82,6 +87,25 @@ export default function albumPage() {
                             )}
                         </For>
                     </div>
+                    <Show when={(epsAndSingles()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            EPs and Singles on Tidal
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={epsAndSingles()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
                     <Show when={(compilations()?.length ?? 0) > 0}>
                         <h1 class="artist-page-albums-header">
                             Compilations on Tidal
