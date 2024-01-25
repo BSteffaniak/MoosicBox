@@ -11,6 +11,8 @@ export default function albumPage() {
     const [artist, setArtist] = createSignal<Api.Artist>();
     const [albums, setAlbums] = createSignal<Api.Album[]>();
     const [tidalAlbums, setTidalAlbums] = createSignal<Api.TidalAlbum[]>();
+    const [tidalCompilations, setTidalCompilations] =
+        createSignal<Api.TidalAlbum[]>();
 
     createEffect(async () => {
         if (isServer) return;
@@ -29,10 +31,24 @@ export default function albumPage() {
                     artist,
                 };
                 if (typeof artist.tidalId === 'number') {
-                    returned.tidalAlbums = await api.getAllTidalArtistAlbums(
-                        artist.tidalId,
-                        setTidalAlbums,
-                    );
+                    const [albums, compilations] = await Promise.all([
+                        api.getAllTidalArtistAlbums(
+                            artist.tidalId,
+                            setTidalAlbums,
+                            ['LP', 'EPS_AND_SINGLES'],
+                        ),
+                        api.getAllTidalArtistAlbums(
+                            artist.tidalId,
+                            setTidalCompilations,
+                            ['COMPILATIONS'],
+                        ),
+                    ]);
+
+                    returned.tidalAlbums = {
+                        lps: albums.lps,
+                        epsAndSingles: albums.epsAndSingles,
+                        compilations: compilations.compilations,
+                    };
                 }
                 return returned;
             })(),
@@ -100,6 +116,25 @@ export default function albumPage() {
                         </h1>
                         <div class="artist-page-albums">
                             <For each={tidalAlbums()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
+                    <Show when={(tidalCompilations()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            Compilations on Tidal
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={tidalCompilations()}>
                                 {(album) => (
                                     <Album
                                         album={album}

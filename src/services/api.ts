@@ -473,6 +473,7 @@ export interface ApiType {
     getAllTidalArtistAlbums(
         tidalArtistId: number,
         setter?: Setter<Api.TidalAlbum[] | undefined>,
+        types?: Api.TidalAlbumType[],
         signal?: AbortSignal,
     ): Promise<{
         lps: Api.TidalAlbum[];
@@ -960,6 +961,7 @@ export function sortTidalAlbumsByDateDesc(
 async function getAllTidalArtistAlbums(
     tidalArtistId: number,
     setter?: Setter<Api.TidalAlbum[] | undefined>,
+    types?: Api.TidalAlbumType[],
     signal?: AbortSignal,
 ): Promise<{
     lps: Api.TidalAlbum[];
@@ -972,68 +974,82 @@ async function getAllTidalArtistAlbums(
         compilations: [],
     };
 
-    await Promise.all([
-        (async () => {
-            const page = await api.getTidalArtistAlbums(
-                tidalArtistId,
-                'LP',
-                signal,
-            );
+    const promises = [];
 
-            albums.lps = page.items;
-
-            if (setter) {
-                const { lps, epsAndSingles, compilations } = albums;
-                setter(
-                    sortTidalAlbumsByDateDesc([
-                        ...lps,
-                        ...epsAndSingles,
-                        ...compilations,
-                    ]),
+    if (!types || types.find((t) => t === 'LP')) {
+        promises.push(
+            (async () => {
+                const page = await api.getTidalArtistAlbums(
+                    tidalArtistId,
+                    'LP',
+                    signal,
                 );
-            }
-        })(),
-        (async () => {
-            const page = await api.getTidalArtistAlbums(
-                tidalArtistId,
-                'EPS_AND_SINGLES',
-                signal,
-            );
 
-            if (setter) {
-                albums.epsAndSingles = page.items;
+                albums.lps = page.items;
 
-                const { lps, epsAndSingles, compilations } = albums;
-                setter(
-                    sortTidalAlbumsByDateDesc([
-                        ...lps,
-                        ...epsAndSingles,
-                        ...compilations,
-                    ]),
+                if (setter) {
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortTidalAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+    if (!types || types.find((t) => t === 'EPS_AND_SINGLES')) {
+        promises.push(
+            (async () => {
+                const page = await api.getTidalArtistAlbums(
+                    tidalArtistId,
+                    'EPS_AND_SINGLES',
+                    signal,
                 );
-            }
-        })(),
-        (async () => {
-            const page = await api.getTidalArtistAlbums(
-                tidalArtistId,
-                'COMPILATIONS',
-                signal,
-            );
 
-            if (setter) {
-                albums.compilations = page.items;
+                if (setter) {
+                    albums.epsAndSingles = page.items;
 
-                const { lps, epsAndSingles, compilations } = albums;
-                setter(
-                    sortTidalAlbumsByDateDesc([
-                        ...lps,
-                        ...epsAndSingles,
-                        ...compilations,
-                    ]),
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortTidalAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+    if (!types || types.find((t) => t === 'COMPILATIONS')) {
+        promises.push(
+            (async () => {
+                const page = await api.getTidalArtistAlbums(
+                    tidalArtistId,
+                    'COMPILATIONS',
+                    signal,
                 );
-            }
-        })(),
-    ]);
+
+                if (setter) {
+                    albums.compilations = page.items;
+
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortTidalAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+
+    await Promise.all(promises);
 
     return albums;
 }

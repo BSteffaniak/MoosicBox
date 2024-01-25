@@ -10,6 +10,7 @@ export default function albumPage() {
     const params = useParams();
     const [artist, setArtist] = createSignal<Api.TidalArtist>();
     const [albums, setAlbums] = createSignal<Api.TidalAlbum[]>();
+    const [compilations, setCompilations] = createSignal<Api.TidalAlbum[]>();
 
     createEffect(async () => {
         if (isServer) return;
@@ -21,9 +22,14 @@ export default function albumPage() {
                 setArtist(artist);
                 return artist;
             })(),
-            await api.getAllTidalArtistAlbums(
+            api.getAllTidalArtistAlbums(parseInt(params.artistId), setAlbums, [
+                'LP',
+                'EPS_AND_SINGLES',
+            ]),
+            api.getAllTidalArtistAlbums(
                 parseInt(params.artistId),
-                setAlbums,
+                setCompilations,
+                ['COMPILATIONS'],
             ),
         ]);
     });
@@ -76,6 +82,25 @@ export default function albumPage() {
                             )}
                         </For>
                     </div>
+                    <Show when={(compilations()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            Compilations on Tidal
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={compilations()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
                 </div>
             </div>
         </>
