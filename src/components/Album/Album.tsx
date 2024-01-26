@@ -1,5 +1,5 @@
 import './album.css';
-import { Album, Api, Track, api } from '~/services/api';
+import { Album, AlbumType, Api, Track, api } from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
@@ -82,21 +82,25 @@ function albumDetails(
     );
 }
 
-export function albumRoute(album: Album | Track): string {
+export function albumRoute(
+    album: Album | Track | { id: number | string; type: AlbumType },
+): string {
     const albumType = album.type;
 
     switch (albumType) {
         case 'LIBRARY':
             if ('number' in album) {
-                return `/albums/${(album as Api.Track).albumId}`;
+                return `/albums?albumId=${(album as Api.Track).albumId}`;
             } else {
-                return `/albums/${(album as Api.Album).albumId}`;
+                return `/albums?albumId=${(album as Api.Album).albumId}`;
             }
         case 'TIDAL':
             if ('number' in album) {
-                return `/tidal/albums/${(album as Api.TidalTrack).albumId}`;
+                return `/albums?tidalAlbumId=${
+                    (album as Api.TidalTrack).albumId
+                }`;
             } else {
-                return `/tidal/albums/${(album as Api.TidalAlbum).id}`;
+                return `/albums?tidalAlbumId=${(album as Api.TidalAlbum).id}`;
             }
         default:
             albumType satisfies never;

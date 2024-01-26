@@ -10,7 +10,7 @@ import {
     Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { A, useNavigate, useParams } from 'solid-start';
+import { A, useNavigate } from 'solid-start';
 import Album from '~/components/Album';
 import {
     displayAlbumVersionQuality,
@@ -18,14 +18,26 @@ import {
     toTime,
 } from '~/services/formatting';
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
-import { Api, api, trackId } from '~/services/api';
+import {
+    Api,
+    Album as ApiAlbum,
+    Track as ApiTrack,
+    api,
+    trackId,
+} from '~/services/api';
 import { artistRoute } from '~/components/Artist/Artist';
 import { areEqualShallow } from '~/services/util';
+import { albumRoute } from '~/components/Album/Album';
 
-export default function albumPage() {
+export default function albumPage(props: {
+    albumId?: number;
+    tidalAlbumId?: number;
+    qobuzAlbumId?: string;
+}) {
     const navigate = useNavigate();
-    const params = useParams();
-    const [album, setAlbum] = createSignal<Api.Album>();
+    const [libraryAlbum, setLibraryAlbum] = createSignal<Api.Album | null>();
+    const [tidalAlbum, setTidalAlbum] = createSignal<Api.TidalAlbum>();
+    const [tidalTracks, setTidalTracks] = createSignal<Api.TidalTrack[]>();
     const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
@@ -34,59 +46,119 @@ export default function albumPage() {
 
     let sourceImageRef: HTMLImageElement | undefined;
 
+    function getAlbum(): ApiAlbum | undefined {
+        return libraryAlbum() ?? tidalAlbum();
+    }
+
+    function getTracks(): ApiTrack[] | undefined {
+        return activeVersion()?.tracks ?? tidalTracks();
+    }
+
+    async function loadLibraryAlbum() {
+        try {
+            if (props.albumId) {
+                const libraryAlbum = await api.getAlbum(props.albumId);
+                setLibraryAlbum(libraryAlbum);
+            } else if (props.tidalAlbumId) {
+                const libraryAlbum = await api.getAlbumFromTidalAlbumId(
+                    props.tidalAlbumId,
+                );
+                setLibraryAlbum(libraryAlbum);
+            }
+        } catch {
+            setLibraryAlbum(null);
+        }
+    }
+
     async function loadAlbum() {
-        const album = await api.getAlbum(parseInt(params.albumId));
-        setAlbum(album);
-        return album;
+        if (props.albumId) {
+            loadLibraryAlbum();
+        } else if (props.tidalAlbumId) {
+            await Promise.all([
+                loadLibraryAlbum(),
+                (async () => {
+                    const page = await api.getTidalAlbumTracks(
+                        props.tidalAlbumId!,
+                    );
+                    const tidalTracks = page.items;
+                    setTidalTracks(tidalTracks);
+                })(),
+                (async () => {
+                    const tidalAlbum = await api.getTidalAlbum(
+                        props.tidalAlbumId!,
+                    );
+                    setTidalAlbum(tidalAlbum);
+                })(),
+            ]);
+        }
     }
 
     async function loadVersions() {
-        const versions = await api.getAlbumVersions(parseInt(params.albumId));
-        setVersions(versions);
+        if (props.albumId) {
+            const versions = await api.getAlbumVersions(props.albumId);
+            setVersions(versions);
 
-        if (activeVersion()) {
-            const version = versions.find((v) =>
-                areEqualShallow(v, activeVersion()!),
-            );
-            setActiveVersion(version ?? versions[0]);
-        } else {
-            setActiveVersion(versions[0]);
+            if (activeVersion()) {
+                const version = versions.find((v) =>
+                    areEqualShallow(v, activeVersion()!),
+                );
+                setActiveVersion(version ?? versions[0]);
+            } else {
+                setActiveVersion(versions[0]);
+            }
+
+            return versions;
         }
-
-        return versions;
     }
 
     async function loadDetails() {
         return await Promise.all([loadAlbum(), loadVersions()]);
     }
 
+    async function addAlbumToLibrary() {
+        if (tidalAlbum()) {
+            await api.addAlbumToLibrary({
+                tidalAlbumId: tidalAlbum()!.id,
+            });
+            await loadDetails();
+        }
+    }
+
     async function removeAlbumFromLibrary() {
         const promises = [];
-        if (album()?.tidalId) {
-            promises.push(
-                api.removeAlbumFromLibrary({
-                    tidalAlbumId: album()!.tidalId,
-                }),
-            );
-        }
-        if (album()?.qobuzId) {
-            promises.push(
-                api.removeAlbumFromLibrary({
-                    qobuzAlbumId: album()!.qobuzId,
-                }),
-            );
-        }
-        await Promise.all(promises);
 
-        if (album()?.tidalId) {
-            navigate(`/tidal/albums/${album()?.tidalId}`);
-        } else if (album()?.qobuzId) {
-            navigate(`/qobuz/albums/${album()?.qobuzId}`);
+        const tidalAlbumId = libraryAlbum()?.tidalId;
+        const qobuzAlbumId = libraryAlbum()?.qobuzId;
+
+        if (tidalAlbumId) {
+            promises.push(
+                api.removeAlbumFromLibrary({
+                    tidalAlbumId,
+                }),
+            );
+        }
+        if (qobuzAlbumId) {
+            promises.push(
+                api.removeAlbumFromLibrary({
+                    qobuzAlbumId,
+                }),
+            );
+        }
+
+        await Promise.all(promises);
+        setLibraryAlbum(null);
+
+        if (tidalAlbumId) {
+            navigate(albumRoute({ id: tidalAlbumId, type: 'TIDAL' }));
+        } else if (qobuzAlbumId) {
+            // navigate(
+            //     albumRoute({ id: qobuzAlbumId, type: 'QOBUZ' }),
+            // );
         }
     }
 
     createComputed(async () => {
-        setAlbum(undefined);
+        setLibraryAlbum(undefined);
         setVersions(undefined);
         setShowingArtwork(false);
         setBlurringArtwork(undefined);
@@ -98,8 +170,8 @@ export default function albumPage() {
         await loadDetails();
     });
 
-    async function playAlbumFrom(track: Api.Track) {
-        const tracks = activeVersion()!.tracks;
+    async function playAlbumFrom(track: ApiTrack) {
+        const tracks = getTracks()!;
         const playlist = tracks.slice(tracks.indexOf(track));
 
         playPlaylist(playlist);
@@ -108,14 +180,14 @@ export default function albumPage() {
     function albumDuration(): number {
         let duration = 0;
 
-        const tracks = activeVersion()!.tracks;
+        const tracks = getTracks()!;
         tracks.forEach((track) => (duration += track.duration));
 
         return duration;
     }
 
     createComputed(() => {
-        setBlurringArtwork(album()?.blur);
+        setBlurringArtwork(getAlbum()?.blur);
     });
 
     createEffect(
@@ -123,7 +195,7 @@ export default function albumPage() {
             () => showingArtwork(),
             (showing) => {
                 if (!sourceImage() && showing && sourceImageRef) {
-                    sourceImageRef.src = api.getAlbumSourceArtwork(album());
+                    sourceImageRef.src = api.getAlbumSourceArtwork(getAlbum());
                     sourceImageRef.onload = ({ target }) => {
                         const image = target as HTMLImageElement;
                         setSourceImage(image);
@@ -138,7 +210,7 @@ export default function albumPage() {
     }
 
     function showArtwork(): void {
-        setBlurringArtwork(album()?.blur);
+        setBlurringArtwork(getAlbum()?.blur);
         setSourceImage(undefined);
         setShowingArtwork(true);
         setTimeout(() => {
@@ -181,17 +253,19 @@ export default function albumPage() {
                     <img
                         ref={sourceImageRef}
                         style={{
-                            cursor: album()?.blur ? 'pointer' : 'initial',
+                            cursor: getAlbum()?.blur ? 'pointer' : 'initial',
                             visibility: blurringArtwork()
                                 ? 'hidden'
                                 : undefined,
                         }}
-                        onClick={() => album()?.blur && toggleBlurringArtwork()}
+                        onClick={() =>
+                            getAlbum()?.blur && toggleBlurringArtwork()
+                        }
                     />
                     <Show when={blurringArtwork() && sourceImage()}>
                         <img
                             ref={albumArtworkPreviewerIcon}
-                            src={api.getAlbumArtwork(album(), 16, 16)}
+                            src={api.getAlbumArtwork(getAlbum(), 16, 16)}
                             style={{
                                 'image-rendering': 'pixelated',
                                 cursor: 'pointer',
@@ -201,7 +275,7 @@ export default function albumPage() {
                                 top: '0',
                             }}
                             onClick={() =>
-                                album()?.blur && toggleBlurringArtwork()
+                                getAlbum()?.blur && toggleBlurringArtwork()
                             }
                         />
                     </Show>
@@ -212,6 +286,54 @@ export default function albumPage() {
                     )}
                 </div>
             </div>
+        );
+    }
+
+    function track(track: ApiTrack) {
+        return (
+            <tr
+                class={`album-page-tracks-track${
+                    trackId(playerState.currentTrack) === trackId(track)
+                        ? ' playing'
+                        : ''
+                }`}
+                onDblClick={() => playAlbumFrom(track)}
+            >
+                <td
+                    class="album-page-tracks-track-no"
+                    onClick={() => playAlbumFrom(track)}
+                >
+                    <div class="album-page-tracks-track-no-container">
+                        {trackId(playerState.currentTrack) ===
+                        trackId(track) ? (
+                            <img
+                                class="audio-icon"
+                                src="/img/audio-white.svg"
+                                alt="Playing"
+                            />
+                        ) : (
+                            <span class="track-no-text">{track.number}</span>
+                        )}
+                        <img
+                            class="play-button"
+                            src="/img/play-button-white.svg"
+                            alt="Play"
+                        />
+                    </div>
+                </td>
+                <td class="album-page-tracks-track-title">{track.title}</td>
+                <td class="album-page-tracks-track-artist">
+                    <A
+                        href={artistRoute(track)}
+                        class="album-page-tracks-track-artist-text"
+                    >
+                        {track.artist}
+                    </A>
+                </td>
+                <td class="album-page-tracks-track-time">
+                    {toTime(Math.round(track.duration))}
+                </td>
+            </tr>
         );
     }
 
@@ -230,7 +352,7 @@ export default function albumPage() {
                     </div>
                     <div class="album-page-header">
                         <div class="album-page-album-info">
-                            <Show when={album()}>
+                            <Show when={getAlbum()}>
                                 {(album) => (
                                     <>
                                         <div class="album-page-album-info-artwork">
@@ -256,11 +378,7 @@ export default function albumPage() {
                                                 </A>
                                             </div>
                                             <div class="album-page-album-info-details-tracks">
-                                                <Show
-                                                    when={
-                                                        activeVersion()?.tracks
-                                                    }
-                                                >
+                                                <Show when={getTracks()}>
                                                     {(tracks) => (
                                                         <>
                                                             {tracks().length}{' '}
@@ -336,10 +454,8 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        if (activeVersion()) {
-                                            playPlaylist(
-                                                activeVersion()!.tracks,
-                                            );
+                                        if (getTracks()) {
+                                            playPlaylist(getTracks()!);
                                         }
                                         return false;
                                     }}
@@ -355,9 +471,9 @@ export default function albumPage() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        addTracksToQueue(
-                                            activeVersion()!.tracks,
-                                        );
+                                        if (getTracks()) {
+                                            addTracksToQueue(getTracks()!);
+                                        }
                                         return false;
                                     }}
                                 >
@@ -368,7 +484,27 @@ export default function albumPage() {
                                     Options
                                 </button>
                                 <Show
-                                    when={album()?.tidalId || album()?.qobuzId}
+                                    when={
+                                        tidalAlbum() && libraryAlbum() === null
+                                    }
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-add-to-library-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            addAlbumToLibrary();
+                                            return false;
+                                        }}
+                                    >
+                                        Add to Library
+                                    </button>
+                                </Show>
+                                <Show
+                                    when={
+                                        libraryAlbum()?.tidalId ||
+                                        libraryAlbum()?.qobuzId
+                                    }
                                 >
                                     <button
                                         class="album-page-album-controls-playback-remove-from-library-button"
@@ -400,67 +536,8 @@ export default function albumPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            <Show when={activeVersion()?.tracks}>
-                                <For each={activeVersion()!.tracks}>
-                                    {(track) => (
-                                        <tr
-                                            class={`album-page-tracks-track${
-                                                trackId(
-                                                    playerState.currentTrack,
-                                                ) === track.trackId
-                                                    ? ' playing'
-                                                    : ''
-                                            }`}
-                                            onDblClick={() =>
-                                                playAlbumFrom(track)
-                                            }
-                                        >
-                                            <td
-                                                class="album-page-tracks-track-no"
-                                                onClick={() =>
-                                                    playAlbumFrom(track)
-                                                }
-                                            >
-                                                <div class="album-page-tracks-track-no-container">
-                                                    {trackId(
-                                                        playerState.currentTrack,
-                                                    ) === track.trackId ? (
-                                                        <img
-                                                            class="audio-icon"
-                                                            src="/img/audio-white.svg"
-                                                            alt="Playing"
-                                                        />
-                                                    ) : (
-                                                        <span class="track-no-text">
-                                                            {track.number}
-                                                        </span>
-                                                    )}
-                                                    <img
-                                                        class="play-button"
-                                                        src="/img/play-button-white.svg"
-                                                        alt="Play"
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td class="album-page-tracks-track-title">
-                                                {track.title}
-                                            </td>
-                                            <td class="album-page-tracks-track-artist">
-                                                <A
-                                                    href={artistRoute(track)}
-                                                    class="album-page-tracks-track-artist-text"
-                                                >
-                                                    {track.artist}
-                                                </A>
-                                            </td>
-                                            <td class="album-page-tracks-track-time">
-                                                {toTime(
-                                                    Math.round(track.duration),
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )}
-                                </For>
+                            <Show when={getTracks()}>
+                                <For each={getTracks()!}>{track}</For>
                             </Show>
                         </tbody>
                     </table>
