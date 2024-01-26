@@ -120,10 +120,11 @@ export namespace Api {
     }
 
     export type GlobalSearchResultType = 'ARTIST' | 'ALBUM' | 'TRACK';
-    export type GlobalSearchResult =
+    export type GlobalSearchResult = (
         | GlobalArtistSearchResult
         | GlobalAlbumSearchResult
-        | GlobalTrackSearchResult;
+        | GlobalTrackSearchResult
+    ) & { type: GlobalSearchResultType };
 
     export interface GlobalArtistSearchResult {
         type: 'ARTIST';
@@ -449,7 +450,7 @@ export interface ApiType {
     validateSignatureTokenAndClient(
         signature: string,
         signal?: AbortSignal,
-    ): Promise<boolean>;
+    ): Promise<{ valid?: boolean; notFound?: boolean }>;
     magicToken(
         magicToken: string,
         signal?: AbortSignal,
@@ -491,6 +492,10 @@ export interface ApiType {
         tidalAlbumId: number,
         signal?: AbortSignal,
     ): Promise<Api.Album>;
+    getLibraryAlbumsFromTidalArtistId(
+        tidalArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Album[]>;
     getTidalAlbum(
         tidalAlbumId: number,
         signal?: AbortSignal,
@@ -823,10 +828,23 @@ async function fetchSignatureToken(
     return payload?.token;
 }
 
+const [nonTunnelApis, setNonTunnelApis] = makePersisted(
+    createSignal<string[]>([]),
+    {
+        name: 'nonTunnelApis',
+    },
+);
+
 async function validateSignatureTokenAndClient(
     signature: string,
     signal?: AbortSignal,
-): Promise<boolean> {
+): Promise<{ valid?: boolean; notFound?: boolean }> {
+    const apis = nonTunnelApis();
+
+    if (apis.includes(Api.apiUrl())) {
+        return { notFound: true };
+    }
+
     try {
         const response = await request(
             `${Api.apiUrl()}/auth/validate-signature-token?signature=${signature}`,
@@ -837,11 +855,16 @@ async function validateSignatureTokenAndClient(
             },
         );
 
+        if (response.status === 404) {
+            setNonTunnelApis([...apis, Api.apiUrl()]);
+            return { notFound: true };
+        }
+
         const payload = await response.json();
 
-        return payload.valid;
+        return { valid: payload.valid };
     } catch {
-        return false;
+        return { valid: false };
     }
 }
 
@@ -867,7 +890,13 @@ async function validateSignatureToken(): Promise<void> {
         return;
     }
 
-    const valid = await api.validateSignatureTokenAndClient(existing);
+    const { valid, notFound } =
+        await api.validateSignatureTokenAndClient(existing);
+
+    if (notFound) {
+        console.debug('Not hitting tunnel server');
+        return;
+    }
 
     if (!valid) {
         await api.refetchSignatureToken();
@@ -1103,6 +1132,22 @@ async function getAlbumFromTidalAlbumId(
     return await response.json();
 }
 
+async function getLibraryAlbumsFromTidalArtistId(
+    tidalArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Album[]> {
+    const query = new QueryParams({
+        tidalArtistId: `${tidalArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 async function getTidalAlbum(
     tidalAlbumId: number,
     signal?: AbortSignal,
@@ -1320,6 +1365,7 @@ export const api: ApiType = {
     getTidalArtist,
     getAllTidalArtistAlbums,
     getTidalArtistAlbums,
+    getLibraryAlbumsFromTidalArtistId,
     getTidalAlbum,
     getTidalAlbumTracks,
     getTidalTrack,

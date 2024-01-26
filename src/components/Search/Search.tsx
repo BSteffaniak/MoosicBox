@@ -13,6 +13,8 @@ import Artist from '../Artist';
 import Album from '../Album';
 import { isServer } from 'solid-js/web';
 import { A } from 'solid-start';
+import { artistRoute } from '../Artist/Artist';
+import { albumRoute } from '../Album/Album';
 
 let searchResultsRefStyles: CSSStyleDeclaration | undefined = undefined;
 
@@ -89,13 +91,18 @@ export default function searchInput() {
     }
 
     function searchResultLink(result: Api.GlobalSearchResult): string {
-        switch (result.type) {
+        const resultType = result.type;
+
+        switch (resultType) {
             case 'ARTIST':
-                return `/artists/${result.artistId}`;
+                return artistRoute({ id: result.artistId, type: 'LIBRARY' });
             case 'ALBUM':
-                return `/albums/${result.albumId}`;
+                return albumRoute({ id: result.albumId, type: 'LIBRARY' });
             case 'TRACK':
-                return `/albums/${result.albumId}`;
+                return albumRoute({ id: result.albumId, type: 'LIBRARY' });
+            default:
+                resultType satisfies never;
+                throw new Error(`Invalid result type: ${resultType}`);
         }
     }
 
@@ -124,7 +131,10 @@ export default function searchInput() {
                                 -
                             </span>{' '}
                             <A
-                                href={`/artists/${artist.artistId}`}
+                                href={artistRoute({
+                                    id: artist.artistId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
                             >
@@ -156,7 +166,10 @@ export default function searchInput() {
                                 -
                             </span>{' '}
                             <A
-                                href={`/albums/${album.albumId}`}
+                                href={albumRoute({
+                                    id: album.albumId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-album"
                                 tabindex="-1"
                             >
@@ -166,7 +179,10 @@ export default function searchInput() {
                                 by
                             </span>{' '}
                             <A
-                                href={`/artists/${album.artistId}`}
+                                href={artistRoute({
+                                    id: album.artistId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
                             >
@@ -202,7 +218,10 @@ export default function searchInput() {
                                 -
                             </span>{' '}
                             <A
-                                href={`/albums/${track.albumId}`}
+                                href={albumRoute({
+                                    id: track.albumId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-track"
                                 tabindex="-1"
                             >
@@ -212,7 +231,10 @@ export default function searchInput() {
                                 on
                             </span>{' '}
                             <A
-                                href={`/albums/${track.albumId}`}
+                                href={albumRoute({
+                                    id: track.albumId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-album"
                                 tabindex="-1"
                             >
@@ -222,7 +244,10 @@ export default function searchInput() {
                                 by
                             </span>{' '}
                             <A
-                                href={`/artists/${track.artistId}`}
+                                href={artistRoute({
+                                    id: track.artistId,
+                                    type: 'LIBRARY',
+                                })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
                             >

@@ -83,16 +83,24 @@ function albumDetails(
 }
 
 export function albumRoute(
-    album: Album | Track | { id: number | string; type: AlbumType },
+    album:
+        | Album
+        | Track
+        | { id: number | string; type: AlbumType }
+        | { albumId: number | string; type: AlbumType },
 ): string {
     const albumType = album.type;
 
     switch (albumType) {
         case 'LIBRARY':
-            if ('number' in album) {
-                return `/albums?albumId=${(album as Api.Track).albumId}`;
-            } else {
-                return `/albums?albumId=${(album as Api.Album).albumId}`;
+            if ('albumId' in album) {
+                return `/albums?albumId=${
+                    (album as { albumId: number | string }).albumId
+                }`;
+            } else if ('id' in album) {
+                return `/albums?albumId=${
+                    (album as { id: number | string }).id
+                }`;
             }
         case 'TIDAL':
             if ('number' in album) {
@@ -100,7 +108,9 @@ export function albumRoute(
                     (album as Api.TidalTrack).albumId
                 }`;
             } else {
-                return `/albums?tidalAlbumId=${(album as Api.TidalAlbum).id}`;
+                return `/albums?tidalAlbumId=${
+                    (album as { id: number | string }).id
+                }`;
             }
         default:
             albumType satisfies never;

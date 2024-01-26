@@ -1,4 +1,4 @@
-import './artists.css';
+import './artists-page.css';
 import {
     createComputed,
     createSignal,

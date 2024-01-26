@@ -1,19 +1,36 @@
 import './artist.css';
-import { Album, Api, Artist, Track, api } from '~/services/api';
+import { Album, Api, Artist, ArtistType, Track, api } from '~/services/api';
 import { createComputed, createSignal } from 'solid-js';
 import { A } from 'solid-start';
 
-export function artistRoute(artist: Artist | Album | Track): string {
+export function artistRoute(
+    artist:
+        | Artist
+        | Album
+        | Track
+        | { id: number; type: ArtistType }
+        | { artistId: number; type: ArtistType },
+): string {
     const artistType = artist.type;
 
     switch (artistType) {
         case 'LIBRARY':
-            return `/artists/${(artist as Api.Artist).artistId}`;
+            if ('artistId' in artist) {
+                return `/artists?artistId=${
+                    (artist as { artistId: number }).artistId
+                }`;
+            } else {
+                return `/artists?artistId=${(artist as { id: number }).id}`;
+            }
         case 'TIDAL':
             if ('artistId' in artist) {
-                return `/tidal/artists/${(artist as Album | Track).artistId}`;
+                return `/artists?tidalArtistId=${
+                    (artist as { artistId: number }).artistId
+                }`;
             } else {
-                return `/tidal/artists/${(artist as Api.TidalArtist).id}`;
+                return `/artists?tidalArtistId=${
+                    (artist as Api.TidalArtist).id
+                }`;
             }
         default:
             artistType satisfies never;
