@@ -112,6 +112,16 @@ export function albumRoute(
                     (album as { id: number | string }).id
                 }`;
             }
+        case 'QOBUZ':
+            if ('number' in album) {
+                return `/albums?qobuzAlbumId=${
+                    (album as Api.QobuzTrack).albumId
+                }`;
+            } else {
+                return `/albums?qobuzAlbumId=${
+                    (album as { id: number | string }).id
+                }`;
+            }
         default:
             albumType satisfies never;
             throw new Error(`Invalid albumType: ${albumType}`);

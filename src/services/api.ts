@@ -9,14 +9,14 @@ function getDefaultApiUrl(): string {
     return `${window.location.protocol}//${window.location.hostname}:8000`;
 }
 
-export type ArtistType = Api.Artist['type'] | Api.TidalArtist['type'];
-export type Artist = Api.Artist | Api.TidalArtist;
+export type Artist = Api.Artist | Api.TidalArtist | Api.QobuzArtist;
+export type ArtistType = Artist['type'];
 
-export type AlbumType = Api.Album['type'] | Api.TidalAlbum['type'];
-export type Album = Api.Album | Api.TidalAlbum;
+export type Album = Api.Album | Api.TidalAlbum | Api.QobuzAlbum;
+export type AlbumType = Album['type'];
 
-export type TrackType = Api.Track['type'] | Api.TidalTrack['type'];
-export type Track = Api.Track | Api.TidalTrack;
+export type Track = Api.Track | Api.TidalTrack | Api.QobuzTrack;
+export type TrackType = Track['type'];
 
 type GenericTrack = Track;
 
@@ -191,15 +191,8 @@ export namespace Api {
         containsCover: boolean;
         blur: boolean;
         tidalId?: number;
+        qobuzId?: number;
         type: 'LIBRARY';
-    }
-
-    export interface TidalArtist {
-        id: number;
-        title: string;
-        containsCover: boolean;
-        blur: boolean;
-        type: 'TIDAL';
     }
 
     export enum TrackSource {
@@ -227,26 +220,11 @@ export namespace Api {
         dateAdded: string;
         versions: AlbumVersionQuality[];
         tidalId?: number;
-        qobuzId?: number;
+        qobuzId?: string;
+        tidalArtistId?: number;
+        qobuzArtistId?: number;
         type: 'LIBRARY';
     }
-
-    export interface TidalAlbum {
-        id: number;
-        title: string;
-        artist: string;
-        artistId: number;
-        containsCover: boolean;
-        copyright: string;
-        dateReleased: string;
-        numberOfTracks: number;
-        audioQuality: 'LOSSLESS' | 'HIRES';
-        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
-        blur: boolean;
-        type: 'TIDAL';
-    }
-
-    export type TidalAlbumType = 'LP' | 'EPS_AND_SINGLES' | 'COMPILATIONS';
 
     export interface Track {
         trackId: number;
@@ -268,23 +246,6 @@ export namespace Api {
         sampleRate: number;
         channels: number;
         type: 'LIBRARY';
-    }
-
-    export interface TidalTrack {
-        id: number;
-        number: number;
-        title: string;
-        artist: string;
-        artistId: number;
-        containsCover: boolean;
-        album: string;
-        albumId: number;
-        duration: number;
-        copyright: string;
-        numberOfTracks: number;
-        audioQuality: 'LOSSLESS' | 'HIRES';
-        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
-        type: 'TIDAL';
     }
 
     export interface AlbumVersion {
@@ -401,10 +362,96 @@ export namespace Api {
         return `${Api.apiUrl()}/${path}${query}`;
     }
 
+    export type QobuzPagingResponse<T> = {
+        items: T[];
+        hasMore: boolean;
+    };
+
     export type PagingResponse<T> = {
         items: T[];
         count: number;
     };
+
+    export interface TidalArtist {
+        id: number;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+        type: 'TIDAL';
+    }
+
+    export interface TidalAlbum {
+        id: number;
+        title: string;
+        artist: string;
+        artistId: number;
+        containsCover: boolean;
+        copyright: string;
+        dateReleased: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        blur: boolean;
+        type: 'TIDAL';
+    }
+
+    export type TidalAlbumType = 'LP' | 'EPS_AND_SINGLES' | 'COMPILATIONS';
+
+    export interface TidalTrack {
+        id: number;
+        number: number;
+        title: string;
+        artist: string;
+        artistId: number;
+        containsCover: boolean;
+        album: string;
+        albumId: number;
+        duration: number;
+        copyright: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        type: 'TIDAL';
+    }
+
+    export interface QobuzArtist {
+        id: number;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+        type: 'QOBUZ';
+    }
+
+    export interface QobuzAlbum {
+        id: string;
+        title: string;
+        artist: string;
+        artistId: number;
+        containsCover: boolean;
+        dateReleased: string;
+        numberOfTracks: number;
+        blur: boolean;
+        type: 'QOBUZ';
+    }
+
+    export type QobuzAlbumType = 'LP' | 'EPS_AND_SINGLES' | 'COMPILATIONS';
+
+    export interface QobuzTrack {
+        id: number;
+        number: number;
+        title: string;
+        artist: string;
+        artistId: number;
+        containsCover: boolean;
+        album: string;
+        albumId: number;
+        duration: number;
+        copyright: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        type: 'QOBUZ';
+    }
 }
 
 export interface ApiType {
@@ -465,6 +512,10 @@ export interface ApiType {
         tidalArtistId: number,
         signal?: AbortSignal,
     ): Promise<Api.Artist>;
+    getArtistFromQobuzArtistId(
+        qobuzArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Artist>;
     getArtistFromTidalAlbumId(
         tidalAlbumId: number,
         signal?: AbortSignal,
@@ -473,6 +524,10 @@ export interface ApiType {
         tidalArtistId: number,
         signal?: AbortSignal,
     ): Promise<Api.TidalArtist>;
+    getQobuzArtist(
+        qobuzArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.QobuzArtist>;
     getAllTidalArtistAlbums(
         tidalArtistId: number,
         setter?: Setter<Api.TidalAlbum[] | undefined>,
@@ -483,27 +538,58 @@ export interface ApiType {
         epsAndSingles: Api.TidalAlbum[];
         compilations: Api.TidalAlbum[];
     }>;
+    getAllQobuzArtistAlbums(
+        qobuzArtistId: number,
+        setter?: Setter<Api.QobuzAlbum[] | undefined>,
+        types?: Api.QobuzAlbumType[],
+        signal?: AbortSignal,
+    ): Promise<{
+        lps: Api.QobuzAlbum[];
+        epsAndSingles: Api.QobuzAlbum[];
+        compilations: Api.QobuzAlbum[];
+    }>;
     getTidalArtistAlbums(
         tidalArtistId: number,
         albumType?: Api.TidalAlbumType,
         signal?: AbortSignal,
     ): Promise<Api.PagingResponse<Api.TidalAlbum>>;
+    getQobuzArtistAlbums(
+        qobuzArtistId: number,
+        albumType?: Api.QobuzAlbumType,
+        signal?: AbortSignal,
+    ): Promise<Api.QobuzPagingResponse<Api.QobuzAlbum>>;
     getAlbumFromTidalAlbumId(
         tidalAlbumId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Album>;
+    getAlbumFromQobuzAlbumId(
+        qobuzAlbumId: string,
         signal?: AbortSignal,
     ): Promise<Api.Album>;
     getLibraryAlbumsFromTidalArtistId(
         tidalArtistId: number,
         signal?: AbortSignal,
     ): Promise<Api.Album[]>;
+    getLibraryAlbumsFromQobuzArtistId(
+        qobuzArtistId: number,
+        signal?: AbortSignal,
+    ): Promise<Api.Album[]>;
     getTidalAlbum(
         tidalAlbumId: number,
         signal?: AbortSignal,
     ): Promise<Api.TidalAlbum>;
+    getQobuzAlbum(
+        qobuzAlbumId: string,
+        signal?: AbortSignal,
+    ): Promise<Api.QobuzAlbum>;
     getTidalAlbumTracks(
         tidalAlbumId: number,
         signal?: AbortSignal,
     ): Promise<Api.PagingResponse<Api.TidalTrack>>;
+    getQobuzAlbumTracks(
+        qobuzAlbumId: string,
+        signal?: AbortSignal,
+    ): Promise<Api.PagingResponse<Api.QobuzTrack>>;
     getTidalTrack(
         tidalTrackId: number,
         signal?: AbortSignal,
@@ -513,17 +599,22 @@ export interface ApiType {
         audioQuality: 'HIGH',
         signal?: AbortSignal,
     ): Promise<string>;
+    getQobuzTrackFileUrl(
+        qobuzTrackId: number,
+        audioQuality: 'HIGH',
+        signal?: AbortSignal,
+    ): Promise<string>;
     addAlbumToLibrary(
         albumId: {
             tidalAlbumId?: number;
-            qobuzAlbumId?: number;
+            qobuzAlbumId?: string;
         },
         signal?: AbortSignal,
     ): Promise<void>;
     removeAlbumFromLibrary(
         albumId: {
             tidalAlbumId?: number;
-            qobuzAlbumId?: number;
+            qobuzAlbumId?: string;
         },
         signal?: AbortSignal,
     ): Promise<void>;
@@ -577,6 +668,20 @@ function getAlbumArtwork(
             }
             break;
 
+        case 'QOBUZ':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(
+                        `albums/${album.id}/${width}x${height}?source=${albumType}`,
+                    );
+                }
+            }
+            break;
+
         default:
             albumType satisfies never;
     }
@@ -599,6 +704,20 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             break;
 
         case 'TIDAL':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/source?source=${albumType}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(
+                        `albums/${album.id}/source?source=${albumType}`,
+                    );
+                }
+            }
+            break;
+
+        case 'QOBUZ':
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
@@ -701,6 +820,20 @@ function getArtistCover(
             }
             break;
 
+        case 'QOBUZ':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.id}/${width}x${height}?source=${artistType}`,
+                    );
+                }
+            }
+            break;
+
         default:
             artistType satisfies never;
     }
@@ -725,6 +858,20 @@ function getArtistSourceCover(
             break;
 
         case 'TIDAL':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/source?source=${artistType}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.id}/source?source=${artistType}`,
+                    );
+                }
+            }
+            break;
+
+        case 'QOBUZ':
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
@@ -956,6 +1103,22 @@ async function getArtistFromTidalArtistId(
     return await response.json();
 }
 
+async function getArtistFromQobuzArtistId(
+    qobuzArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Artist> {
+    const query = new QueryParams({
+        qobuzArtistId: `${qobuzArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 async function getArtistFromTidalAlbumId(
     tidalAlbumId: number,
     signal?: AbortSignal,
@@ -988,9 +1151,23 @@ async function getTidalArtist(
     return await response.json();
 }
 
-export function sortTidalAlbumsByDateDesc(
-    albums: Api.TidalAlbum[],
-): Api.TidalAlbum[] {
+async function getQobuzArtist(
+    qobuzArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.QobuzArtist> {
+    const query = new QueryParams({
+        artistId: `${qobuzArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/qobuz/artists?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+export function sortAlbumsByDateDesc<T extends Album>(albums: T[]): T[] {
     return albums.toSorted((a, b) =>
         b.dateReleased.localeCompare(a.dateReleased),
     );
@@ -1028,7 +1205,7 @@ async function getAllTidalArtistAlbums(
                 if (setter) {
                     const { lps, epsAndSingles, compilations } = albums;
                     setter(
-                        sortTidalAlbumsByDateDesc([
+                        sortAlbumsByDateDesc([
                             ...lps,
                             ...epsAndSingles,
                             ...compilations,
@@ -1052,7 +1229,7 @@ async function getAllTidalArtistAlbums(
 
                     const { lps, epsAndSingles, compilations } = albums;
                     setter(
-                        sortTidalAlbumsByDateDesc([
+                        sortAlbumsByDateDesc([
                             ...lps,
                             ...epsAndSingles,
                             ...compilations,
@@ -1076,7 +1253,103 @@ async function getAllTidalArtistAlbums(
 
                     const { lps, epsAndSingles, compilations } = albums;
                     setter(
-                        sortTidalAlbumsByDateDesc([
+                        sortAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+
+    await Promise.all(promises);
+
+    return albums;
+}
+
+async function getAllQobuzArtistAlbums(
+    qobuzArtistId: number,
+    setter?: Setter<Api.QobuzAlbum[] | undefined>,
+    types?: Api.QobuzAlbumType[],
+    signal?: AbortSignal,
+): Promise<{
+    lps: Api.QobuzAlbum[];
+    epsAndSingles: Api.QobuzAlbum[];
+    compilations: Api.QobuzAlbum[];
+}> {
+    const albums: Awaited<ReturnType<typeof getAllQobuzArtistAlbums>> = {
+        lps: [],
+        epsAndSingles: [],
+        compilations: [],
+    };
+
+    const promises = [];
+
+    if (!types || types.find((t) => t === 'LP')) {
+        promises.push(
+            (async () => {
+                const page = await api.getQobuzArtistAlbums(
+                    qobuzArtistId,
+                    'LP',
+                    signal,
+                );
+
+                albums.lps = page.items;
+
+                if (setter) {
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+    if (!types || types.find((t) => t === 'EPS_AND_SINGLES')) {
+        promises.push(
+            (async () => {
+                const page = await api.getQobuzArtistAlbums(
+                    qobuzArtistId,
+                    'EPS_AND_SINGLES',
+                    signal,
+                );
+
+                if (setter) {
+                    albums.epsAndSingles = page.items;
+
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortAlbumsByDateDesc([
+                            ...lps,
+                            ...epsAndSingles,
+                            ...compilations,
+                        ]),
+                    );
+                }
+            })(),
+        );
+    }
+    if (!types || types.find((t) => t === 'COMPILATIONS')) {
+        promises.push(
+            (async () => {
+                const page = await api.getQobuzArtistAlbums(
+                    qobuzArtistId,
+                    'COMPILATIONS',
+                    signal,
+                );
+
+                if (setter) {
+                    albums.compilations = page.items;
+
+                    const { lps, epsAndSingles, compilations } = albums;
+                    setter(
+                        sortAlbumsByDateDesc([
                             ...lps,
                             ...epsAndSingles,
                             ...compilations,
@@ -1116,12 +1389,52 @@ async function getTidalArtistAlbums(
     return await response.json();
 }
 
+async function getQobuzArtistAlbums(
+    qobuzArtistId: number,
+    albumType?: Api.QobuzAlbumType,
+    signal?: AbortSignal,
+): Promise<Api.QobuzPagingResponse<Api.QobuzAlbum>> {
+    const query = new QueryParams({
+        artistId: `${qobuzArtistId}`,
+    });
+
+    if (albumType) {
+        query.set('releaseType', albumType);
+    }
+
+    const response = await request(
+        `${Api.apiUrl()}/qobuz/artists/albums?${query}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
 async function getAlbumFromTidalAlbumId(
     tidalAlbumId: number,
     signal?: AbortSignal,
 ): Promise<Api.Album> {
     const query = new QueryParams({
         tidalAlbumId: `${tidalAlbumId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getAlbumFromQobuzAlbumId(
+    qobuzAlbumId: string,
+    signal?: AbortSignal,
+): Promise<Api.Album> {
+    const query = new QueryParams({
+        qobuzAlbumId: `${qobuzAlbumId}`,
     });
 
     const response = await request(`${Api.apiUrl()}/album?${query}`, {
@@ -1148,6 +1461,22 @@ async function getLibraryAlbumsFromTidalArtistId(
     return await response.json();
 }
 
+async function getLibraryAlbumsFromQobuzArtistId(
+    qobuzArtistId: number,
+    signal?: AbortSignal,
+): Promise<Api.Album[]> {
+    const query = new QueryParams({
+        qobuzArtistId: `${qobuzArtistId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 async function getTidalAlbum(
     tidalAlbumId: number,
     signal?: AbortSignal,
@@ -1157,6 +1486,22 @@ async function getTidalAlbum(
     });
 
     const response = await request(`${Api.apiUrl()}/tidal/albums?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getQobuzAlbum(
+    qobuzAlbumId: string,
+    signal?: AbortSignal,
+): Promise<Api.QobuzAlbum> {
+    const query = new QueryParams({
+        albumId: `${qobuzAlbumId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/qobuz/albums?${query}`, {
         credentials: 'include',
         signal,
     });
@@ -1174,6 +1519,25 @@ async function getTidalAlbumTracks(
 
     const response = await request(
         `${Api.apiUrl()}/tidal/albums/tracks?${query}`,
+        {
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
+async function getQobuzAlbumTracks(
+    qobuzAlbumId: string,
+    signal?: AbortSignal,
+): Promise<Api.PagingResponse<Api.QobuzTrack>> {
+    const query = new QueryParams({
+        albumId: `${qobuzAlbumId}`,
+    });
+
+    const response = await request(
+        `${Api.apiUrl()}/qobuz/albums/tracks?${query}`,
         {
             credentials: 'include',
             signal,
@@ -1219,10 +1583,30 @@ async function getTidalTrackFileUrl(
     return urls[0];
 }
 
+async function getQobuzTrackFileUrl(
+    qobuzTrackId: number,
+    audioQuality: 'HIGH',
+    signal?: AbortSignal,
+): Promise<string> {
+    const query = new QueryParams({
+        audioQuality,
+        trackId: `${qobuzTrackId}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/qobuz/track/url?${query}`, {
+        credentials: 'include',
+        signal,
+    });
+
+    const { url } = await response.json();
+
+    return url;
+}
+
 async function addAlbumToLibrary(
     albumId: {
         tidalAlbumId?: number;
-        qobuzAlbumId?: number;
+        qobuzAlbumId?: string;
     },
     signal?: AbortSignal,
 ): Promise<void> {
@@ -1247,7 +1631,7 @@ async function addAlbumToLibrary(
 async function removeAlbumFromLibrary(
     albumId: {
         tidalAlbumId?: number;
-        qobuzAlbumId?: number;
+        qobuzAlbumId?: string;
     },
     signal?: AbortSignal,
 ): Promise<void> {
@@ -1360,16 +1744,25 @@ export const api: ApiType = {
     magicToken,
     globalSearch,
     getArtistFromTidalArtistId,
+    getArtistFromQobuzArtistId,
     getArtistFromTidalAlbumId,
     getAlbumFromTidalAlbumId,
+    getAlbumFromQobuzAlbumId,
     getTidalArtist,
+    getQobuzArtist,
     getAllTidalArtistAlbums,
+    getAllQobuzArtistAlbums,
     getTidalArtistAlbums,
+    getQobuzArtistAlbums,
     getLibraryAlbumsFromTidalArtistId,
+    getLibraryAlbumsFromQobuzArtistId,
     getTidalAlbum,
+    getQobuzAlbum,
     getTidalAlbumTracks,
+    getQobuzAlbumTracks,
     getTidalTrack,
     getTidalTrackFileUrl,
+    getQobuzTrackFileUrl,
     addAlbumToLibrary,
     removeAlbumFromLibrary,
 };

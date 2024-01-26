@@ -32,6 +32,16 @@ export function artistRoute(
                     (artist as Api.TidalArtist).id
                 }`;
             }
+        case 'QOBUZ':
+            if ('artistId' in artist) {
+                return `/artists?qobuzArtistId=${
+                    (artist as { artistId: number }).artistId
+                }`;
+            } else {
+                return `/artists?qobuzArtistId=${
+                    (artist as Api.QobuzArtist).id
+                }`;
+            }
         default:
             artistType satisfies never;
             throw new Error(`Invalid artistType: ${artistType}`);

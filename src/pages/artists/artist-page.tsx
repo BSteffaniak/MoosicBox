@@ -9,12 +9,13 @@ import { Api, api, Artist as ApiArtist } from '~/services/api';
 export default function artistPage(props: {
     artistId?: number;
     tidalArtistId?: number;
-    qobuzArtistId?: string;
+    qobuzArtistId?: number;
 }) {
     const [libraryArtist, setLibraryArtist] = createSignal<Api.Artist | null>();
     const [libraryAlbums, setLibraryAlbums] = createSignal<
         Api.Album[] | null
     >();
+
     const [tidalArtist, setTidalArtist] = createSignal<Api.TidalArtist>();
     const [tidalAlbums, setTidalAlbums] = createSignal<Api.TidalAlbum[]>();
     const [tidalEpsAndSingles, setTidalEpsAndSingles] =
@@ -22,8 +23,27 @@ export default function artistPage(props: {
     const [tidalCompilations, setTidalCompilations] =
         createSignal<Api.TidalAlbum[]>();
 
+    const [qobuzArtist, setQobuzArtist] = createSignal<Api.QobuzArtist>();
+    const [qobuzAlbums, setQobuzAlbums] = createSignal<Api.QobuzAlbum[]>();
+    const [qobuzEpsAndSingles, setQobuzEpsAndSingles] =
+        createSignal<Api.QobuzAlbum[]>();
+    const [qobuzCompilations, setQobuzCompilations] =
+        createSignal<Api.QobuzAlbum[]>();
+
     function getArtist(): ApiArtist | null | undefined {
-        return libraryArtist() ?? tidalArtist();
+        return libraryArtist() ?? tidalArtist() ?? qobuzArtist();
+    }
+
+    async function loadQobuzAlbums(qobuzId: number) {
+        await Promise.all([
+            api.getAllQobuzArtistAlbums(qobuzId, setQobuzAlbums, ['LP']),
+            api.getAllQobuzArtistAlbums(qobuzId, setQobuzEpsAndSingles, [
+                'EPS_AND_SINGLES',
+            ]),
+            api.getAllQobuzArtistAlbums(qobuzId, setQobuzCompilations, [
+                'COMPILATIONS',
+            ]),
+        ]);
     }
 
     async function loadTidalAlbums(tidalId: number) {
@@ -43,6 +63,28 @@ export default function artistPage(props: {
             const artist = await api.getArtist(props.artistId);
             setLibraryArtist(artist);
             return artist;
+        } else if (props.tidalArtistId) {
+            const artist = await api.getArtistFromTidalArtistId(
+                props.tidalArtistId,
+            );
+            setLibraryArtist(artist);
+
+            if (artist.qobuzId) {
+                loadQobuzAlbums(artist.qobuzId);
+            }
+
+            return artist;
+        } else if (props.qobuzArtistId) {
+            const artist = await api.getArtistFromQobuzArtistId(
+                props.qobuzArtistId,
+            );
+            setLibraryArtist(artist);
+
+            if (artist.tidalId) {
+                loadTidalAlbums(artist.tidalId);
+            }
+
+            return artist;
         }
     }
 
@@ -54,19 +96,41 @@ export default function artistPage(props: {
         return tidalArtist;
     }
 
+    async function loadQobuzArtist(
+        qobuzArtistId: number,
+    ): Promise<Api.QobuzArtist | undefined> {
+        const qobuzArtist = await api.getQobuzArtist(qobuzArtistId);
+        setQobuzArtist(qobuzArtist);
+        return qobuzArtist;
+    }
+
     async function loadArtist() {
+        const promises = [];
+        let loadedArtist = false;
+
         if (props.artistId) {
             const artist = await loadLibraryArtist();
+            loadedArtist = true;
+
             if (artist?.tidalId) {
-                await loadTidalAlbums(artist.tidalId);
+                promises.push(loadTidalAlbums(artist.tidalId));
+            }
+            if (artist?.qobuzId) {
+                promises.push(loadQobuzAlbums(artist.qobuzId));
             }
         }
         if (props.tidalArtistId) {
-            await Promise.all([
-                loadLibraryArtist(),
-                loadTidalArtist(props.tidalArtistId),
-            ]);
+            promises.push(loadTidalArtist(props.tidalArtistId));
         }
+        if (props.qobuzArtistId) {
+            promises.push(loadQobuzArtist(props.qobuzArtistId));
+        }
+
+        if (!loadedArtist) {
+            promises.push(loadLibraryArtist());
+        }
+
+        await Promise.all(promises);
     }
 
     async function loadLibraryAlbums() {
@@ -78,6 +142,12 @@ export default function artistPage(props: {
                 const libraryAlbum =
                     await api.getLibraryAlbumsFromTidalArtistId(
                         props.tidalArtistId,
+                    );
+                setLibraryAlbums(libraryAlbum);
+            } else if (props.qobuzArtistId) {
+                const libraryAlbum =
+                    await api.getLibraryAlbumsFromQobuzArtistId(
+                        props.qobuzArtistId,
                     );
                 setLibraryAlbums(libraryAlbum);
             }
@@ -94,6 +164,12 @@ export default function artistPage(props: {
             await Promise.all([
                 loadLibraryAlbums(),
                 loadTidalAlbums(props.tidalArtistId),
+            ]);
+        }
+        if (props.qobuzArtistId) {
+            await Promise.all([
+                loadLibraryAlbums(),
+                loadQobuzAlbums(props.qobuzArtistId),
             ]);
         }
     }
@@ -199,6 +275,63 @@ export default function artistPage(props: {
                         </h1>
                         <div class="artist-page-albums">
                             <For each={tidalCompilations()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
+                    <Show when={(qobuzAlbums()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            Albums on Qobuz
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={qobuzAlbums()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
+                    <Show when={(qobuzEpsAndSingles()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            EPs and Singles on Qobuz
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={qobuzEpsAndSingles()}>
+                                {(album) => (
+                                    <Album
+                                        album={album}
+                                        artist={true}
+                                        title={true}
+                                        controls={true}
+                                        versionQualities={true}
+                                        size={200}
+                                    />
+                                )}
+                            </For>
+                        </div>
+                    </Show>
+                    <Show when={(qobuzCompilations()?.length ?? 0) > 0}>
+                        <h1 class="artist-page-albums-header">
+                            Compilations on Qobuz
+                        </h1>
+                        <div class="artist-page-albums">
+                            <For each={qobuzCompilations()}>
                                 {(album) => (
                                     <Album
                                         album={album}

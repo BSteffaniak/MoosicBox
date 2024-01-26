@@ -35,23 +35,28 @@ export default function albumPage(props: {
     qobuzAlbumId?: string;
 }) {
     const navigate = useNavigate();
-    const [libraryAlbum, setLibraryAlbum] = createSignal<Api.Album | null>();
-    const [tidalAlbum, setTidalAlbum] = createSignal<Api.TidalAlbum>();
-    const [tidalTracks, setTidalTracks] = createSignal<Api.TidalTrack[]>();
     const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
     const [activeVersion, setActiveVersion] = createSignal<Api.AlbumVersion>();
 
+    const [libraryAlbum, setLibraryAlbum] = createSignal<Api.Album | null>();
+
+    const [tidalAlbum, setTidalAlbum] = createSignal<Api.TidalAlbum>();
+    const [tidalTracks, setTidalTracks] = createSignal<Api.TidalTrack[]>();
+
+    const [qobuzAlbum, setQobuzAlbum] = createSignal<Api.QobuzAlbum>();
+    const [qobuzTracks, setQobuzTracks] = createSignal<Api.QobuzTrack[]>();
+
     let sourceImageRef: HTMLImageElement | undefined;
 
     function getAlbum(): ApiAlbum | undefined {
-        return libraryAlbum() ?? tidalAlbum();
+        return libraryAlbum() ?? tidalAlbum() ?? qobuzAlbum();
     }
 
     function getTracks(): ApiTrack[] | undefined {
-        return activeVersion()?.tracks ?? tidalTracks();
+        return activeVersion()?.tracks ?? tidalTracks() ?? qobuzTracks();
     }
 
     async function loadLibraryAlbum() {
@@ -62,6 +67,11 @@ export default function albumPage(props: {
             } else if (props.tidalAlbumId) {
                 const libraryAlbum = await api.getAlbumFromTidalAlbumId(
                     props.tidalAlbumId,
+                );
+                setLibraryAlbum(libraryAlbum);
+            } else if (props.qobuzAlbumId) {
+                const libraryAlbum = await api.getAlbumFromQobuzAlbumId(
+                    props.qobuzAlbumId,
                 );
                 setLibraryAlbum(libraryAlbum);
             }
@@ -88,6 +98,23 @@ export default function albumPage(props: {
                         props.tidalAlbumId!,
                     );
                     setTidalAlbum(tidalAlbum);
+                })(),
+            ]);
+        } else if (props.qobuzAlbumId) {
+            await Promise.all([
+                loadLibraryAlbum(),
+                (async () => {
+                    const page = await api.getQobuzAlbumTracks(
+                        props.qobuzAlbumId!,
+                    );
+                    const qobuzTracks = page.items;
+                    setQobuzTracks(qobuzTracks);
+                })(),
+                (async () => {
+                    const qobuzAlbum = await api.getQobuzAlbum(
+                        props.qobuzAlbumId!,
+                    );
+                    setQobuzAlbum(qobuzAlbum);
                 })(),
             ]);
         }

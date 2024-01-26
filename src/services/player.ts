@@ -392,6 +392,13 @@ export async function playAlbum(album: Album | Track) {
             await playPlaylist(tracks);
             break;
         }
+        case 'QOBUZ': {
+            album = album as Api.QobuzAlbum;
+            const page = await api.getQobuzAlbumTracks(album.id);
+            const tracks = page.items;
+            await playPlaylist(tracks);
+            break;
+        }
         default:
             albumType satisfies never;
             throw new Error(`Invalid album type '${albumType}'`);
@@ -440,6 +447,12 @@ export async function addAlbumToQueue(album: Album | Track) {
         case 'TIDAL': {
             album = album as Api.TidalAlbum;
             const page = await api.getTidalAlbumTracks(album.id);
+            const tracks = page.items;
+            return addTracksToQueue(tracks);
+        }
+        case 'QOBUZ': {
+            album = album as Api.QobuzAlbum;
+            const page = await api.getQobuzAlbumTracks(album.id);
             const tracks = page.items;
             return addTracksToQueue(tracks);
         }

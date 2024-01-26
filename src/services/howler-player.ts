@@ -55,6 +55,9 @@ export function createPlayer(id: number): PlayerType {
             case 'TIDAL': {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');
             }
+            case 'QOBUZ': {
+                return await api.getQobuzTrackFileUrl(track.id, 'HIGH');
+            }
             default:
                 trackType satisfies never;
                 throw new Error(`Invalid track type '${trackType}'`);
@@ -109,6 +112,7 @@ export function createPlayer(id: number): PlayerType {
                     break;
                 }
                 case 'TIDAL':
+                case 'QOBUZ':
                     format = 'source';
                     break;
                 default:
