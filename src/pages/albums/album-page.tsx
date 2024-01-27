@@ -143,9 +143,15 @@ export default function albumPage(props: {
     }
 
     async function addAlbumToLibrary() {
-        if (tidalAlbum()) {
+        if (props.tidalAlbumId) {
             await api.addAlbumToLibrary({
-                tidalAlbumId: tidalAlbum()!.id,
+                tidalAlbumId: props.tidalAlbumId,
+            });
+            await loadDetails();
+        }
+        if (props.qobuzAlbumId) {
+            await api.addAlbumToLibrary({
+                qobuzAlbumId: props.qobuzAlbumId,
             });
             await loadDetails();
         }
@@ -178,9 +184,7 @@ export default function albumPage(props: {
         if (tidalAlbumId) {
             navigate(albumRoute({ id: tidalAlbumId, type: 'TIDAL' }));
         } else if (qobuzAlbumId) {
-            // navigate(
-            //     albumRoute({ id: qobuzAlbumId, type: 'QOBUZ' }),
-            // );
+            navigate(albumRoute({ id: qobuzAlbumId, type: 'QOBUZ' }));
         }
     }
 
@@ -512,7 +516,8 @@ export default function albumPage(props: {
                                 </button>
                                 <Show
                                     when={
-                                        tidalAlbum() && libraryAlbum() === null
+                                        (tidalAlbum() || qobuzAlbum()) &&
+                                        libraryAlbum() === null
                                     }
                                 >
                                     <button
