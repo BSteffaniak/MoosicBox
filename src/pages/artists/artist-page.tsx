@@ -4,7 +4,12 @@ import { isServer } from 'solid-js/web';
 import { A } from 'solid-start';
 import Album from '~/components/Album';
 import Artist from '~/components/Artist';
-import { Api, api, Artist as ApiArtist } from '~/services/api';
+import {
+    Api,
+    api,
+    Artist as ApiArtist,
+    sortAlbumsByDateDesc,
+} from '~/services/api';
 
 export default function artistPage(props: {
     artistId?: number;
@@ -137,19 +142,19 @@ export default function artistPage(props: {
         try {
             if (props.artistId) {
                 const albums = await api.getArtistAlbums(props.artistId);
-                setLibraryAlbums(albums);
+                setLibraryAlbums(sortAlbumsByDateDesc(albums));
             } else if (props.tidalArtistId) {
                 const libraryAlbum =
                     await api.getLibraryAlbumsFromTidalArtistId(
                         props.tidalArtistId,
                     );
-                setLibraryAlbums(libraryAlbum);
+                setLibraryAlbums(sortAlbumsByDateDesc(libraryAlbum));
             } else if (props.qobuzArtistId) {
                 const libraryAlbum =
                     await api.getLibraryAlbumsFromQobuzArtistId(
                         props.qobuzArtistId,
                     );
-                setLibraryAlbums(libraryAlbum);
+                setLibraryAlbums(sortAlbumsByDateDesc(libraryAlbum));
             }
         } catch {
             setLibraryAlbums(null);
