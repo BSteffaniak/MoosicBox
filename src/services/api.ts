@@ -1168,9 +1168,12 @@ async function getQobuzArtist(
 }
 
 export function sortAlbumsByDateDesc<T extends Album>(albums: T[]): T[] {
-    return albums.toSorted((a, b) =>
-        b.dateReleased.localeCompare(a.dateReleased),
-    );
+    return albums.toSorted((a, b) => {
+        if (!a.dateReleased) return 1;
+        if (!b.dateReleased) return -1;
+
+        return b.dateReleased.localeCompare(a.dateReleased);
+    });
 }
 
 async function getAllTidalArtistAlbums(
