@@ -4,12 +4,7 @@ import { isServer } from 'solid-js/web';
 import { A } from 'solid-start';
 import Album from '~/components/Album';
 import Artist from '~/components/Artist';
-import {
-    Api,
-    api,
-    Artist as ApiArtist,
-    sortAlbumsByDateDesc,
-} from '~/services/api';
+import { Api, api, Artist as ApiArtist } from '~/services/api';
 
 export default function artistPage(props: {
     artistId?: number;
@@ -141,20 +136,23 @@ export default function artistPage(props: {
     async function loadLibraryAlbums() {
         try {
             if (props.artistId) {
-                const albums = await api.getArtistAlbums(props.artistId);
-                setLibraryAlbums(sortAlbumsByDateDesc(albums));
+                const albums = await api.getAlbums({
+                    artistId: props.artistId,
+                    sort: 'Release-Date-Desc',
+                });
+                setLibraryAlbums(albums);
             } else if (props.tidalArtistId) {
-                const libraryAlbum =
-                    await api.getLibraryAlbumsFromTidalArtistId(
-                        props.tidalArtistId,
-                    );
-                setLibraryAlbums(sortAlbumsByDateDesc(libraryAlbum));
+                const libraryAlbum = await api.getAlbums({
+                    tidalArtistId: props.tidalArtistId,
+                    sort: 'Release-Date-Desc',
+                });
+                setLibraryAlbums(libraryAlbum);
             } else if (props.qobuzArtistId) {
-                const libraryAlbum =
-                    await api.getLibraryAlbumsFromQobuzArtistId(
-                        props.qobuzArtistId,
-                    );
-                setLibraryAlbums(sortAlbumsByDateDesc(libraryAlbum));
+                const libraryAlbum = await api.getAlbums({
+                    qobuzArtistId: props.qobuzArtistId,
+                    sort: 'Release-Date-Desc',
+                });
+                setLibraryAlbums(libraryAlbum);
             }
         } catch {
             setLibraryAlbums(null);

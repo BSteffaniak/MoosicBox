@@ -334,6 +334,9 @@ export namespace Api {
         | 'Date-Added-Desc';
 
     export type AlbumsRequest = {
+        artistId?: number;
+        tidalArtistId?: number;
+        qobuzArtistId?: number;
         sources?: AlbumSource[];
         sort?: AlbumSort;
         filters?: AlbumFilters;
@@ -462,10 +465,6 @@ export interface ApiType {
         height: number,
     ): string;
     getArtistSourceCover(artist: Artist | Album | Track | undefined): string;
-    getArtistAlbums(
-        artistId: number,
-        signal?: AbortSignal,
-    ): Promise<Api.Album[]>;
     getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
@@ -738,22 +737,6 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
     return '/img/album.svg';
 }
 
-async function getArtistAlbums(
-    artistId: number,
-    signal?: AbortSignal,
-): Promise<Api.Album[]> {
-    const query = new QueryParams({
-        artistId: `${artistId}`,
-    });
-
-    const response = await request(`${Api.apiUrl()}/artist/albums?${query}`, {
-        credentials: 'include',
-        signal,
-    });
-
-    return await response.json();
-}
-
 async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
     const query = new QueryParams({
         albumId: `${id}`,
@@ -771,7 +754,11 @@ async function getAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal,
 ): Promise<Api.Album[]> {
-    const query = new QueryParams();
+    const query = new QueryParams({
+        artistId: albumsRequest?.artistId?.toString(),
+        tidalArtistId: albumsRequest?.tidalArtistId?.toString(),
+        qobuzArtistId: albumsRequest?.qobuzArtistId?.toString(),
+    });
     if (albumsRequest?.sources)
         query.set('sources', albumsRequest.sources.join(','));
     if (albumsRequest?.sort) query.set('sort', albumsRequest.sort);
@@ -1731,7 +1718,6 @@ export const api: ApiType = {
     getArtist,
     getArtistCover,
     getArtistSourceCover,
-    getArtistAlbums,
     getAlbum,
     getAlbums,
     getAlbumArtwork,
