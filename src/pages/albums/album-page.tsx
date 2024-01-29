@@ -80,42 +80,42 @@ export default function albumPage(props: {
         }
     }
 
+    async function loadTidalAlbum() {
+        const tidalAlbum = await api.getTidalAlbum(props.tidalAlbumId!);
+        setTidalAlbum(tidalAlbum);
+    }
+
+    async function loadTidalAlbumTracks() {
+        const page = await api.getTidalAlbumTracks(props.tidalAlbumId!);
+        const tidalTracks = page.items;
+        setTidalTracks(tidalTracks);
+    }
+
+    async function loadQobuzAlbum() {
+        const qobuzAlbum = await api.getQobuzAlbum(props.qobuzAlbumId!);
+        setQobuzAlbum(qobuzAlbum);
+    }
+
+    async function loadQobuzAlbumTracks() {
+        const page = await api.getQobuzAlbumTracks(props.qobuzAlbumId!);
+        const qobuzTracks = page.items;
+        setQobuzTracks(qobuzTracks);
+    }
+
     async function loadAlbum() {
         if (props.albumId) {
             loadLibraryAlbum();
         } else if (props.tidalAlbumId) {
             await Promise.all([
                 loadLibraryAlbum(),
-                (async () => {
-                    const page = await api.getTidalAlbumTracks(
-                        props.tidalAlbumId!,
-                    );
-                    const tidalTracks = page.items;
-                    setTidalTracks(tidalTracks);
-                })(),
-                (async () => {
-                    const tidalAlbum = await api.getTidalAlbum(
-                        props.tidalAlbumId!,
-                    );
-                    setTidalAlbum(tidalAlbum);
-                })(),
+                loadTidalAlbum(),
+                loadTidalAlbumTracks(),
             ]);
         } else if (props.qobuzAlbumId) {
             await Promise.all([
                 loadLibraryAlbum(),
-                (async () => {
-                    const page = await api.getQobuzAlbumTracks(
-                        props.qobuzAlbumId!,
-                    );
-                    const qobuzTracks = page.items;
-                    setQobuzTracks(qobuzTracks);
-                })(),
-                (async () => {
-                    const qobuzAlbum = await api.getQobuzAlbum(
-                        props.qobuzAlbumId!,
-                    );
-                    setQobuzAlbum(qobuzAlbum);
-                })(),
+                loadQobuzAlbum(),
+                loadQobuzAlbumTracks(),
             ]);
         }
     }
