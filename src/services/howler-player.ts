@@ -238,7 +238,6 @@ export function createPlayer(id: number): PlayerType {
         stopHowl();
         clearInterval(seekHandle);
         console.debug('Track stopped');
-        console.trace();
         return true;
     }
 
