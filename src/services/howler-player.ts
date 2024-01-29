@@ -56,7 +56,7 @@ export function createPlayer(id: number): PlayerType {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');
             }
             case 'QOBUZ': {
-                return await api.getQobuzTrackFileUrl(track.id, 'HIGH');
+                return await api.getQobuzTrackFileUrl(track.id, 'LOW');
             }
             default:
                 trackType satisfies never;

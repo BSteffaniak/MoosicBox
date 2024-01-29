@@ -600,7 +600,7 @@ export interface ApiType {
     ): Promise<string>;
     getQobuzTrackFileUrl(
         qobuzTrackId: number,
-        audioQuality: 'HIGH',
+        audioQuality: 'LOW',
         signal?: AbortSignal,
     ): Promise<string>;
     addAlbumToLibrary(
@@ -1575,7 +1575,7 @@ async function getTidalTrackFileUrl(
 
 async function getQobuzTrackFileUrl(
     qobuzTrackId: number,
-    audioQuality: 'HIGH',
+    audioQuality: 'LOW',
     signal?: AbortSignal,
 ): Promise<string> {
     const query = new QueryParams({
