@@ -188,7 +188,34 @@ export default function albumPage(props: {
         }
     }
 
-    createComputed(async () => {
+    createEffect(
+        on(
+            () => props.albumId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => props.tidalAlbumId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => props.qobuzAlbumId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    async function loadPage() {
         setLibraryAlbum(undefined);
         setVersions(undefined);
         setShowingArtwork(false);
@@ -199,7 +226,7 @@ export default function albumPage(props: {
         if (isServer) return;
 
         await loadDetails();
-    });
+    }
 
     async function playAlbumFrom(track: ApiTrack) {
         const tracks = getTracks()!;
@@ -267,10 +294,6 @@ export default function albumPage(props: {
             hideArtwork();
         }
     };
-
-    onMount(() => {
-        if (isServer) return;
-    });
 
     onCleanup(() => {
         if (isServer) return;
