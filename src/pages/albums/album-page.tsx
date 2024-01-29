@@ -393,7 +393,7 @@ export default function albumPage(props: {
     }
 
     return (
-        <>
+        <div>
             <div class="album-page-container">
                 <div class="album-page">
                     <div class="album-page-breadcrumbs">
@@ -599,7 +599,7 @@ export default function albumPage(props: {
                     </table>
                 </div>
             </div>
-            {showingArtwork() && albumArtworkPreviewer()}
-        </>
+            <Show when={showingArtwork()}>{albumArtworkPreviewer()}</Show>
+        </div>
     );
 }
