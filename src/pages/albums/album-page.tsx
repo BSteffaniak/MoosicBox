@@ -306,6 +306,7 @@ export default function albumPage(props: {
                 <div class="album-page-artwork-previewer-content">
                     <img
                         ref={sourceImageRef}
+                        alt={`${getAlbum()?.title} by ${getAlbum()?.artist}`}
                         style={{
                             cursor: getAlbum()?.blur ? 'pointer' : 'initial',
                             visibility: blurringArtwork()
