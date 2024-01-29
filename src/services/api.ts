@@ -650,12 +650,16 @@ function getAlbumArtwork(
     if (!album) return '/img/album.svg';
 
     const albumType = album.type;
+    const query = new QueryParams({
+        source: albumType,
+        artistId: album.artistId.toString(),
+    });
 
     switch (albumType) {
         case 'LIBRARY':
             if (album.containsCover) {
                 return Api.getPath(
-                    `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                    `albums/${album.albumId}/${width}x${height}?${query}`,
                 );
             }
             break;
@@ -664,11 +668,11 @@ function getAlbumArtwork(
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                        `albums/${album.albumId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in album) {
                     return Api.getPath(
-                        `albums/${album.id}/${width}x${height}?source=${albumType}`,
+                        `albums/${album.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -678,11 +682,11 @@ function getAlbumArtwork(
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/${width}x${height}?source=${albumType}`,
+                        `albums/${album.albumId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in album) {
                     return Api.getPath(
-                        `albums/${album.id}/${width}x${height}?source=${albumType}`,
+                        `albums/${album.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -699,13 +703,15 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
     if (!album) return '/img/album.svg';
 
     const albumType = album.type;
+    const query = new QueryParams({
+        source: albumType,
+        artistId: album.artistId.toString(),
+    });
 
     switch (albumType) {
         case 'LIBRARY':
             if (album.containsCover) {
-                return Api.getPath(
-                    `albums/${album.albumId}/source?source=${albumType}`,
-                );
+                return Api.getPath(`albums/${album.albumId}/source?${query}`);
             }
             break;
 
@@ -713,12 +719,10 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/source?source=${albumType}`,
+                        `albums/${album.albumId}/source?${query}`,
                     );
                 } else if ('id' in album) {
-                    return Api.getPath(
-                        `albums/${album.id}/source?source=${albumType}`,
-                    );
+                    return Api.getPath(`albums/${album.id}/source?${query}`);
                 }
             }
             break;
@@ -727,12 +731,10 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/source?source=${albumType}`,
+                        `albums/${album.albumId}/source?${query}`,
                     );
                 } else if ('id' in album) {
-                    return Api.getPath(
-                        `albums/${album.id}/source?source=${albumType}`,
-                    );
+                    return Api.getPath(`albums/${album.id}/source?${query}`);
                 }
             }
             break;
@@ -790,12 +792,15 @@ function getArtistCover(
     if (!artist) return '/img/album.svg';
 
     const artistType = artist.type;
+    const query = new QueryParams({
+        source: artistType,
+    });
 
     switch (artistType) {
         case 'LIBRARY':
             if (artist.containsCover) {
                 return Api.getPath(
-                    `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                    `artists/${artist.artistId}/${width}x${height}?${query}`,
                 );
             }
             break;
@@ -804,11 +809,11 @@ function getArtistCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                        `artists/${artist.artistId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in artist) {
                     return Api.getPath(
-                        `artists/${artist.id}/${width}x${height}?source=${artistType}`,
+                        `artists/${artist.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -818,11 +823,11 @@ function getArtistCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/${width}x${height}?source=${artistType}`,
+                        `artists/${artist.artistId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in artist) {
                     return Api.getPath(
-                        `artists/${artist.id}/${width}x${height}?source=${artistType}`,
+                        `artists/${artist.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -841,12 +846,15 @@ function getArtistSourceCover(
     if (!artist) return '/img/album.svg';
 
     const artistType = artist.type;
+    const query = new QueryParams({
+        source: artistType,
+    });
 
     switch (artistType) {
         case 'LIBRARY':
             if (artist.containsCover) {
                 return Api.getPath(
-                    `artists/${artist.artistId}/source?source=${artistType}`,
+                    `artists/${artist.artistId}/source?${query}`,
                 );
             }
             break;
@@ -855,12 +863,10 @@ function getArtistSourceCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/source?source=${artistType}`,
+                        `artists/${artist.artistId}/source?${query}`,
                     );
                 } else if ('id' in artist) {
-                    return Api.getPath(
-                        `artists/${artist.id}/source?source=${artistType}`,
-                    );
+                    return Api.getPath(`artists/${artist.id}/source?${query}`);
                 }
             }
             break;
@@ -869,12 +875,10 @@ function getArtistSourceCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/source?source=${artistType}`,
+                        `artists/${artist.artistId}/source?${query}`,
                     );
                 } else if ('id' in artist) {
-                    return Api.getPath(
-                        `artists/${artist.id}/source?source=${artistType}`,
-                    );
+                    return Api.getPath(`artists/${artist.id}/source?${query}`);
                 }
             }
             break;
