@@ -138,8 +138,35 @@ export default function albumPage(props: {
         }
     }
 
+    function addEmptyVersion(source: Api.TrackSource) {
+        setVersions([
+            ...versions()!,
+            {
+                tracks: [],
+                format: null,
+                bitDepth: null,
+                audioBitrate: null,
+                overallBitrate: null,
+                sampleRate: null,
+                channels: null,
+                source,
+            },
+        ]);
+    }
+
     async function loadDetails() {
-        return await Promise.all([loadAlbum(), loadVersions()]);
+        await Promise.all([loadAlbum(), loadVersions()]);
+
+        if (isInvalidFavorite(Api.TrackSource.TIDAL)) {
+            addEmptyVersion(Api.TrackSource.TIDAL);
+        }
+        if (isInvalidFavorite(Api.TrackSource.QOBUZ)) {
+            addEmptyVersion(Api.TrackSource.QOBUZ);
+        }
+
+        if (!activeVersion()) {
+            setActiveVersion(versions()![0]);
+        }
     }
 
     async function addAlbumToLibrary() {
@@ -262,7 +289,11 @@ export default function albumPage(props: {
                 throw new Error(`Invalid TrackSource: '${source}'`);
         }
 
-        return versions()!.every((version) => version.source !== source);
+        const version = versions()!.find(
+            (version) => version.source === source,
+        );
+
+        return !version || version.tracks.length === 0;
     }
 
     async function playAlbumFrom(track: ApiTrack) {
