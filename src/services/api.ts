@@ -617,6 +617,13 @@ export interface ApiType {
         },
         signal?: AbortSignal,
     ): Promise<void>;
+    refavoriteAlbum(
+        albumId: {
+            tidalAlbumId?: number;
+            qobuzAlbumId?: string;
+        },
+        signal?: AbortSignal,
+    ): Promise<Api.Album>;
 }
 
 async function getArtist(
@@ -1643,6 +1650,34 @@ async function removeAlbumFromLibrary(
     return await response.json();
 }
 
+async function refavoriteAlbum(
+    albumId: {
+        tidalAlbumId?: number;
+        qobuzAlbumId?: string;
+    },
+    signal?: AbortSignal,
+): Promise<Api.Album> {
+    const query = new QueryParams({
+        tidalAlbumId: albumId.tidalAlbumId
+            ? `${albumId.tidalAlbumId}`
+            : undefined,
+        qobuzAlbumId: albumId.qobuzAlbumId
+            ? `${albumId.qobuzAlbumId}`
+            : undefined,
+    });
+
+    const response = await request(
+        `${Api.apiUrl()}/album/re-favorite?${query}`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            signal,
+        },
+    );
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -1754,4 +1789,5 @@ export const api: ApiType = {
     getQobuzTrackFileUrl,
     addAlbumToLibrary,
     removeAlbumFromLibrary,
+    refavoriteAlbum,
 };

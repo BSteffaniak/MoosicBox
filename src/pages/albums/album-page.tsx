@@ -157,6 +157,17 @@ export default function albumPage(props: {
         }
     }
 
+    async function refavoriteAlbum(albumId: {
+        tidalAlbumId?: number;
+        qobuzAlbumId?: string;
+    }) {
+        const album = await api.refavoriteAlbum(albumId);
+
+        if (album.albumId !== libraryAlbum()?.albumId) {
+            navigate(albumRoute(album));
+        }
+    }
+
     async function removeAlbumFromLibrary() {
         const promises = [];
 
@@ -226,6 +237,32 @@ export default function albumPage(props: {
         if (isServer) return;
 
         await loadDetails();
+    }
+
+    function isInvalidFavorite(source: Api.TrackSource) {
+        if (!versions() || !libraryAlbum()) {
+            return false;
+        }
+
+        switch (source) {
+            case Api.TrackSource.TIDAL:
+                if (!libraryAlbum()!.tidalId) {
+                    return false;
+                }
+                break;
+            case Api.TrackSource.QOBUZ:
+                if (!libraryAlbum()!.qobuzId) {
+                    return false;
+                }
+                break;
+            case Api.TrackSource.LOCAL:
+                break;
+            default:
+                source satisfies never;
+                throw new Error(`Invalid TrackSource: '${source}'`);
+        }
+
+        return versions()!.every((version) => version.source !== source);
     }
 
     async function playAlbumFrom(track: ApiTrack) {
@@ -572,6 +609,46 @@ export default function albumPage(props: {
                                         }}
                                     >
                                         Remove from Library
+                                    </button>
+                                </Show>
+                                <Show
+                                    when={isInvalidFavorite(
+                                        Api.TrackSource.TIDAL,
+                                    )}
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-refavorite-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            refavoriteAlbum({
+                                                tidalAlbumId:
+                                                    libraryAlbum()!.tidalId!,
+                                            });
+                                            return false;
+                                        }}
+                                    >
+                                        Re-favorite Tidal Album
+                                    </button>
+                                </Show>
+                                <Show
+                                    when={isInvalidFavorite(
+                                        Api.TrackSource.QOBUZ,
+                                    )}
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-refavorite-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            refavoriteAlbum({
+                                                qobuzAlbumId:
+                                                    libraryAlbum()!.qobuzId!,
+                                            });
+                                            return false;
+                                        }}
+                                    >
+                                        Re-favorite Qobuz Album
                                     </button>
                                 </Show>
                             </div>
