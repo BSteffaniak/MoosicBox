@@ -191,7 +191,7 @@ export default function albumPage(props: {
         const album = await api.refavoriteAlbum(albumId);
 
         if (album.albumId !== libraryAlbum()?.albumId) {
-            navigate(albumRoute(album));
+            navigate(albumRoute(album), { replace: true });
         }
     }
 
@@ -200,6 +200,7 @@ export default function albumPage(props: {
 
         const tidalAlbumId = libraryAlbum()?.tidalId;
         const qobuzAlbumId = libraryAlbum()?.qobuzId;
+        const album = { ...libraryAlbum()! };
 
         if (tidalAlbumId) {
             promises.push(
@@ -220,9 +221,25 @@ export default function albumPage(props: {
         setLibraryAlbum(null);
 
         if (tidalAlbumId) {
-            navigate(albumRoute({ id: tidalAlbumId, type: 'TIDAL' }));
+            if (!isInvalidFavorite(Api.TrackSource.TIDAL)) {
+                navigate(albumRoute({ id: tidalAlbumId, type: 'TIDAL' }), {
+                    replace: true,
+                });
+            } else {
+                navigate(artistRoute(album), {
+                    replace: true,
+                });
+            }
         } else if (qobuzAlbumId) {
-            navigate(albumRoute({ id: qobuzAlbumId, type: 'QOBUZ' }));
+            if (!isInvalidFavorite(Api.TrackSource.QOBUZ)) {
+                navigate(albumRoute({ id: qobuzAlbumId, type: 'QOBUZ' }), {
+                    replace: true,
+                });
+            } else {
+                navigate(artistRoute(album), {
+                    replace: true,
+                });
+            }
         }
     }
 
