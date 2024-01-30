@@ -221,10 +221,12 @@ export default function albumPage(props: {
     }) {
         const album = await api.refavoriteAlbum(albumId);
 
-        if (album.albumId !== libraryAlbum()?.albumId) {
+        if (shouldNavigate && album.albumId !== libraryAlbum()?.albumId) {
             navigate(albumRoute(album), { replace: true });
         }
     }
+
+    let shouldNavigate = true;
 
     async function removeAlbumFromLibrary(albumId: {
         tidalAlbumId?: number;
@@ -243,6 +245,10 @@ export default function albumPage(props: {
         }
 
         const album = await api.removeAlbumFromLibrary(albumId);
+
+        if (!shouldNavigate) {
+            return;
+        }
 
         const removedEveryVersion =
             !versions() ||
@@ -445,7 +451,10 @@ export default function albumPage(props: {
     };
 
     onCleanup(() => {
+        shouldNavigate = false;
+
         if (isServer) return;
+
         window.removeEventListener('click', handleClick);
     });
 
