@@ -1,5 +1,5 @@
 import './artist-page.css';
-import { createEffect, createSignal, For, Show } from 'solid-js';
+import { createEffect, createSignal, For, on, Show } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { A } from 'solid-start';
 import Album from '~/components/Album';
@@ -177,10 +177,36 @@ export default function artistPage(props: {
         }
     }
 
-    createEffect(async () => {
-        if (isServer) return;
+    createEffect(
+        on(
+            () => props.artistId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => props.tidalArtistId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    createEffect(
+        on(
+            () => props.qobuzArtistId,
+            (value, prev) => {
+                if (value !== prev) loadPage();
+            },
+        ),
+    );
+
+    async function loadPage() {
         await Promise.all([loadArtist(), loadAlbums()]);
-    });
+    }
 
     return (
         <>
