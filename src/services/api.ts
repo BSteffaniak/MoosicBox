@@ -616,7 +616,7 @@ export interface ApiType {
             qobuzAlbumId?: string;
         },
         signal?: AbortSignal,
-    ): Promise<void>;
+    ): Promise<Api.Album>;
     refavoriteAlbum(
         albumId: {
             tidalAlbumId?: number;
@@ -1635,7 +1635,7 @@ async function removeAlbumFromLibrary(
         qobuzAlbumId?: string;
     },
     signal?: AbortSignal,
-): Promise<void> {
+): Promise<Api.Album> {
     const query = new QueryParams({
         tidalAlbumId: albumId.tidalAlbumId
             ? `${albumId.tidalAlbumId}`
