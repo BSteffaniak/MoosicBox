@@ -155,6 +155,8 @@ export default function albumPage(props: {
     }
 
     async function loadDetails() {
+        const prevActive = activeVersion();
+
         await Promise.all([loadAlbum(), loadVersions()]);
 
         if (isInvalidFavorite(Api.TrackSource.TIDAL)) {
@@ -164,8 +166,17 @@ export default function albumPage(props: {
             addEmptyVersion(Api.TrackSource.QOBUZ);
         }
 
-        if (!activeVersion() && versions()) {
-            setActiveVersion(versions()![0]);
+        if (versions()) {
+            if (prevActive) {
+                setActiveVersion(
+                    versions()!.find(
+                        (version) => version.source === prevActive.source,
+                    ),
+                );
+            }
+            if (!activeVersion()) {
+                setActiveVersion(versions()![0]);
+            }
         }
     }
 
@@ -221,8 +232,14 @@ export default function albumPage(props: {
     }) {
         const album = await api.refavoriteAlbum(albumId);
 
-        if (shouldNavigate && album.albumId !== libraryAlbum()?.albumId) {
+        if (!shouldNavigate) {
+            return;
+        }
+
+        if (album.albumId !== libraryAlbum()?.albumId) {
             navigate(albumRoute(album), { replace: true });
+        } else {
+            await loadDetails();
         }
     }
 
@@ -340,7 +357,14 @@ export default function albumPage(props: {
         ),
     );
 
+    let loaded = false;
+
     async function loadPage() {
+        if (loaded) {
+            shouldNavigate = false;
+        }
+        loaded = true;
+
         setLibraryAlbum(undefined);
         setVersions(undefined);
         setShowingArtwork(false);
