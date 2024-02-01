@@ -18,6 +18,8 @@ export type AlbumType = Album['type'];
 export type Track = Api.Track | Api.TidalTrack | Api.QobuzTrack;
 export type TrackType = Track['type'];
 
+export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ';
+
 type GenericTrack = Track;
 
 export function trackId(track: Track | undefined): number | undefined {
@@ -1612,11 +1614,11 @@ async function addAlbumToLibrary(
     signal?: AbortSignal,
 ): Promise<void> {
     const query = new QueryParams({
-        tidalAlbumId: albumId.tidalAlbumId
-            ? `${albumId.tidalAlbumId}`
-            : undefined,
-        qobuzAlbumId: albumId.qobuzAlbumId
-            ? `${albumId.qobuzAlbumId}`
+        albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
+        source: albumId.tidalAlbumId
+            ? 'TIDAL'
+            : albumId.qobuzAlbumId
+            ? 'QOBUZ'
             : undefined,
     });
 
@@ -1637,11 +1639,11 @@ async function removeAlbumFromLibrary(
     signal?: AbortSignal,
 ): Promise<Api.Album> {
     const query = new QueryParams({
-        tidalAlbumId: albumId.tidalAlbumId
-            ? `${albumId.tidalAlbumId}`
-            : undefined,
-        qobuzAlbumId: albumId.qobuzAlbumId
-            ? `${albumId.qobuzAlbumId}`
+        albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
+        source: albumId.tidalAlbumId
+            ? 'TIDAL'
+            : albumId.qobuzAlbumId
+            ? 'QOBUZ'
             : undefined,
     });
 
@@ -1662,11 +1664,11 @@ async function refavoriteAlbum(
     signal?: AbortSignal,
 ): Promise<Api.Album> {
     const query = new QueryParams({
-        tidalAlbumId: albumId.tidalAlbumId
-            ? `${albumId.tidalAlbumId}`
-            : undefined,
-        qobuzAlbumId: albumId.qobuzAlbumId
-            ? `${albumId.qobuzAlbumId}`
+        albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
+        source: albumId.tidalAlbumId
+            ? 'TIDAL'
+            : albumId.qobuzAlbumId
+            ? 'QOBUZ'
             : undefined,
     });
 
