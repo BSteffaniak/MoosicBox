@@ -199,11 +199,14 @@ export default function albumPage(props: {
                     tidalAlbumId: props.tidalAlbumId,
                 });
                 await loadDetails();
-                setActiveVersion(
-                    versions()!.find(
-                        (version) => version.source === Api.TrackSource.TIDAL,
-                    ),
-                );
+                if (versions()) {
+                    setActiveVersion(
+                        versions()!.find(
+                            (version) =>
+                                version.source === Api.TrackSource.TIDAL,
+                        ),
+                    );
+                }
                 break;
             }
             case Api.TrackSource.QOBUZ: {
