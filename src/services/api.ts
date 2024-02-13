@@ -342,6 +342,8 @@ export namespace Api {
         sources?: AlbumSource[];
         sort?: AlbumSort;
         filters?: AlbumFilters;
+        offset?: number;
+        limit?: number;
     };
 
     export type AlbumFilters = {
@@ -543,6 +545,15 @@ export interface ApiType {
     getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
+        signal?: AbortSignal,
+    ): Promise<Api.PagingResponseWithTotal<Api.Album>>;
+    getAllAlbums(
+        request: Api.AlbumsRequest | undefined,
+        onAlbums?: (
+            albums: Api.Album[],
+            allAlbums: Api.Album[],
+            index: number,
+        ) => void,
         signal?: AbortSignal,
     ): Promise<Api.Album[]>;
     getAlbumArtwork(
@@ -850,11 +861,13 @@ async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
 async function getAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal,
-): Promise<Api.Album[]> {
+): Promise<Api.PagingResponseWithTotal<Api.Album>> {
     const query = new QueryParams({
         artistId: albumsRequest?.artistId?.toString(),
         tidalArtistId: albumsRequest?.tidalArtistId?.toString(),
         qobuzArtistId: albumsRequest?.qobuzArtistId?.toString(),
+        offset: `${albumsRequest?.offset ?? 0}`,
+        limit: `${albumsRequest?.limit ?? 100}`,
     });
     if (albumsRequest?.sources)
         query.set('sources', albumsRequest.sources.join(','));
@@ -867,9 +880,61 @@ async function getAlbums(
         signal,
     });
 
-    const albums: Api.Album[] = await response.json();
+    const albums: Api.PagingResponseWithTotal<Api.Album> =
+        await response.json();
 
     return albums;
+}
+
+async function getAllAlbums(
+    albumsRequest: Api.AlbumsRequest | undefined = undefined,
+    onAlbums?: (
+        albums: Api.Album[],
+        allAlbums: Api.Album[],
+        index: number,
+    ) => void,
+    signal?: AbortSignal,
+): Promise<Api.Album[]> {
+    let offset = albumsRequest?.offset ?? 0;
+    let limit = albumsRequest?.limit ?? 100;
+
+    albumsRequest = albumsRequest ?? { offset, limit };
+
+    const page = await getAlbums(albumsRequest, signal);
+
+    let items = page.items;
+
+    onAlbums?.(page.items, items, 0);
+
+    if (signal?.aborted || !page.hasMore) return items;
+
+    offset = limit;
+    limit = Math.min(Math.max(100, ~~((page.total - limit) / 6)), 1000);
+
+    const requests = [];
+
+    do {
+        requests.push({ ...albumsRequest, offset, limit });
+        offset += limit;
+    } while (offset < page.total);
+
+    const output = [items, ...requests.map(() => [])];
+
+    await Promise.all(
+        requests.map(async (request, i) => {
+            const page = await getAlbums(request, signal);
+
+            output[i + 1] = page.items;
+
+            items = output.flat();
+
+            onAlbums?.(page.items, items, i + 1);
+
+            return page;
+        }),
+    );
+
+    return items;
 }
 
 function getArtistCover(
@@ -1885,6 +1950,7 @@ export const api: ApiType = {
     getArtistSourceCover,
     getAlbum,
     getAlbums,
+    getAllAlbums,
     getAlbumArtwork,
     getAlbumSourceArtwork,
     getAlbumTracks,

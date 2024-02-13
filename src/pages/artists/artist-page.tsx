@@ -136,19 +136,19 @@ export default function artistPage(props: {
     async function loadLibraryAlbums() {
         try {
             if (props.artistId) {
-                const albums = await api.getAlbums({
+                const albums = await api.getAllAlbums({
                     artistId: props.artistId,
                     sort: 'Release-Date-Desc',
                 });
                 setLibraryAlbums(albums);
             } else if (props.tidalArtistId) {
-                const libraryAlbum = await api.getAlbums({
+                const libraryAlbum = await api.getAllAlbums({
                     tidalArtistId: props.tidalArtistId,
                     sort: 'Release-Date-Desc',
                 });
                 setLibraryAlbums(libraryAlbum);
             } else if (props.qobuzArtistId) {
-                const libraryAlbum = await api.getAlbums({
+                const libraryAlbum = await api.getAllAlbums({
                     qobuzArtistId: props.qobuzArtistId,
                     sort: 'Release-Date-Desc',
                 });

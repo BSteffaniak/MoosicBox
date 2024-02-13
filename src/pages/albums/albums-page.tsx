@@ -147,21 +147,22 @@ export default function albums() {
             setSearchFilter(request.filters.search);
 
         setLoading(true);
-        setAlbums(
-            await once('albums', (signal) =>
-                api.getAlbums(
-                    {
-                        sources: getAlbumSources(),
-                        sort: currentAlbumSort(),
-                        filters: {
-                            search: getSearchFilter(),
-                        },
+        await once('albums', (signal) =>
+            api.getAllAlbums(
+                {
+                    sources: getAlbumSources(),
+                    sort: currentAlbumSort(),
+                    filters: {
+                        search: getSearchFilter(),
                     },
-                    signal,
-                ),
+                },
+                (_new, albums) => {
+                    setAlbums(albums);
+                    setLoading(false);
+                },
+                signal,
             ),
         );
-        setLoading(false);
 
         setCurrentAlbumSearch(albums());
     }
