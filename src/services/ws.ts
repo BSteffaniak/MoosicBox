@@ -6,6 +6,7 @@ import { PartialUpdateSession } from './types';
 import { createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
+import { DownloadEvent, onDownloadEventListener } from './downloads';
 
 Api.onApiUrlUpdated((url) => {
     updateWsUrl(url, Api.clientId(), Api.signatureToken());
@@ -93,6 +94,7 @@ export enum InboundMessageType {
     SESSION_UPDATED = 'SESSION_UPDATED',
     CONNECTIONS = 'CONNECTIONS',
     SET_SEEK = 'SET_SEEK',
+    DOWNLOAD_EVENT = 'DOWNLOAD_EVENT',
 }
 
 export enum OutboundMessageType {
@@ -137,6 +139,11 @@ interface SetSeek {
 interface SetSeekInboundMessage extends InboundMessage {
     type: InboundMessageType.SET_SEEK;
     payload: SetSeek;
+}
+
+interface DownloadEventInboundMessage extends InboundMessage {
+    type: InboundMessageType.DOWNLOAD_EVENT;
+    payload: DownloadEvent;
 }
 
 interface GetConnectionIdMessage extends OutboundMessage {
@@ -471,6 +478,11 @@ onMessageFirst((data) => {
             ) {
                 player.seek(message.payload.seek);
             }
+            break;
+        }
+        case InboundMessageType.DOWNLOAD_EVENT: {
+            const message = data as DownloadEventInboundMessage;
+            onDownloadEventListener.trigger(message.payload);
             break;
         }
         case InboundMessageType.SESSION_UPDATED: {

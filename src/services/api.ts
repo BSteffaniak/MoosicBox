@@ -372,10 +372,24 @@ export namespace Api {
         hasMore: boolean;
     };
 
-    export type PagingResponse<T> = {
+    type BasePagingResponse<T> = {
         items: T[];
         count: number;
+        offset: number;
+        limit: number;
     };
+
+    export type PagingResponseWithTotal<T> = BasePagingResponse<T> & {
+        total: number;
+    };
+
+    export type PagingResponseWithHasMore<T> = BasePagingResponse<T> & {
+        hasMore: boolean;
+    };
+
+    export type PagingResponse<T> =
+        | PagingResponseWithTotal<T>
+        | PagingResponseWithHasMore<T>;
 
     export interface TidalArtist {
         id: number;
@@ -456,6 +470,64 @@ export namespace Api {
         audioQuality: 'LOSSLESS' | 'HIRES';
         mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
         type: 'QOBUZ';
+    }
+
+    export type DownloadTaskState =
+        | 'PENDING'
+        | 'PAUSED'
+        | 'CANCELLED'
+        | 'STARTED'
+        | 'ERROR'
+        | 'FINISHED';
+
+    export type DownloadItemType = 'TRACK' | 'ALBUM_COVER' | 'ARTIST_COVER';
+    export type TrackDownloadItem = {
+        type: 'TRACK';
+        artistId: number;
+        albumId: number;
+        trackId: number;
+        title: string;
+        source: DownloadApiSource;
+        quality: TrackAudioQuality;
+        containsCover: boolean;
+    };
+    export type AlbumCoverDownloadItem = {
+        type: 'ALBUM_COVER';
+        artistId: number;
+        artist: string;
+        albumId: number;
+        title: string;
+        containsCover: boolean;
+    };
+    export type ArtistCoverDownloadItem = {
+        type: 'ARTIST_COVER';
+        artistId: number;
+        albumId: number;
+        title: string;
+        containsCover: boolean;
+    };
+    export type DownloadItem =
+        | TrackDownloadItem
+        | AlbumCoverDownloadItem
+        | ArtistCoverDownloadItem;
+
+    export type TrackAudioQuality =
+        | 'LOW'
+        | 'FLAC_LOSSLESS'
+        | 'FLAC_HI_RES'
+        | 'FLAC_HIGHEST_RES';
+
+    export type DownloadApiSource = Omit<ApiSource, 'LIBRARY'>;
+
+    export interface DownloadTask {
+        id: number;
+        state: DownloadTaskState;
+        item: DownloadItem;
+        filePath: string;
+        progress: number;
+        bytes: number;
+        totalBytes: number;
+        speed?: number;
     }
 }
 
@@ -626,6 +698,19 @@ export interface ApiType {
         },
         signal?: AbortSignal,
     ): Promise<Api.Album>;
+    download(
+        items: {
+            trackId?: number;
+            trackIds?: number[];
+            albumId?: number;
+            albumIds?: number[];
+        },
+        source: Api.DownloadApiSource,
+        signal?: AbortSignal,
+    ): Promise<void>;
+    getDownloadTasks(
+        signal?: AbortSignal,
+    ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
 }
 
 async function getArtist(
@@ -654,7 +739,7 @@ function getAlbumArtwork(
     const albumType = album.type;
     const query = new QueryParams({
         source: albumType,
-        artistId: album.artistId.toString(),
+        artistId: album.artistId?.toString(),
     });
 
     switch (albumType) {
@@ -1684,6 +1769,44 @@ async function refavoriteAlbum(
     return await response.json();
 }
 
+async function download(
+    items: {
+        trackId?: number;
+        trackIds?: number[];
+        albumId?: number;
+        albumIds?: number[];
+    },
+    source: Api.DownloadApiSource,
+    signal?: AbortSignal,
+): Promise<void> {
+    const query = new QueryParams({
+        trackId: items.trackId ? `${items.trackId}` : undefined,
+        trackIds: items.trackIds ? `${items.trackIds.join(',')}` : undefined,
+        albumId: items.albumId ? `${items.albumId}` : undefined,
+        albumIds: items.albumIds ? `${items.albumIds.join(',')}` : undefined,
+        source: `${source}`,
+    });
+
+    const response = await request(`${Api.apiUrl()}/download?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
+async function getDownloadTasks(
+    signal?: AbortSignal,
+): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>> {
+    const response = await request(`${Api.apiUrl()}/download-tasks`, {
+        credentials: 'include',
+        signal,
+    });
+
+    return await response.json();
+}
+
 function request(
     url: string,
     options: Parameters<typeof fetch>[1],
@@ -1796,4 +1919,6 @@ export const api: ApiType = {
     addAlbumToLibrary,
     removeAlbumFromLibrary,
     refavoriteAlbum,
+    getDownloadTasks,
+    download,
 };

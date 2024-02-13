@@ -90,7 +90,8 @@
 .album-page-album-controls-playback-options-button,
 .album-page-album-controls-playback-add-to-library-button,
 .album-page-album-controls-playback-remove-from-library-button,
-.album-page-album-controls-playback-refavorite-button {
+.album-page-album-controls-playback-refavorite-button,
+.album-page-album-controls-playback-download-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -105,7 +106,8 @@
 .album-page-album-controls-playback-options-button img,
 .album-page-album-controls-playback-add-to-library-button img,
 .album-page-album-controls-playback-remove-from-library-button img,
-.album-page-album-controls-playback-refavorite-button img {
+.album-page-album-controls-playback-refavorite-button img,
+.album-page-album-controls-playback-download-button img {
     width: 18px;
     padding-right: 5px;
 }

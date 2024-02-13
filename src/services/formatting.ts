@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { Api } from './api';
+import { Api, ApiSource } from './api';
 
 function zeroPad(num: number, places: number) {
     return String(num).padStart(places, '0');
@@ -86,4 +86,38 @@ export function displayAlbumVersionQualities(
     }
 
     return str;
+}
+
+export function displayApiSource(source: ApiSource) {
+    switch (source) {
+        case 'TIDAL':
+            return 'Tidal';
+        case 'QOBUZ':
+            return 'Qobuz';
+        case 'LIBRARY':
+            return 'LIBRARY';
+        default:
+            source satisfies never;
+            throw new Error(`Invalid ApiSource: ${source}`);
+    }
+}
+
+export function displayDownloadTaskState(state: Api.DownloadTaskState) {
+    switch (state) {
+        case 'PENDING':
+            return 'Pending';
+        case 'PAUSED':
+            return 'Paused';
+        case 'CANCELLED':
+            return 'Cancelled';
+        case 'STARTED':
+            return 'Started';
+        case 'ERROR':
+            return 'Error';
+        case 'FINISHED':
+            return 'Finished';
+        default:
+            state satisfies never;
+            throw new Error(`Invalid state: ${state}`);
+    }
 }

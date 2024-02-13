@@ -6,7 +6,6 @@ import {
     For,
     on,
     onCleanup,
-    onMount,
     Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
@@ -244,6 +243,10 @@ export default function albumPage(props: {
         } else {
             await loadDetails();
         }
+    }
+
+    async function downloadAlbum(source: Api.DownloadApiSource) {
+        await api.download({ albumId: libraryAlbum()!.albumId }, source);
     }
 
     let shouldNavigate = true;
@@ -825,6 +828,44 @@ export default function albumPage(props: {
                                         }}
                                     >
                                         Re-favorite Qobuz Album
+                                    </button>
+                                </Show>
+                                <Show
+                                    when={
+                                        libraryAlbum() &&
+                                        activeVersion()?.source ===
+                                            Api.TrackSource.TIDAL
+                                    }
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-download-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            downloadAlbum('TIDAL');
+                                            return false;
+                                        }}
+                                    >
+                                        Download album
+                                    </button>
+                                </Show>
+                                <Show
+                                    when={
+                                        libraryAlbum() &&
+                                        activeVersion()?.source ===
+                                            Api.TrackSource.QOBUZ
+                                    }
+                                >
+                                    <button
+                                        class="album-page-album-controls-playback-download-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            downloadAlbum('QOBUZ');
+                                            return false;
+                                        }}
+                                    >
+                                        Download album
                                     </button>
                                 </Show>
                             </div>
