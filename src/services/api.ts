@@ -381,6 +381,7 @@ export namespace Api {
 
     export type PagingResponseWithTotal<T> = BasePagingResponse<T> & {
         total: number;
+        hasMore: boolean;
     };
 
     export type PagingResponseWithHasMore<T> = BasePagingResponse<T> & {
