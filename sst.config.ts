@@ -1,7 +1,7 @@
 import { SSMClient } from '@aws-sdk/client-ssm';
 import type { SSTConfig } from 'sst';
 import { fetchSstSecret } from 'sst-secrets';
-import { AstroSite, type StackContext } from 'sst/constructs';
+import { SolidStartSite, StackContext } from 'sst/constructs';
 
 export default {
     config(_input) {
@@ -23,7 +23,7 @@ export default {
             const subdomain = isProd ? '' : `${stack.stage}.`;
             const domainName = `${subdomain}${DOMAIN}`;
 
-            const site = new AstroSite(stack, 'MoosicBox', {
+            const site = new SolidStartSite(stack, 'MoosicBox', {
                 customDomain: {
                     hostedZone: DOMAIN,
                     domainName,

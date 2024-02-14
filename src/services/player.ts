@@ -3,16 +3,10 @@ import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
 import { isServer } from 'solid-js/web';
-import {
-    type Album,
-    Api,
-    type Track,
-    api,
-    toSessionPlaylistTrack,
-} from './api';
+import { Album, Api, Track, api, toSessionPlaylistTrack } from './api';
 import { createStore, produce } from 'solid-js/store';
 import { createListener, orderedEntries } from './util';
-import { type PartialBy, type PartialUpdateSession } from './types';
+import { PartialBy, PartialUpdateSession } from './types';
 
 export type TrackListenerCallback = (
     track: Api.Track,
@@ -21,9 +15,9 @@ export type TrackListenerCallback = (
 
 interface PlayerState {
     playing: boolean;
-    currentPlaybackSession?: Api.PlaybackSession | undefined;
+    currentPlaybackSession?: Api.PlaybackSession;
     playbackSessions: Api.PlaybackSession[];
-    currentTrack?: Track | undefined;
+    currentTrack?: Track;
 }
 
 export const [playerState, setPlayerState] = createStore<PlayerState>({
@@ -380,14 +374,14 @@ export async function playAlbum(album: Album | Track) {
         case 'LIBRARY': {
             album = album as Api.Album;
             const versions = await api.getAlbumVersions(album.albumId);
-            const tracks = versions[0]!.tracks;
+            const tracks = versions[0].tracks;
             await playPlaylist(tracks);
             break;
         }
         case 'TRACK': {
             album = album as Api.Track;
             const versions = await api.getAlbumVersions(album.albumId);
-            const tracks = versions[0]!.tracks;
+            const tracks = versions[0].tracks;
             await playPlaylist(tracks);
             break;
         }
@@ -441,13 +435,13 @@ export async function addAlbumToQueue(album: Album | Track) {
         case 'LIBRARY': {
             album = album as Api.Album;
             const versions = await api.getAlbumVersions(album.albumId);
-            const tracks = versions[0]!.tracks;
+            const tracks = versions[0].tracks;
             return addTracksToQueue(tracks);
         }
         case 'TRACK': {
             album = album as Api.Track;
             const versions = await api.getAlbumVersions(album.albumId);
-            const tracks = versions[0]!.tracks;
+            const tracks = versions[0].tracks;
             return addTracksToQueue(tracks);
         }
         case 'TIDAL': {
@@ -737,7 +731,7 @@ function updatePlaybackSession(
                     ...request,
                     sessionId: session.sessionId!,
                     playlist: undefined,
-                } as unknown as Api.UpdatePlaybackSession;
+                };
 
                 if (request.playlist) {
                     updatePlaybackSession.playlist = {

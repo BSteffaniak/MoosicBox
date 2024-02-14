@@ -13,7 +13,6 @@ module.exports = {
     },
     rules: {
         'import/prefer-default-export': 'off',
-        '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/naming-convention': [
             'error',
             {

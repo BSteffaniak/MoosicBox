@@ -1,15 +1,7 @@
 import { isServer } from 'solid-js/web';
-import { Api, api, clientId, token } from './api';
+import { Api, api } from './api';
 import { createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { clientAtom } from './util';
-
-export const navigationBarExpanded = clientAtom<boolean>(
-    true,
-    'navigationBarExpanded',
-);
-export const showPlaybackSessions = clientAtom(false);
-export const showPlaybackQuality = clientAtom(false);
 
 type StartupCallback = () => void | Promise<void>;
 
@@ -47,7 +39,6 @@ export function onStartup(func: StartupCallback) {
 
 export async function triggerStartup() {
     if (startedUp) return;
-    console.trace();
     startedUp = true;
 
     for (const func of startupCallbacks) {
@@ -73,14 +64,24 @@ export const [currentArtistSearch, setCurrentArtistSearch] =
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
 
-token.listen(() => {
-    api.refetchSignatureToken();
+export const [showPlaybackQuality, setShowPlaybackQuality] =
+    createSignal(false);
+
+export const [showPlaybackSessions, setShowPlaybackSessions] =
+    createSignal(false);
+
+Api.onTokenUpdated((token, old) => {
+    if (token !== old) {
+        api.refetchSignatureToken();
+    }
 });
-clientId.listen(() => {
-    api.refetchSignatureToken();
+Api.onClientIdUpdated((clientId, old) => {
+    if (clientId !== old) {
+        api.refetchSignatureToken();
+    }
 });
 onStartup(async () => {
-    if (token.get() && clientId.get()) {
+    if (Api.token() && Api.clientId()) {
         await api.validateSignatureToken();
     }
 });

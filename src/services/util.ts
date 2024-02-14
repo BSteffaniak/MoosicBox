@@ -1,112 +1,5 @@
 import { isServer } from 'solid-js/web';
-import type { Entries } from './types';
-import { createSignal, onCleanup, onMount } from 'solid-js';
-import { atom } from 'nanostores';
-import type { WritableAtom } from 'nanostores';
-import { persistentAtom } from '@nanostores/persistent';
-
-export class ClientAtom<T> {
-    private _atom: WritableAtom<T>;
-    private _initial: T;
-    private _name: string | undefined;
-    private _listeners: ((value: T) => void)[] = [];
-
-    constructor(initial: T, name?: string | undefined) {
-        this._initial = initial;
-        this._name = name;
-        if (name) {
-            this._atom = persistentAtom(name, initial, {
-                encode: JSON.stringify,
-                decode: JSON.parse,
-            });
-        } else {
-            this._atom = atom(initial);
-        }
-    }
-
-    get name(): string | undefined {
-        return this._name;
-    }
-
-    get initial(): T {
-        return this._initial;
-    }
-
-    get(): T {
-        return this._atom.get();
-    }
-
-    set(value: T) {
-        this._atom.set(value);
-    }
-
-    listen(listener: (value: T) => void) {
-        this._atom.listen(listener);
-        this._listeners.push(listener);
-    }
-
-    off(listener: (value: T) => void) {
-        const index = this._listeners.indexOf(listener);
-        if (index !== -1) {
-            this._listeners.splice(index, 1);
-            this._atom.off();
-            this._listeners.forEach((listener) => {
-                this._atom.listen(listener);
-            });
-        }
-    }
-}
-
-export function clientAtom<T>(
-    initial: T,
-    name?: string | undefined,
-): ClientAtom<T> {
-    return new ClientAtom<T>(initial, name);
-}
-
-export function clientSignal<T>(
-    atom: ClientAtom<T>,
-): [() => T, (value: T) => void] {
-    let init = true;
-
-    const [get, set] = createSignal<T>(atom.get(), {
-        equals(a, b) {
-            if (init) {
-                init = false;
-                return false;
-            }
-            return a === b;
-        },
-    });
-
-    const listener = (value: T) => {
-        set(value as Parameters<typeof set>[0]);
-    };
-
-    onMount(() => {
-        set(atom.get() as Parameters<typeof set>[0]);
-        atom.listen(listener);
-    });
-    onCleanup(() => {
-        atom.off(listener);
-    });
-
-    return [
-        () => {
-            const wasInit = init;
-            const value = get();
-
-            if (wasInit) {
-                return atom.initial;
-            } else {
-                return value;
-            }
-        },
-        (value: T) => {
-            atom.set(value);
-        },
-    ];
-}
+import { Entries } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BaseCallbackType = (...args: any) => boolean | void;
@@ -176,7 +69,7 @@ export class QueryParams {
                 init.split('&')
                     .map((pair) => pair.split('='))
                     .forEach(([key, value]) => {
-                        this.params.push([key!, value!]);
+                        this.params.push([key, value]);
                     });
             }
         } else if (init instanceof QueryParams) {

@@ -1,0 +1,26 @@
+// Vitest Snapshot v1
+
+exports[`<Player /> > renders buttons`] = `
+<div>
+  <button
+    class="button"
+  >
+    Play
+  </button>
+  <button
+    class="button"
+  >
+    Stop player
+  </button>
+  <button
+    class="button"
+  >
+    Start player
+  </button>
+  <button
+    class="button"
+  >
+    Restart player
+  </button>
+</div>
+`;

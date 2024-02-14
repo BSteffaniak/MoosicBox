@@ -7,6 +7,7 @@ import {
     onCleanup,
     onMount,
 } from 'solid-js';
+import { A, useLocation } from 'solid-start';
 import './Player.css';
 import {
     currentSeek,
@@ -27,11 +28,15 @@ import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';
-import { showPlaybackQuality, showPlaybackSessions } from '~/services/app';
+import {
+    setShowPlaybackQuality,
+    setShowPlaybackSessions,
+    showPlaybackQuality,
+    showPlaybackSessions,
+} from '~/services/app';
 import Volume from '../Volume';
 import { albumRoute } from '../Album/Album';
 import { artistRoute } from '../Artist/Artist';
-import { clientSignal } from '~/services/util';
 
 let mouseX: number;
 
@@ -77,9 +82,6 @@ export default function player() {
     const [playing, setPlaying] = createSignal(playerPlaying());
     const [showTrackOptionsMobile, setShowTrackOptionsMobile] =
         createSignal(false);
-
-    const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
-    const [$showPlaybackQuality] = clientSignal(showPlaybackQuality);
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -144,11 +146,11 @@ export default function player() {
     }
 
     function toggleShowPlaybackQuality() {
-        showPlaybackQuality.set(!$showPlaybackQuality());
+        setShowPlaybackQuality(!showPlaybackQuality());
     }
 
     function toggleShowPlaybackSessions() {
-        showPlaybackSessions.set(!$showPlaybackSessions());
+        setShowPlaybackSessions(!showPlaybackSessions());
     }
 
     onMount(() => {
@@ -249,6 +251,8 @@ export default function player() {
             },
         ),
     );
+
+    const location = useLocation();
 
     createEffect(
         on(
@@ -383,15 +387,15 @@ export default function player() {
 
     return (
         <>
-            <div ref={playerRef!} class="player">
+            <div ref={playerRef} class="player">
                 <div class="player-media-controls-seeker-bar">
                     <div
-                        ref={progressBar!}
+                        ref={progressBar}
                         class="player-media-controls-seeker-bar-progress"
                         style={{ width: `${getProgressBarWidth()}%` }}
                     ></div>
                     <div
-                        ref={progressBarTrigger!}
+                        ref={progressBarTrigger}
                         class="player-media-controls-seeker-bar-progress-trigger"
                         onClick={(e) => seekTo(e)}
                     ></div>
@@ -424,17 +428,17 @@ export default function player() {
                                         </div>
                                         <div class="player-now-playing-details">
                                             <div class="player-now-playing-details-title">
-                                                <a
+                                                <A
                                                     href={albumRoute(
                                                         currentTrack(),
                                                     )}
                                                     title={currentTrack().title}
                                                 >
                                                     {currentTrack().title}
-                                                </a>
+                                                </A>
                                             </div>
                                             <div class="player-now-playing-details-artist">
-                                                <a
+                                                <A
                                                     href={artistRoute(
                                                         currentTrack(),
                                                     )}
@@ -443,18 +447,18 @@ export default function player() {
                                                     }
                                                 >
                                                     {currentTrack().artist}
-                                                </a>
+                                                </A>
                                             </div>
                                             <div class="player-now-playing-details-album">
                                                 Playing from:{' '}
-                                                <a
+                                                <A
                                                     href={albumRoute(
                                                         currentTrack(),
                                                     )}
                                                     title={currentTrack().album}
                                                 >
                                                     {currentTrack().album}
-                                                </a>
+                                                </A>
                                             </div>
                                         </div>
                                     </>
@@ -580,26 +584,28 @@ export default function player() {
                 </div>
                 <div
                     class="playlist-slideout"
-                    ref={playlistSlideout!}
+                    ref={playlistSlideout}
                     style={{
-                        transform: `translateX(${showingPlaylist() ? 0 : 100}%)`,
+                        transform: `translateX(${
+                            showingPlaylist() ? 0 : 100
+                        }%)`,
                     }}
                 >
                     <div
-                        ref={playlistSlideoutContentRef!}
+                        ref={playlistSlideoutContentRef}
                         class="playlist-slideout-content"
                     >
                         <Playlist />
                     </div>
                     <div
-                        ref={backToNowPlayingTopRef!}
+                        ref={backToNowPlayingTopRef}
                         class="playlist-slideout-back-to-now-playing-top"
                         onClick={() => scrollPlaylistToNowPlaying()}
                     >
                         Back to now playing
                     </div>
                     <div
-                        ref={backToNowPlayingBottomRef!}
+                        ref={backToNowPlayingBottomRef}
                         class="playlist-slideout-back-to-now-playing-bottom"
                         onClick={() => scrollPlaylistToNowPlaying()}
                     >

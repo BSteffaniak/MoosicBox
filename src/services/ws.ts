@@ -1,34 +1,32 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api, apiUrl, clientId, toSessionPlaylistTrack, token } from './api';
-import type { Track } from './api';
+import { Api, Track, toSessionPlaylistTrack } from './api';
 import { onStartup, setAppState } from './app';
-import type { PartialUpdateSession } from './types';
+import { PartialUpdateSession } from './types';
 import { createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { onDownloadEventListener } from './downloads';
-import type { DownloadEvent } from './downloads';
+import { DownloadEvent, onDownloadEventListener } from './downloads';
 
-apiUrl.listen((url) => {
-    updateWsUrl(url, clientId.get(), Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
+Api.onApiUrlUpdated((url) => {
+    updateWsUrl(url, Api.clientId(), Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
     reconnect();
 });
-clientId.listen((clientId) => {
-    updateWsUrl(apiUrl.get(), clientId, Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
+Api.onClientIdUpdated((clientId) => {
+    updateWsUrl(Api.apiUrl(), clientId, Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
     reconnect();
 });
 Api.onSignatureTokenUpdated((signatureToken) => {
-    updateWsUrl(apiUrl.get(), clientId.get(), signatureToken);
-    if (token.get() && !Api.signatureToken()) {
+    updateWsUrl(Api.apiUrl(), Api.clientId(), signatureToken);
+    if (Api.token() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
@@ -316,7 +314,7 @@ export function updateSession(session: Api.UpdatePlaybackSession) {
     const payload: Api.UpdatePlaybackSession = {
         ...session,
         playlist: undefined,
-    } as unknown as Api.UpdatePlaybackSession;
+    };
 
     if (session.playlist) {
         payload.playlist = {
@@ -457,7 +455,7 @@ onMessageFirst((data) => {
                             player.updateSession(state, session, true);
                         }
                     } else {
-                        player.updateSession(state, message.payload[0]!, true);
+                        player.updateSession(state, message.payload[0], true);
                     }
                 }),
             );
@@ -557,8 +555,8 @@ function reconnect(): Promise<WebSocket> {
 }
 
 onStartup(async () => {
-    updateWsUrl(apiUrl.get(), clientId.get(), Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
+    updateWsUrl(Api.apiUrl(), Api.clientId(), Api.signatureToken());
+    if (Api.token() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
