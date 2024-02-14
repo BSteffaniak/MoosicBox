@@ -52,16 +52,8 @@ button {
     position: relative;
 }
 
-.navigation-bar-container {
-    transition: width 0.2s;
-}
-
 .navigation-bar-container.collapsed {
     width: 60px;
-}
-
-.navigation-bar {
-    transition: transform 0.2s;
 }
 
 .navigation-bar-container.collapsed .navigation-bar {
@@ -116,11 +108,15 @@ button {
 
 .collapse-navigation-bar,
 .expand-navigation-bar {
-    cursor: pointer;
-    width: 22px;
     position: relative;
     bottom: 2px;
     margin-right: 0;
+}
+
+.collapse-navigation-bar img,
+.expand-navigation-bar img {
+    cursor: pointer;
+    width: 22px;
 }
 
 .main-content {

@@ -5,6 +5,7 @@ import {
     For,
     onCleanup,
     onMount,
+    Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
@@ -241,11 +242,11 @@ export default function artists() {
         document.removeEventListener('scroll', scrollListener);
     });
 
-    (async () => {
+    onMount(async () => {
         if (isServer) return;
         setSearchFilterValue(getSearchFilter() ?? '');
         await loadArtists();
-    })();
+    });
 
     return (
         <>
@@ -343,29 +344,31 @@ export default function artists() {
                 />
             </header>
             <div class="artists-page">
-                {artists() && (
-                    <div
-                        class={`artists-container${
-                            loading() ? ' loading' : ' loaded'
-                        }`}
-                    >
-                        <p class="artists-header-artist-count">
-                            Showing {artists()?.length} artist
-                            {artists()?.length === 1 ? '' : 's'}
-                        </p>
-                        <div class="artists">
-                            <For each={artists()}>
-                                {(artist) => (
-                                    <Artist
-                                        artist={artist}
-                                        size={200}
-                                        title={true}
-                                    />
-                                )}
-                            </For>
+                <Show when={artists()}>
+                    {(artists) => (
+                        <div
+                            class={`artists-container${
+                                loading() ? ' loading' : ' loaded'
+                            }`}
+                        >
+                            <p class="artists-header-artist-count">
+                                Showing {artists()?.length} artist
+                                {artists()?.length === 1 ? '' : 's'}
+                            </p>
+                            <div class="artists">
+                                <For each={artists()}>
+                                    {(artist) => (
+                                        <Artist
+                                            artist={artist}
+                                            size={200}
+                                            title={true}
+                                        />
+                                    )}
+                                </For>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </Show>
             </div>
         </>
     );

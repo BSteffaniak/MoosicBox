@@ -27,15 +27,11 @@ import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';
-import {
-    setShowPlaybackQuality,
-    setShowPlaybackSessions,
-    showPlaybackQuality,
-    showPlaybackSessions,
-} from '~/services/app';
+import { showPlaybackQuality, showPlaybackSessions } from '~/services/app';
 import Volume from '../Volume';
 import { albumRoute } from '../Album/Album';
 import { artistRoute } from '../Artist/Artist';
+import { clientSignal } from '~/services/util';
 
 let mouseX: number;
 
@@ -81,6 +77,9 @@ export default function player() {
     const [playing, setPlaying] = createSignal(playerPlaying());
     const [showTrackOptionsMobile, setShowTrackOptionsMobile] =
         createSignal(false);
+
+    const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
+    const [$showPlaybackQuality] = clientSignal(showPlaybackQuality);
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -145,11 +144,11 @@ export default function player() {
     }
 
     function toggleShowPlaybackQuality() {
-        setShowPlaybackQuality(!showPlaybackQuality());
+        showPlaybackQuality.set(!$showPlaybackQuality());
     }
 
     function toggleShowPlaybackSessions() {
-        setShowPlaybackSessions(!showPlaybackSessions());
+        showPlaybackSessions.set(!$showPlaybackSessions());
     }
 
     onMount(() => {

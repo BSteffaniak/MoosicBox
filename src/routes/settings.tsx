@@ -1,14 +1,18 @@
-import { Api } from '~/services/api';
 import './settings.css';
+import { apiUrl, clientId, token } from '~/services/api';
+import { clientSignal } from '~/services/util';
 import { connectionName, setConnectionName } from '~/services/ws';
 
 export default function settingsPage() {
-    let clientIdInput: HTMLInputElement;
+    const [$apiUrl, setApiUrl] = clientSignal(apiUrl);
+    const [$clientId, setClientId] = clientSignal(clientId);
+    const [$token, setToken] = clientSignal(token);
 
+    let clientIdInput: HTMLInputElement;
     let apiUrlInput: HTMLInputElement;
 
     function saveApiUrl() {
-        Api.setApiUrl(apiUrlInput.value);
+        setApiUrl(apiUrlInput.value);
     }
 
     let connectionNameInput: HTMLInputElement;
@@ -18,13 +22,13 @@ export default function settingsPage() {
     }
 
     function saveClientId() {
-        Api.setClientId(clientIdInput.value);
+        setClientId(clientIdInput.value);
     }
 
     let tokenInput: HTMLInputElement;
 
     function saveToken() {
-        Api.setToken(tokenInput.value);
+        setToken(tokenInput.value);
     }
 
     return (
@@ -35,7 +39,7 @@ export default function settingsPage() {
                     <input
                         ref={apiUrlInput!}
                         type="text"
-                        value={Api.apiUrl()}
+                        value={$apiUrl()}
                         onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
                     />
                     <button onClick={saveApiUrl}>save</button>
@@ -57,7 +61,7 @@ export default function settingsPage() {
                     <input
                         ref={clientIdInput!}
                         type="text"
-                        value={Api.clientId()}
+                        value={$clientId()}
                         onKeyUp={(e) => e.key === 'Enter' && saveClientId()}
                     />
                     <button onClick={saveClientId}>save</button>
@@ -67,7 +71,7 @@ export default function settingsPage() {
                     <input
                         ref={tokenInput!}
                         type="text"
-                        value={Api.token()}
+                        value={$token()}
                         onKeyUp={(e) => e.key === 'Enter' && saveToken()}
                     />
                     <button onClick={saveToken}>save</button>

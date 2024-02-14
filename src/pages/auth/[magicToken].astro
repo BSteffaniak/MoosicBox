@@ -7,5 +7,5 @@ const { magicToken } = Astro.params;
 ---
 
 <Layout title="MoosicBox">
-    <AuthPage client:only magicToken={magicToken ?? ''} search={search} />
+    <AuthPage client:load magicToken={magicToken ?? ''} search={search} />
 </Layout>

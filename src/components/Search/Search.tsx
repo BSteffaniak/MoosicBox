@@ -1,12 +1,6 @@
 import './search.css';
-import {
-    For,
-    type JSXElement,
-    Show,
-    createSignal,
-    onCleanup,
-    onMount,
-} from 'solid-js';
+import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
+import type { JSXElement } from 'solid-js';
 import { debounce } from '@solid-primitives/scheduled';
 import { Api, api } from '~/services/api';
 import Artist from '../Artist';
@@ -260,7 +254,12 @@ export default function searchInput() {
     }
 
     return (
-        <div class="search-container" ref={searchContainerRef!}>
+        <div
+            data-turbo-permanent
+            id="search-bar"
+            class="search-container"
+            ref={searchContainerRef!}
+        >
             <div class="search-label-container">
                 <label class="search-label">
                     <input

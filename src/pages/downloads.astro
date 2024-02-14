@@ -4,7 +4,5 @@ import DownloadsPage from '~/routes/downloads.tsx';
 ---
 
 <Layout title="MoosicBox">
-    <main>
-        <DownloadsPage client:only />
-    </main>
+    <DownloadsPage client:load />
 </Layout>

@@ -5,6 +5,7 @@ import {
     For,
     onCleanup,
     onMount,
+    Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { debounce } from '@solid-primitives/scheduled';
@@ -228,11 +229,11 @@ export default function albums() {
         }
     });
 
-    (async () => {
+    onMount(async () => {
         if (isServer) return;
         setSearchFilterValue(getSearchFilter() ?? '');
         await loadAlbums();
-    })();
+    });
 
     const handleAlbumSortClick = (_event: MouseEvent) => {
         if (!showAlbumSortControls()) return;
@@ -402,27 +403,29 @@ export default function albums() {
             <div
                 class={`albums-container${loading() ? ' loading' : ' loaded'}`}
             >
-                {albums() && (
-                    <>
-                        <p class="albums-header-album-count">
-                            Showing {albums()?.length} album
-                            {albums()?.length === 1 ? '' : 's'}
-                        </p>
-                        <div class="albums">
-                            <For each={albums()}>
-                                {(album) => (
-                                    <Album
-                                        album={album}
-                                        controls={true}
-                                        artist={true}
-                                        title={true}
-                                        versionQualities={true}
-                                    />
-                                )}
-                            </For>
-                        </div>
-                    </>
-                )}
+                <Show when={albums()}>
+                    {(albums) => (
+                        <>
+                            <p class="albums-header-album-count">
+                                Showing {albums()?.length} album
+                                {albums()?.length === 1 ? '' : 's'}
+                            </p>
+                            <div class="albums">
+                                <For each={albums()}>
+                                    {(album) => (
+                                        <Album
+                                            album={album}
+                                            controls={true}
+                                            artist={true}
+                                            title={true}
+                                            versionQualities={true}
+                                        />
+                                    )}
+                                </For>
+                            </div>
+                        </>
+                    )}
+                </Show>
             </div>
         </>
     );

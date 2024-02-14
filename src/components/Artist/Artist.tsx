@@ -1,12 +1,6 @@
 import './artist.css';
-import {
-    type Album,
-    Api,
-    type Artist,
-    type ArtistType,
-    type Track,
-    api,
-} from '~/services/api';
+import { Api, api } from '~/services/api';
+import type { Album, Artist, ArtistType, Track } from '~/services/api';
 import { createComputed, createSignal } from 'solid-js';
 
 export function artistRoute(

@@ -7,20 +7,18 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
 ---
 
 <Layout title="MoosicBox">
-    <main>
-        {
-            search.albumId ? (
-                <AlbumPage client:only albumId={parseInt(search.albumId!)} />
-            ) : search.tidalAlbumId ? (
-                <AlbumPage
-                    client:only
-                    tidalAlbumId={parseInt(search.tidalAlbumId!)}
-                />
-            ) : search.qobuzAlbumId ? (
-                <AlbumPage client:only qobuzAlbumId={search.qobuzAlbumId!} />
-            ) : (
-                <AlbumsPage client:only />
-            )
-        }
-    </main>
+    {
+        search.albumId ? (
+            <AlbumPage client:load albumId={parseInt(search.albumId!)} />
+        ) : search.tidalAlbumId ? (
+            <AlbumPage
+                client:load
+                tidalAlbumId={parseInt(search.tidalAlbumId!)}
+            />
+        ) : search.qobuzAlbumId ? (
+            <AlbumPage client:load qobuzAlbumId={search.qobuzAlbumId!} />
+        ) : (
+            <AlbumsPage client:load />
+        )
+    }
 </Layout>

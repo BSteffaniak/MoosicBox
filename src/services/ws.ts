@@ -1,32 +1,34 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api, type Track, toSessionPlaylistTrack } from './api';
+import { Api, apiUrl, clientId, toSessionPlaylistTrack, token } from './api';
+import type { Track } from './api';
 import { onStartup, setAppState } from './app';
-import { type PartialUpdateSession } from './types';
+import type { PartialUpdateSession } from './types';
 import { createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { type DownloadEvent, onDownloadEventListener } from './downloads';
+import { onDownloadEventListener } from './downloads';
+import type { DownloadEvent } from './downloads';
 
-Api.onApiUrlUpdated((url) => {
-    updateWsUrl(url, Api.clientId(), Api.signatureToken());
-    if (Api.token() && !Api.signatureToken()) {
+apiUrl.listen((url) => {
+    updateWsUrl(url, clientId.get(), Api.signatureToken());
+    if (token.get() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
     reconnect();
 });
-Api.onClientIdUpdated((clientId) => {
-    updateWsUrl(Api.apiUrl(), clientId, Api.signatureToken());
-    if (Api.token() && !Api.signatureToken()) {
+clientId.listen((clientId) => {
+    updateWsUrl(apiUrl.get(), clientId, Api.signatureToken());
+    if (token.get() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
     reconnect();
 });
 Api.onSignatureTokenUpdated((signatureToken) => {
-    updateWsUrl(Api.apiUrl(), Api.clientId(), signatureToken);
-    if (Api.token() && !Api.signatureToken()) {
+    updateWsUrl(apiUrl.get(), clientId.get(), signatureToken);
+    if (token.get() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
@@ -555,8 +557,8 @@ function reconnect(): Promise<WebSocket> {
 }
 
 onStartup(async () => {
-    updateWsUrl(Api.apiUrl(), Api.clientId(), Api.signatureToken());
-    if (Api.token() && !Api.signatureToken()) {
+    updateWsUrl(apiUrl.get(), clientId.get(), Api.signatureToken());
+    if (token.get() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
