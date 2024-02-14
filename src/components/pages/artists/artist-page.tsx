@@ -1,10 +1,8 @@
 import './artist-page.css';
 import { createEffect, createSignal, For, on, Show } from 'solid-js';
-import { isServer } from 'solid-js/web';
-import { A } from 'solid-start';
 import Album from '~/components/Album';
 import Artist from '~/components/Artist';
-import { Api, api, Artist as ApiArtist } from '~/services/api';
+import { Api, api, type Artist as ApiArtist } from '~/services/api';
 
 export default function artistPage(props: {
     artistId?: number;
@@ -86,6 +84,8 @@ export default function artistPage(props: {
 
             return artist;
         }
+
+        return undefined;
     }
 
     async function loadTidalArtist(
@@ -213,13 +213,13 @@ export default function artistPage(props: {
             <div class="artist-page-container">
                 <div class="artist-page">
                     <div class="artist-page-breadcrumbs">
-                        <A
+                        <a
                             class="back-button"
                             href="#"
                             onClick={() => history.back()}
                         >
                             Back
-                        </A>
+                        </a>
                     </div>
                     <div class="artist-page-header">
                         <div class="artist-page-artist-info">

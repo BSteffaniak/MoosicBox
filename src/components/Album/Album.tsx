@@ -1,8 +1,13 @@
 import './album.css';
-import { Album, AlbumType, Api, Track, api } from '~/services/api';
+import {
+    type Album,
+    type AlbumType,
+    Api,
+    type Track,
+    api,
+} from '~/services/api';
 import { addAlbumToQueue, playAlbum } from '~/services/player';
 import { createComputed, createSignal } from 'solid-js';
-import { A } from 'solid-start';
 import { displayAlbumVersionQualities } from '~/services/formatting';
 import { artistRoute } from '../Artist/Artist';
 
@@ -48,9 +53,9 @@ function albumDetails(
             {showTitle && (
                 <div class="album-title">
                     {route ? (
-                        <A href={albumRoute(album)} class="album-title-text">
+                        <a href={albumRoute(album)} class="album-title-text">
                             {album.title}
-                        </A>
+                        </a>
                     ) : (
                         <span class="album-title-text">{album.title}</span>
                     )}
@@ -58,9 +63,9 @@ function albumDetails(
             )}
             {showArtist && (
                 <div class="album-artist">
-                    <A href={artistRoute(album)} class="album-artist-text">
+                    <a href={artistRoute(album)} class="album-artist-text">
                         {album.artist}
-                    </A>
+                    </a>
                 </div>
             )}
             {showYear && 'dateReleased' in album && (
@@ -101,6 +106,8 @@ export function albumRoute(
                 return `/albums?albumId=${
                     (album as { id: number | string }).id
                 }`;
+            } else {
+                throw new Error(`Invalid album: ${album}`);
             }
         case 'TIDAL':
             if ('number' in album) {
@@ -146,7 +153,7 @@ function albumImage(props: AlbumProps, blur: boolean) {
             alt={`${props.album.title} by ${props.album.artist}`}
             title={`${props.album.title} by ${props.album.artist}`}
             loading="lazy"
-            onClick={props.onClick}
+            onClick={props.onClick ?? (() => {})}
         />
     );
 }
@@ -206,10 +213,10 @@ export default function album(
                 style={{ width: `${props.size}px`, height: `${props.size}px` }}
             >
                 {props.route ? (
-                    <A href={albumRoute(props.album)}>
+                    <a href={albumRoute(props.album)}>
                         {albumImage(props as AlbumProps, blur())}
                         {props.controls && albumControls(props.album)}
-                    </A>
+                    </a>
                 ) : (
                     <>
                         {albumImage(props as AlbumProps, blur())}

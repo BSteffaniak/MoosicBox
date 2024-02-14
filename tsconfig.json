@@ -1,4 +1,5 @@
 {
+    "extends": "astro/tsconfigs/strictest",
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
@@ -15,16 +16,5 @@
                 "./src/*"
             ]
         }
-    },
-    "types": [
-        "vitest"
-    ],
-    "include": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.js",
-        "**/*.jsx",
-        "**/*.cjs",
-        "**/*.mjs"
-    ]
+    }
 }

@@ -1,5 +1,5 @@
 import './modal.css';
-import { JSXElement, Show } from 'solid-js';
+import { type JSXElement, Show } from 'solid-js';
 
 export interface ModalProps<T> {
     show: () => T;

@@ -1,12 +1,12 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api, Track, toSessionPlaylistTrack } from './api';
+import { Api, type Track, toSessionPlaylistTrack } from './api';
 import { onStartup, setAppState } from './app';
-import { PartialUpdateSession } from './types';
+import { type PartialUpdateSession } from './types';
 import { createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { DownloadEvent, onDownloadEventListener } from './downloads';
+import { type DownloadEvent, onDownloadEventListener } from './downloads';
 
 Api.onApiUrlUpdated((url) => {
     updateWsUrl(url, Api.clientId(), Api.signatureToken());
@@ -314,7 +314,7 @@ export function updateSession(session: Api.UpdatePlaybackSession) {
     const payload: Api.UpdatePlaybackSession = {
         ...session,
         playlist: undefined,
-    };
+    } as unknown as Api.UpdatePlaybackSession;
 
     if (session.playlist) {
         payload.playlist = {
@@ -455,7 +455,7 @@ onMessageFirst((data) => {
                             player.updateSession(state, session, true);
                         }
                     } else {
-                        player.updateSession(state, message.payload[0], true);
+                        player.updateSession(state, message.payload[0]!, true);
                     }
                 }),
             );

@@ -9,7 +9,6 @@ import {
     Show,
 } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { A, useNavigate } from 'solid-start';
 import Album from '~/components/Album';
 import {
     displayAlbumVersionQuality,
@@ -19,21 +18,19 @@ import {
 import { addTracksToQueue, playerState, playPlaylist } from '~/services/player';
 import {
     Api,
-    Album as ApiAlbum,
-    Track as ApiTrack,
+    type Album as ApiAlbum,
+    type Track as ApiTrack,
     api,
     trackId,
 } from '~/services/api';
 import { artistRoute } from '~/components/Artist/Artist';
 import { areEqualShallow } from '~/services/util';
-import { albumRoute } from '~/components/Album/Album';
 
 export default function albumPage(props: {
     albumId?: number;
     tidalAlbumId?: number;
     qobuzAlbumId?: string;
 }) {
-    const navigate = useNavigate();
     const [versions, setVersions] = createSignal<Api.AlbumVersion[]>();
     const [showingArtwork, setShowingArtwork] = createSignal(false);
     const [blurringArtwork, setBlurringArtwork] = createSignal<boolean>();
@@ -135,6 +132,8 @@ export default function albumPage(props: {
 
             return versions;
         }
+
+        return undefined;
     }
 
     function addEmptyVersion(source: Api.TrackSource) {
@@ -183,8 +182,8 @@ export default function albumPage(props: {
         const source = props.tidalAlbumId
             ? Api.TrackSource.TIDAL
             : props.qobuzAlbumId
-            ? Api.TrackSource.QOBUZ
-            : undefined;
+              ? Api.TrackSource.QOBUZ
+              : undefined;
 
         if (!source) {
             throw new Error(
@@ -195,7 +194,7 @@ export default function albumPage(props: {
         switch (source) {
             case Api.TrackSource.TIDAL: {
                 await api.addAlbumToLibrary({
-                    tidalAlbumId: props.tidalAlbumId,
+                    tidalAlbumId: props.tidalAlbumId!,
                 });
                 await loadDetails();
                 if (versions()) {
@@ -210,7 +209,7 @@ export default function albumPage(props: {
             }
             case Api.TrackSource.QOBUZ: {
                 await api.addAlbumToLibrary({
-                    qobuzAlbumId: props.qobuzAlbumId,
+                    qobuzAlbumId: props.qobuzAlbumId!,
                 });
                 await loadDetails();
                 if (versions()) {
@@ -239,7 +238,7 @@ export default function albumPage(props: {
         }
 
         if (album.albumId !== libraryAlbum()?.albumId) {
-            navigate(albumRoute(album), { replace: true });
+            //navigate(albumRoute(album), { replace: true });
         } else {
             await loadDetails();
         }
@@ -258,8 +257,8 @@ export default function albumPage(props: {
         const source = albumId.tidalAlbumId
             ? Api.TrackSource.TIDAL
             : albumId.qobuzAlbumId
-            ? Api.TrackSource.QOBUZ
-            : undefined;
+              ? Api.TrackSource.QOBUZ
+              : undefined;
 
         if (!source) {
             throw new Error(
@@ -280,7 +279,7 @@ export default function albumPage(props: {
         if (removedEveryVersion) {
             setLibraryAlbum(null);
 
-            switch (source) {
+            /*switch (source) {
                 case Api.TrackSource.TIDAL:
                     if (!isInvalidFavorite(Api.TrackSource.TIDAL)) {
                         navigate(
@@ -317,7 +316,7 @@ export default function albumPage(props: {
                     break;
                 default:
                     source satisfies never;
-            }
+            }*/
         } else {
             if (props.albumId) {
                 setLibraryAlbum(album);
@@ -493,7 +492,7 @@ export default function albumPage(props: {
             <div class="album-page-artwork-previewer">
                 <div class="album-page-artwork-previewer-content">
                     <img
-                        ref={sourceImageRef}
+                        ref={sourceImageRef!}
                         alt={`${getAlbum()?.title} by ${getAlbum()?.artist}`}
                         style={{
                             cursor: getAlbum()?.blur ? 'pointer' : 'initial',
@@ -507,7 +506,7 @@ export default function albumPage(props: {
                     />
                     <Show when={blurringArtwork() && sourceImage()}>
                         <img
-                            ref={albumArtworkPreviewerIcon}
+                            ref={albumArtworkPreviewerIcon!}
                             src={api.getAlbumArtwork(getAlbum(), 16, 16)}
                             style={{
                                 'image-rendering': 'pixelated',
@@ -566,12 +565,12 @@ export default function albumPage(props: {
                 </td>
                 <td class="album-page-tracks-track-title">{track.title}</td>
                 <td class="album-page-tracks-track-artist">
-                    <A
+                    <a
                         href={artistRoute(track)}
                         class="album-page-tracks-track-artist-text"
                     >
                         {track.artist}
-                    </A>
+                    </a>
                 </td>
                 <td class="album-page-tracks-track-time">
                     {toTime(Math.round(track.duration))}
@@ -585,13 +584,13 @@ export default function albumPage(props: {
             <div class="album-page-container">
                 <div class="album-page">
                     <div class="album-page-breadcrumbs">
-                        <A
+                        <a
                             class="back-button"
                             href="#"
                             onClick={() => history.back()}
                         >
                             Back
-                        </A>
+                        </a>
                     </div>
                     <div class="album-page-header">
                         <div class="album-page-album-info">
@@ -613,12 +612,12 @@ export default function albumPage(props: {
                                                 {album().title}
                                             </div>
                                             <div class="album-page-album-info-details-album-artist">
-                                                <A
+                                                <a
                                                     href={artistRoute(album())}
                                                     class="album-page-album-info-details-album-artist-text"
                                                 >
                                                     {album().artist}
-                                                </A>
+                                                </a>
                                             </div>
                                             <div class="album-page-album-info-details-tracks">
                                                 <Show when={getTracks()}>
@@ -759,7 +758,7 @@ export default function albumPage(props: {
                                             e.preventDefault();
                                             removeAlbumFromLibrary({
                                                 tidalAlbumId:
-                                                    libraryAlbum()!.tidalId,
+                                                    libraryAlbum()!.tidalId!,
                                             });
                                             return false;
                                         }}
@@ -782,7 +781,7 @@ export default function albumPage(props: {
                                             e.preventDefault();
                                             removeAlbumFromLibrary({
                                                 qobuzAlbumId:
-                                                    libraryAlbum()!.qobuzId,
+                                                    libraryAlbum()!.qobuzId!,
                                             });
                                             return false;
                                         }}

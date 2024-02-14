@@ -1,5 +1,5 @@
 import { isServer } from 'solid-js/web';
-import { Entries } from './types';
+import { type Entries } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BaseCallbackType = (...args: any) => boolean | void;
@@ -69,7 +69,7 @@ export class QueryParams {
                 init.split('&')
                     .map((pair) => pair.split('='))
                     .forEach(([key, value]) => {
-                        this.params.push([key, value]);
+                        this.params.push([key!, value!]);
                     });
             }
         } else if (init instanceof QueryParams) {

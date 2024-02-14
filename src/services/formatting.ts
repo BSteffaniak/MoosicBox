@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { Api, ApiSource } from './api';
+import { Api, type ApiSource } from './api';
 
 function zeroPad(num: number, places: number) {
     return String(num).padStart(places, '0');
@@ -79,7 +79,7 @@ export function displayAlbumVersionQuality(
 export function displayAlbumVersionQualities(
     versions: Api.AlbumVersionQuality[],
 ): string {
-    let str = displayAlbumVersionQuality(versions[0]);
+    let str = displayAlbumVersionQuality(versions[0]!);
 
     if (versions.length > 1) {
         str += ` (+${versions.length - 1})`;

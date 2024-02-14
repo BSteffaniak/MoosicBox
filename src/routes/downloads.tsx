@@ -1,7 +1,9 @@
 import Album from '~/components/Album';
 import './downloads.css';
-import { For, JSXElement, Show } from 'solid-js';
-import { Api, ApiSource } from '~/services/api';
+import { For, Show } from 'solid-js';
+import type { JSXElement } from 'solid-js';
+import { Api } from '~/services/api';
+import type { ApiSource } from '~/services/api';
 import { downloadsState } from '~/services/downloads';
 import {
     displayApiSource,

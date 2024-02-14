@@ -328,7 +328,7 @@ export default function artists() {
                     class="filter-artists"
                     type="text"
                     placeholder="Filter..."
-                    value={searchFilterValue()}
+                    value={searchFilterValue() ?? ''}
                     onInput={debounce(async (e) => {
                         await loadArtists({
                             filters: {

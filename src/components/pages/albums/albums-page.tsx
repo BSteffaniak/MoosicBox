@@ -385,7 +385,7 @@ export default function albums() {
                     class="filter-albums"
                     type="text"
                     placeholder="Filter..."
-                    value={searchFilterValue()}
+                    value={searchFilterValue() ?? ''}
                     onInput={debounce(async (e) => {
                         await loadAlbums({
                             filters: {

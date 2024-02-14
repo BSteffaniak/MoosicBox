@@ -1,7 +1,7 @@
-import { A, Outlet } from 'solid-start';
 import { createSignal, onMount } from 'solid-js';
+import type { JSXElement } from 'solid-js';
 import Player from '~/components/Player';
-import './(global)/global.css';
+import './global.css';
 import {
     setShowPlaybackQuality,
     setShowPlaybackSessions,
@@ -19,7 +19,9 @@ import { isMobile } from '~/services/util';
 import { isServer } from 'solid-js/web';
 import Search from '~/components/Search';
 
-export default function global() {
+type GlobalProps = { children: JSXElement[] };
+
+export default function global(props: GlobalProps) {
     const [navigationBarExpanded, setNavigationBarExpanded] =
         createSignal(true);
 
@@ -59,12 +61,12 @@ export default function global() {
                     <div class="navigation-bar">
                         <div class="navigation-bar-header">
                             <h1>MoosicBox</h1>
-                            <A class="settings-link" href="/settings">
+                            <a class="settings-link" href="/settings">
                                 <img
                                     class="settings-gear-icon"
                                     src="/img/settings-gear-white.svg"
                                 />
-                            </A>
+                            </a>
                             {navigationBarExpanded() && (
                                 <img
                                     class="collapse-navigation-bar"
@@ -86,16 +88,16 @@ export default function global() {
                         </div>
                         <ul>
                             <li>
-                                <A href="/">Home</A>
+                                <a href="/">Home</a>
                             </li>
                         </ul>
                         <h1 class="my-collection-header">My Collection</h1>
                         <ul>
                             <li>
-                                <A href="/albums">Albums</A>
+                                <a href="/albums">Albums</a>
                             </li>
                             <li>
-                                <A href="/artists">Artists</A>
+                                <a href="/artists">Artists</a>
                             </li>
                         </ul>
                     </div>
@@ -106,7 +108,7 @@ export default function global() {
                     }`}
                 >
                     <Search />
-                    <Outlet />
+                    {props.children}
                     <Modal
                         show={() => showPlaybackQuality()}
                         onClose={() => setShowPlaybackQuality(false)}

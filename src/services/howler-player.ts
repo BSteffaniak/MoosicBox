@@ -1,8 +1,8 @@
 import { createSignal } from 'solid-js';
-import { Howl, HowlCallback } from 'howler';
-import { Api, Track, api } from './api';
+import { Howl, type HowlCallback } from 'howler';
+import { Api, type Track, api } from './api';
 import {
-    PlayerType,
+    type PlayerType,
     currentSeek,
     playing,
     playlist,
@@ -82,6 +82,14 @@ export function createPlayer(id: number): PlayerType {
                 return false;
             }
             const track = playlist()![playlistPosition()!];
+            if (!track) {
+                console.debug(
+                    'Not a valid track at playlist position',
+                    playlistPosition(),
+                );
+                return false;
+            }
+
             console.debug('Setting track to', track);
 
             let format: string | undefined;

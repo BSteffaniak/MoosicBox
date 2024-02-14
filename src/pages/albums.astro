@@ -1,0 +1,26 @@
+---
+import Layout from '~/layouts/Layout.astro';
+import AlbumPage from '~/components/pages/albums/album-page.tsx';
+import AlbumsPage from '~/components/pages/albums/albums-page.tsx';
+
+const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
+---
+
+<Layout title="MoosicBox">
+    <main>
+        {
+            search.albumId ? (
+                <AlbumPage client:only albumId={parseInt(search.albumId!)} />
+            ) : search.tidalAlbumId ? (
+                <AlbumPage
+                    client:only
+                    tidalAlbumId={parseInt(search.tidalAlbumId!)}
+                />
+            ) : search.qobuzAlbumId ? (
+                <AlbumPage client:only qobuzAlbumId={search.qobuzAlbumId!} />
+            ) : (
+                <AlbumsPage client:only />
+            )
+        }
+    </main>
+</Layout>
