@@ -873,7 +873,7 @@ async function getAllAlbums(
     if (signal?.aborted || !page.hasMore) return items;
 
     offset = limit;
-    limit = Math.min(Math.max(100, ~~((page.total - limit) / 6)), 1000);
+    limit = Math.min(Math.max(100, Math.ceil((page.total - limit) / 6)), 1000);
 
     const requests = [];
 
