@@ -2,7 +2,6 @@ import { createStore, produce } from 'solid-js/store';
 import { Api, api } from './api';
 import { createListener } from './util';
 import { onStartup } from './app';
-import { onMount } from 'solid-js';
 
 export type DownloadEventType =
     | BytesReadDownloadEvent['type']
@@ -151,18 +150,16 @@ function isHistorical(state: Api.DownloadTaskState): boolean {
 }
 
 onStartup(async () => {
-    onMount(async () => {
-        const tasks = await api.getDownloadTasks();
+    const tasks = await api.getDownloadTasks();
 
-        const current = tasks.items.filter(({ state }) => isCurrent(state));
-        const history = tasks.items.filter(({ state }) => isHistorical(state));
+    const current = tasks.items.filter(({ state }) => isCurrent(state));
+    const history = tasks.items.filter(({ state }) => isHistorical(state));
 
-        setDownloadsState(
-            produce((state) => {
-                state.tasks = tasks.items;
-                state.currentTasks = current;
-                state.historyTasks = history;
-            }),
-        );
-    });
+    setDownloadsState(
+        produce((state) => {
+            state.tasks = tasks.items;
+            state.currentTasks = current;
+            state.historyTasks = history;
+        }),
+    );
 });
