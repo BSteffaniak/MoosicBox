@@ -1,13 +1,5 @@
 ---
-import { isUserAgentMobile } from '~/services/util';
-
 const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
-const userAgent = Astro.request.headers.get('user-agent');
-const isMobile = isUserAgentMobile(userAgent);
-
-if (isMobile && !search.navCollapsed) {
-    search.navCollapsed = 'true';
-}
 ---
 
 <navigation-sidebar data-turbo-permanent id="navigation-sidebar">
@@ -41,7 +33,7 @@ if (isMobile && !search.navCollapsed) {
                     <a href="/">Home</a>
                 </li>
                 <li>
-                    <a href="/downloads">Downloads {isMobile}</a>
+                    <a href="/downloads">Downloads</a>
                 </li>
             </ul>
             <h1 class="my-collection-header">My Collection</h1>
