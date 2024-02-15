@@ -1,18 +1,26 @@
 import { Show, createSignal, onMount } from 'solid-js';
 import { api, apiUrl, clientId, token } from '~/services/api';
+import { getQueryParam } from '~/services/util';
 
-export default function authPage(props: {
-    magicToken: string;
-    search: Record<string, string>;
-}) {
+export default function authPage() {
+    const magicTokenParam = getQueryParam('magicToken');
+    const apiUrlParam = getQueryParam('apiUrl');
+
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string>();
 
     onMount(async () => {
-        if (props.search.apiUrl) {
-            apiUrl.set(props.search.apiUrl);
+        if (!magicTokenParam) {
+            setLoading(false);
+            setError('No magic token');
+            return;
         }
-        const resp = await api.magicToken(props.magicToken);
+
+        if (apiUrlParam) {
+            apiUrl.set(apiUrlParam);
+        }
+
+        const resp = await api.magicToken(magicTokenParam);
         setLoading(false);
 
         if (resp) {
