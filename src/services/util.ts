@@ -252,6 +252,7 @@ export function setQueryParam(key: string, value: string | undefined) {
     }
 
     window.history.replaceState({}, '', url.toString());
+    window.Turbo.navigator.history.replace(url.toString());
 }
 
 export function isMobile() {
