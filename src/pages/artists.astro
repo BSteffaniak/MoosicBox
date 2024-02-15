@@ -1,8 +1,27 @@
 ---
 import Layout from '~/layouts/Layout.astro';
-import Artists from '~/routes/artists';
+import ArtistPage from '~/components/pages/artists/artist-page';
+import ArtistsPage from '~/components/pages/artists/artists-page';
+
+const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
 ---
 
 <Layout title="MoosicBox">
-    <Artists client:only />
+    {
+        search.artistId ? (
+            <ArtistPage client:load artistId={parseInt(search.artistId!)} />
+        ) : search.tidalArtistId ? (
+            <ArtistPage
+                client:load
+                tidalArtistId={parseInt(search.tidalArtistId!)}
+            />
+        ) : search.qobuzArtistId ? (
+            <ArtistPage
+                client:load
+                qobuzArtistId={parseInt(search.qobuzArtistId!)}
+            />
+        ) : (
+            <ArtistsPage client:load />
+        )
+    }
 </Layout>

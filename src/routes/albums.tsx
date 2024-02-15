@@ -1,20 +1,15 @@
 import AlbumPage from '~/components/pages/albums/album-page';
 import AlbumsPage from '~/components/pages/albums/albums-page';
-import { getQueryParam } from '~/services/util';
 
-export default function albumPage() {
-    const albumId = getQueryParam('albumId');
-    const tidalAlbumId = getQueryParam('tidalAlbumId');
-    const qobuzAlbumId = getQueryParam('qobuzAlbumId');
-
+export default function albumPage(params: Record<string, string>) {
     return (
         <>
-            {albumId ? (
-                <AlbumPage albumId={parseInt(albumId!)} />
-            ) : tidalAlbumId ? (
-                <AlbumPage tidalAlbumId={parseInt(tidalAlbumId!)} />
-            ) : qobuzAlbumId ? (
-                <AlbumPage qobuzAlbumId={qobuzAlbumId!} />
+            {params.albumId ? (
+                <AlbumPage albumId={parseInt(params.albumId!)} />
+            ) : params.tidalAlbumId ? (
+                <AlbumPage tidalAlbumId={parseInt(params.tidalAlbumId!)} />
+            ) : params.qobuzAlbumId ? (
+                <AlbumPage qobuzAlbumId={params.qobuzAlbumId!} />
             ) : (
                 <AlbumsPage />
             )}
