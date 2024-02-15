@@ -93,4 +93,6 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
     }
 
     window.addEventListener('turbo:render', initClasses, false);
+
+    initClasses();
 </script>
