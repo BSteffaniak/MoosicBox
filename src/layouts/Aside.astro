@@ -50,7 +50,7 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
 </navigation-sidebar>
 
 <script>
-    import { isMobile, getQueryParam, setQueryParam } from '~/services/util';
+    import { getQueryParam, setQueryParam } from '~/services/util';
 
     class NavbarAside extends HTMLElement {
         constructor() {
@@ -70,19 +70,27 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
 
                 mainContent.classList.toggle('wide', collapsed);
                 mainContent.classList.toggle('normal', !collapsed);
+                setQueryParam('navCollapsed', collapsed.toString());
             });
         }
     }
 
     customElements.define('navigation-sidebar', NavbarAside);
 
-    if (
-        (isMobile() && !getQueryParam('navCollapsed')) ||
-        getQueryParam('navCollapsed') === 'true'
-    ) {
+    function initClasses() {
+        const collapsed = document
+            .querySelector('.navigation-bar-container')!
+            .classList.contains('collapsed');
         const mainContent = document.querySelector('.main-content')!;
+        const param = getQueryParam('navCollapsed');
 
-        mainContent.classList.add('wide');
-        mainContent.classList.remove('normal');
+        if (param && param !== collapsed.toString()) {
+            setQueryParam('navCollapsed', collapsed.toString());
+        }
+
+        mainContent.classList.toggle('wide', collapsed);
+        mainContent.classList.toggle('normal', !collapsed);
     }
+
+    window.addEventListener('turbo:render', initClasses, false);
 </script>
