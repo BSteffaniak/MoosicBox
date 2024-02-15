@@ -1,7 +1,7 @@
 import './artist.css';
-import { Album, Api, Artist, ArtistType, Track, api } from '~/services/api';
+import { Api, api } from '~/services/api';
+import type { Album, Artist, ArtistType, Track } from '~/services/api';
 import { createComputed, createSignal } from 'solid-js';
-import { A } from 'solid-start';
 
 export function artistRoute(
     artist:
@@ -53,9 +53,9 @@ function artistDetails(artist: Artist, showTitle = true) {
         <div class="artist-details">
             {showTitle && (
                 <div class="artist-title">
-                    <A class="artist-title-link" href={artistRoute(artist)}>
+                    <a class="artist-title-link" href={artistRoute(artist)}>
                         <span class="artist-title-text">{artist.title}</span>
-                    </A>
+                    </a>
                 </div>
             )}
         </div>
@@ -80,7 +80,7 @@ function artistImage(props: ArtistProps, blur: boolean) {
             alt={`${props.artist.title}`}
             title={`${props.artist.title}`}
             loading="lazy"
-            onClick={props.onClick}
+            onClick={props.onClick ?? (() => {})}
         />
     );
 }
@@ -125,9 +125,9 @@ export default function artist(
                 style={{ width: `${props.size}px`, height: `${props.size}px` }}
             >
                 {props.route ? (
-                    <A href={artistRoute(props.artist)}>
+                    <a href={artistRoute(props.artist)}>
                         {artistImage(props as ArtistProps, blur())}
-                    </A>
+                    </a>
                 ) : (
                     artistImage(props as ArtistProps, blur())
                 )}

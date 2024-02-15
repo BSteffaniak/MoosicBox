@@ -1,8 +1,9 @@
 import { createSignal } from 'solid-js';
-import { Howl, HowlCallback } from 'howler';
-import { Api, Track, api } from './api';
+import { Howl } from 'howler';
+import type { HowlCallback } from 'howler';
+import { Api, api, apiUrl, clientId } from './api';
+import type { Track } from './api';
 import {
-    PlayerType,
     currentSeek,
     playing,
     playlist,
@@ -12,13 +13,17 @@ import {
     playbackQuality,
     playerState,
 } from './player';
+import type { PlayerType } from './player';
 import * as player from './player';
-import { QueryParams, orderedEntries } from './util';
+import { QueryParams, clientSignal, orderedEntries } from './util';
 
 export type TrackListenerCallback = (
     track: Api.Track,
     position: number,
 ) => void;
+
+const [$apiUrl] = clientSignal(apiUrl);
+const [$clientId] = clientSignal(clientId);
 
 export const [sound, setSound] = createSignal<Howl>();
 
@@ -38,7 +43,7 @@ export function createPlayer(id: number): PlayerType {
                     trackId: track.trackId.toString(),
                 });
 
-                const clientId = Api.clientId();
+                const clientId = $clientId();
                 const signatureToken = Api.signatureToken();
 
                 if (clientId && signatureToken) {
@@ -50,7 +55,7 @@ export function createPlayer(id: number): PlayerType {
                     query.set('format', playbackQuality().format);
                 }
 
-                return `${Api.apiUrl()}/track?${query}`;
+                return `${$apiUrl()}/track?${query}`;
             }
             case 'TIDAL': {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');
@@ -82,6 +87,14 @@ export function createPlayer(id: number): PlayerType {
                 return false;
             }
             const track = playlist()![playlistPosition()!];
+            if (!track) {
+                console.debug(
+                    'Not a valid track at playlist position',
+                    playlistPosition(),
+                );
+                return false;
+            }
+
             console.debug('Setting track to', track);
 
             let format: string | undefined;

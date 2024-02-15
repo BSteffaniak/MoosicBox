@@ -1,14 +1,7 @@
+import { createSignal } from 'solid-js';
+import type { Setter } from 'solid-js';
+import { QueryParams, clientAtom, createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
-import { isServer } from 'solid-js/web';
-import { Setter, createSignal } from 'solid-js';
-import { QueryParams, createListener } from './util';
-
-function getDefaultApiUrl(): string {
-    if (isServer) return 'http://localhost:8000';
-
-    return `${window.location.protocol}//${window.location.hostname}:8000`;
-}
-
 export type Artist = Api.Artist | Api.TidalArtist | Api.QobuzArtist;
 export type ArtistType = Artist['type'];
 
@@ -27,8 +20,8 @@ export function trackId(track: Track | undefined): number | undefined {
     return 'trackId' in track
         ? track.trackId
         : 'id' in track
-        ? track.id
-        : undefined;
+          ? track.id
+          : undefined;
 }
 
 export function toSessionPlaylistTrack(
@@ -49,58 +42,6 @@ export function toSessionPlaylistTrack(
 }
 
 export namespace Api {
-    const onApiUrlUpdatedListeners = createListener<(url: string) => void>();
-    export const onApiUrlUpdated = onApiUrlUpdatedListeners.on;
-    export const offApiUrlUpdated = onApiUrlUpdatedListeners.off;
-    const [_apiUrl, _setApiUrl] = makePersisted(
-        createSignal(getDefaultApiUrl()),
-        {
-            name: 'apiUrl',
-        },
-    );
-    export function apiUrl(): ReturnType<typeof _apiUrl> {
-        return _apiUrl();
-    }
-    export function setApiUrl(url: string): void {
-        _setApiUrl(url);
-
-        onApiUrlUpdatedListeners.trigger(url);
-    }
-
-    const onClientIdUpdatedListeners =
-        createListener<(clientId: string, old: string) => void>();
-    export const onClientIdUpdated = onClientIdUpdatedListeners.on;
-    export const offClientIdUpdated = onClientIdUpdatedListeners.off;
-    const [_clientId, _setClientId] = makePersisted(createSignal(''), {
-        name: 'clientId',
-    });
-    export function clientId(): ReturnType<typeof _clientId> {
-        return _clientId();
-    }
-    export function setClientId(clientId: string): void {
-        const old = _clientId();
-        _setClientId(clientId);
-
-        onClientIdUpdatedListeners.trigger(clientId, old);
-    }
-
-    const onTokenUpdatedListeners =
-        createListener<(token: string, old: string) => void>();
-    export const onTokenUpdated = onTokenUpdatedListeners.on;
-    export const offTokenUpdated = onTokenUpdatedListeners.off;
-    const [_token, _setToken] = makePersisted(createSignal(''), {
-        name: 'token',
-    });
-    export function token(): ReturnType<typeof _token> {
-        return _token();
-    }
-    export function setToken(token: string): void {
-        const old = _token();
-        _setToken(token);
-
-        onTokenUpdatedListeners.trigger(token, old);
-    }
-
     const onSignatureTokenUpdatedListeners =
         createListener<(url: string) => void>();
     export const onSignatureTokenUpdated = onSignatureTokenUpdatedListeners.on;
@@ -315,13 +256,13 @@ export namespace Api {
     export type ArtistSort = 'Name' | 'Name-Desc';
 
     export type ArtistsRequest = {
-        sources?: AlbumSource[];
-        sort?: ArtistSort;
-        filters?: ArtistFilters;
+        sources?: AlbumSource[] | undefined;
+        sort?: ArtistSort | undefined;
+        filters?: ArtistFilters | undefined;
     };
 
     export type ArtistFilters = {
-        search?: string;
+        search?: string | undefined;
     };
 
     export type AlbumSource = 'Local' | 'Tidal' | 'Qobuz';
@@ -336,18 +277,18 @@ export namespace Api {
         | 'Date-Added-Desc';
 
     export type AlbumsRequest = {
-        artistId?: number;
-        tidalArtistId?: number;
-        qobuzArtistId?: number;
-        sources?: AlbumSource[];
-        sort?: AlbumSort;
-        filters?: AlbumFilters;
-        offset?: number;
-        limit?: number;
+        artistId?: number | undefined;
+        tidalArtistId?: number | undefined;
+        qobuzArtistId?: number | undefined;
+        sources?: AlbumSource[] | undefined;
+        sort?: AlbumSort | undefined;
+        filters?: AlbumFilters | undefined;
+        offset?: number | undefined;
+        limit?: number | undefined;
     };
 
     export type AlbumFilters = {
-        search?: string;
+        search?: string | undefined;
     };
 
     export function getPath(path: string): string {
@@ -355,7 +296,7 @@ export namespace Api {
         const containsQuery = path.includes('?');
         const params = [];
 
-        const clientId = Api.clientId();
+        const clientId = $clientId();
         if (clientId) {
             params.push(`clientId=${encodeURIComponent(clientId)}`);
         }
@@ -366,7 +307,7 @@ export namespace Api {
 
         const query = `${containsQuery ? '&' : '?'}${params.join('&')}`;
 
-        return `${Api.apiUrl()}/${path}${query}`;
+        return `${$apiUrl()}/${path}${query}`;
     }
 
     export type QobuzPagingResponse<T> = {
@@ -534,18 +475,30 @@ export namespace Api {
     }
 }
 
+export const apiUrl = clientAtom<string>('', 'api.v1.apiUrl');
+const $apiUrl = () => apiUrl.get();
+
+export const clientId = clientAtom<string>('', 'api.v1.clientId');
+const $clientId = () => clientId.get();
+
+export const token = clientAtom<string>('', 'api.v1.token');
+const $token = () => token.get();
+
 export interface ApiType {
-    getArtist(artistId: number, signal?: AbortSignal): Promise<Api.Artist>;
+    getArtist(
+        artistId: number,
+        signal?: AbortSignal | null,
+    ): Promise<Api.Artist>;
     getArtistCover(
         artist: Artist | Album | Track | undefined,
         width: number,
         height: number,
     ): string;
     getArtistSourceCover(artist: Artist | Album | Track | undefined): string;
-    getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album>;
+    getAlbum(id: number, signal?: AbortSignal | null): Promise<Api.Album>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.PagingResponseWithTotal<Api.Album>>;
     getAllAlbums(
         request: Api.AlbumsRequest | undefined,
@@ -554,70 +507,78 @@ export interface ApiType {
             allAlbums: Api.Album[],
             index: number,
         ) => void,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album[]>;
     getAlbumArtwork(
         album: Album | Track | undefined,
         width: number,
         height: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): string;
     getAlbumSourceArtwork(
         album: Album | Track | undefined,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): string;
-    getAlbumTracks(albumId: number, signal?: AbortSignal): Promise<Api.Track[]>;
+    getAlbumTracks(
+        albumId: number,
+        signal?: AbortSignal | null,
+    ): Promise<Api.Track[]>;
     getAlbumVersions(
         albumId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.AlbumVersion[]>;
-    getTracks(trackIds: number[], signal?: AbortSignal): Promise<Api.Track[]>;
+    getTracks(
+        trackIds: number[],
+        signal?: AbortSignal | null,
+    ): Promise<Api.Track[]>;
     getArtists(
         request: Api.ArtistsRequest | undefined,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Artist[]>;
-    fetchSignatureToken(signal?: AbortSignal): Promise<string | undefined>;
-    refetchSignatureToken(signal?: AbortSignal): Promise<void>;
-    validateSignatureToken(signal?: AbortSignal): Promise<void>;
+    fetchSignatureToken(
+        signal?: AbortSignal | null,
+    ): Promise<string | undefined>;
+    refetchSignatureToken(signal?: AbortSignal | null): Promise<void>;
+    validateSignatureToken(signal?: AbortSignal | null): Promise<void>;
     validateSignatureTokenAndClient(
         signature: string,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<{ valid?: boolean; notFound?: boolean }>;
     magicToken(
         magicToken: string,
-        signal?: AbortSignal,
-    ): Promise<{ clientId: string; accessToken: string }>;
+        signal?: AbortSignal | null,
+    ): Promise<{ clientId: string; accessToken: string } | false>;
     globalSearch(
         query: string,
         offset?: number,
         limit?: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<{ position: number; results: Api.GlobalSearchResult[] }>;
     getArtistFromTidalArtistId(
         tidalArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Artist>;
     getArtistFromQobuzArtistId(
         qobuzArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Artist>;
     getArtistFromTidalAlbumId(
         tidalAlbumId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Artist>;
     getTidalArtist(
         tidalArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.TidalArtist>;
     getQobuzArtist(
         qobuzArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.QobuzArtist>;
     getAllTidalArtistAlbums(
         tidalArtistId: number,
         setter?: Setter<Api.TidalAlbum[] | undefined>,
         types?: Api.TidalAlbumType[],
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<{
         lps: Api.TidalAlbum[];
         epsAndSingles: Api.TidalAlbum[];
@@ -627,7 +588,7 @@ export interface ApiType {
         qobuzArtistId: number,
         setter?: Setter<Api.QobuzAlbum[] | undefined>,
         types?: Api.QobuzAlbumType[],
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<{
         lps: Api.QobuzAlbum[];
         epsAndSingles: Api.QobuzAlbum[];
@@ -636,79 +597,79 @@ export interface ApiType {
     getTidalArtistAlbums(
         tidalArtistId: number,
         albumType?: Api.TidalAlbumType,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.PagingResponse<Api.TidalAlbum>>;
     getQobuzArtistAlbums(
         qobuzArtistId: number,
         albumType?: Api.QobuzAlbumType,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.QobuzPagingResponse<Api.QobuzAlbum>>;
     getAlbumFromTidalAlbumId(
         tidalAlbumId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album>;
     getAlbumFromQobuzAlbumId(
         qobuzAlbumId: string,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album>;
     getLibraryAlbumsFromTidalArtistId(
         tidalArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album[]>;
     getLibraryAlbumsFromQobuzArtistId(
         qobuzArtistId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album[]>;
     getTidalAlbum(
         tidalAlbumId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.TidalAlbum>;
     getQobuzAlbum(
         qobuzAlbumId: string,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.QobuzAlbum>;
     getTidalAlbumTracks(
         tidalAlbumId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.PagingResponse<Api.TidalTrack>>;
     getQobuzAlbumTracks(
         qobuzAlbumId: string,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.PagingResponse<Api.QobuzTrack>>;
     getTidalTrack(
         tidalTrackId: number,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.TidalTrack>;
     getTidalTrackFileUrl(
         tidalTrackId: number,
         audioQuality: 'HIGH',
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<string>;
     getQobuzTrackFileUrl(
         qobuzTrackId: number,
         audioQuality: 'LOW',
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<string>;
     addAlbumToLibrary(
         albumId: {
             tidalAlbumId?: number;
             qobuzAlbumId?: string;
         },
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<void>;
     removeAlbumFromLibrary(
         albumId: {
             tidalAlbumId?: number;
             qobuzAlbumId?: string;
         },
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album>;
     refavoriteAlbum(
         albumId: {
             tidalAlbumId?: number;
             qobuzAlbumId?: string;
         },
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.Album>;
     download(
         items: {
@@ -718,24 +679,24 @@ export interface ApiType {
             albumIds?: number[];
         },
         source: Api.DownloadApiSource,
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<void>;
     getDownloadTasks(
-        signal?: AbortSignal,
+        signal?: AbortSignal | null,
     ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
 }
 
 async function getArtist(
     artistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Artist> {
     const query = new QueryParams({
         artistId: `${artistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+    const response = await request(`${$apiUrl()}/artist?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -845,14 +806,17 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
     return '/img/album.svg';
 }
 
-async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
+async function getAlbum(
+    id: number,
+    signal?: AbortSignal | null,
+): Promise<Api.Album> {
     const query = new QueryParams({
         albumId: `${id}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${$apiUrl()}/album?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -860,7 +824,7 @@ async function getAlbum(id: number, signal?: AbortSignal): Promise<Api.Album> {
 
 async function getAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.PagingResponseWithTotal<Api.Album>> {
     const query = new QueryParams({
         artistId: albumsRequest?.artistId?.toString(),
@@ -875,9 +839,9 @@ async function getAlbums(
     if (albumsRequest?.filters?.search)
         query.set('search', albumsRequest.filters.search);
 
-    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
+    const response = await request(`${$apiUrl()}/albums?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     const albums: Api.PagingResponseWithTotal<Api.Album> =
@@ -893,7 +857,7 @@ async function getAllAlbums(
         allAlbums: Api.Album[],
         index: number,
     ) => void,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album[]> {
     let offset = albumsRequest?.offset ?? 0;
     let limit = albumsRequest?.limit ?? 100;
@@ -1045,14 +1009,14 @@ function getArtistSourceCover(
 
 async function getAlbumTracks(
     albumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Track[]> {
     const response = await request(
-        `${Api.apiUrl()}/album/tracks?albumId=${albumId}`,
+        `${$apiUrl()}/album/tracks?albumId=${albumId}`,
         {
             method: 'GET',
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1061,14 +1025,14 @@ async function getAlbumTracks(
 
 async function getAlbumVersions(
     albumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.AlbumVersion[]> {
     const response = await request(
-        `${Api.apiUrl()}/album/versions?albumId=${albumId}`,
+        `${$apiUrl()}/album/versions?albumId=${albumId}`,
         {
             method: 'GET',
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1077,14 +1041,14 @@ async function getAlbumVersions(
 
 async function getTracks(
     trackIds: number[],
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Track[]> {
     const response = await request(
-        `${Api.apiUrl()}/tracks?trackIds=${trackIds.join(',')}`,
+        `${$apiUrl()}/tracks?trackIds=${trackIds.join(',')}`,
         {
             method: 'GET',
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1093,7 +1057,7 @@ async function getTracks(
 
 async function getArtists(
     artistsRequest: Api.ArtistsRequest | undefined = undefined,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Artist[]> {
     const query = new QueryParams();
     if (artistsRequest?.sources)
@@ -1102,9 +1066,9 @@ async function getArtists(
     if (artistsRequest?.filters?.search)
         query.set('search', artistsRequest.filters.search);
 
-    const response = await request(`${Api.apiUrl()}/artists?${query}`, {
+    const response = await request(`${$apiUrl()}/artists?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     const artists: Api.Artist[] = await response.json();
@@ -1113,12 +1077,12 @@ async function getArtists(
 }
 
 async function fetchSignatureToken(
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<string | undefined> {
-    const response = await request(`${Api.apiUrl()}/auth/signature-token`, {
+    const response = await request(`${$apiUrl()}/auth/signature-token`, {
         credentials: 'include',
         method: 'POST',
-        signal,
+        signal: signal ?? null,
     });
 
     const payload = await response.json();
@@ -1135,26 +1099,26 @@ const [nonTunnelApis, setNonTunnelApis] = makePersisted(
 
 async function validateSignatureTokenAndClient(
     signature: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<{ valid?: boolean; notFound?: boolean }> {
     const apis = nonTunnelApis();
 
-    if (apis.includes(Api.apiUrl())) {
+    if (apis.includes($apiUrl())) {
         return { notFound: true };
     }
 
     try {
         const response = await request(
-            `${Api.apiUrl()}/auth/validate-signature-token?signature=${signature}`,
+            `${$apiUrl()}/auth/validate-signature-token?signature=${signature}`,
             {
                 credentials: 'include',
                 method: 'POST',
-                signal,
+                signal: signal ?? null,
             },
         );
 
         if (response.status === 404) {
-            setNonTunnelApis([...apis, Api.apiUrl()]);
+            setNonTunnelApis([...apis, $apiUrl()]);
             return { notFound: true };
         }
 
@@ -1178,7 +1142,7 @@ async function refetchSignatureToken(): Promise<void> {
 }
 
 async function validateSignatureToken(): Promise<void> {
-    if (!Api.token()) return;
+    if (!$token()) return;
 
     const existing = Api.signatureToken();
 
@@ -1203,15 +1167,20 @@ async function validateSignatureToken(): Promise<void> {
 
 async function magicToken(
     magicToken: string,
-    signal?: AbortSignal,
-): Promise<{ clientId: string; accessToken: string }> {
+    signal?: AbortSignal | null,
+): Promise<{ clientId: string; accessToken: string } | false> {
     const response = await request(
-        `${Api.apiUrl()}/auth/magic-token?magicToken=${magicToken}`,
+        `${$apiUrl()}/auth/magic-token?magicToken=${magicToken}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
+
+    if (response.status === 401) {
+        console.error('Not authorized');
+        return false;
+    }
 
     return await response.json();
 }
@@ -1220,7 +1189,7 @@ async function globalSearch(
     query: string,
     offset?: number,
     limit?: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<{ position: number; results: Api.GlobalSearchResult[] }> {
     const queryParams = new QueryParams({
         query,
@@ -1228,10 +1197,10 @@ async function globalSearch(
         limit: limit?.toString() ?? undefined,
     });
     const response = await request(
-        `${Api.apiUrl()}/search/global-search?${queryParams.toString()}`,
+        `${$apiUrl()}/search/global-search?${queryParams.toString()}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1240,15 +1209,15 @@ async function globalSearch(
 
 async function getArtistFromTidalArtistId(
     tidalArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Artist> {
     const query = new QueryParams({
         tidalArtistId: `${tidalArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+    const response = await request(`${$apiUrl()}/artist?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1256,15 +1225,15 @@ async function getArtistFromTidalArtistId(
 
 async function getArtistFromQobuzArtistId(
     qobuzArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Artist> {
     const query = new QueryParams({
         qobuzArtistId: `${qobuzArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+    const response = await request(`${$apiUrl()}/artist?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1272,15 +1241,15 @@ async function getArtistFromQobuzArtistId(
 
 async function getArtistFromTidalAlbumId(
     tidalAlbumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Artist> {
     const query = new QueryParams({
         tidalAlbumId: `${tidalAlbumId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/artist?${query}`, {
+    const response = await request(`${$apiUrl()}/artist?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1288,15 +1257,15 @@ async function getArtistFromTidalAlbumId(
 
 async function getTidalArtist(
     tidalArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.TidalArtist> {
     const query = new QueryParams({
         artistId: `${tidalArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/tidal/artists?${query}`, {
+    const response = await request(`${$apiUrl()}/tidal/artists?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1304,15 +1273,15 @@ async function getTidalArtist(
 
 async function getQobuzArtist(
     qobuzArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.QobuzArtist> {
     const query = new QueryParams({
         artistId: `${qobuzArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/qobuz/artists?${query}`, {
+    const response = await request(`${$apiUrl()}/qobuz/artists?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1331,7 +1300,7 @@ async function getAllTidalArtistAlbums(
     tidalArtistId: number,
     setter?: Setter<Api.TidalAlbum[] | undefined>,
     types?: Api.TidalAlbumType[],
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<{
     lps: Api.TidalAlbum[];
     epsAndSingles: Api.TidalAlbum[];
@@ -1351,7 +1320,7 @@ async function getAllTidalArtistAlbums(
                 const page = await api.getTidalArtistAlbums(
                     tidalArtistId,
                     'LP',
-                    signal,
+                    signal ?? null,
                 );
 
                 albums.lps = page.items;
@@ -1375,7 +1344,7 @@ async function getAllTidalArtistAlbums(
                 const page = await api.getTidalArtistAlbums(
                     tidalArtistId,
                     'EPS_AND_SINGLES',
-                    signal,
+                    signal ?? null,
                 );
 
                 if (setter) {
@@ -1399,7 +1368,7 @@ async function getAllTidalArtistAlbums(
                 const page = await api.getTidalArtistAlbums(
                     tidalArtistId,
                     'COMPILATIONS',
-                    signal,
+                    signal ?? null,
                 );
 
                 if (setter) {
@@ -1427,7 +1396,7 @@ async function getAllQobuzArtistAlbums(
     qobuzArtistId: number,
     setter?: Setter<Api.QobuzAlbum[] | undefined>,
     types?: Api.QobuzAlbumType[],
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<{
     lps: Api.QobuzAlbum[];
     epsAndSingles: Api.QobuzAlbum[];
@@ -1447,7 +1416,7 @@ async function getAllQobuzArtistAlbums(
                 const page = await api.getQobuzArtistAlbums(
                     qobuzArtistId,
                     'LP',
-                    signal,
+                    signal ?? null,
                 );
 
                 albums.lps = page.items;
@@ -1471,7 +1440,7 @@ async function getAllQobuzArtistAlbums(
                 const page = await api.getQobuzArtistAlbums(
                     qobuzArtistId,
                     'EPS_AND_SINGLES',
-                    signal,
+                    signal ?? null,
                 );
 
                 if (setter) {
@@ -1495,7 +1464,7 @@ async function getAllQobuzArtistAlbums(
                 const page = await api.getQobuzArtistAlbums(
                     qobuzArtistId,
                     'COMPILATIONS',
-                    signal,
+                    signal ?? null,
                 );
 
                 if (setter) {
@@ -1522,7 +1491,7 @@ async function getAllQobuzArtistAlbums(
 async function getTidalArtistAlbums(
     tidalArtistId: number,
     albumType?: Api.TidalAlbumType,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.PagingResponse<Api.TidalAlbum>> {
     const query = new QueryParams({
         artistId: `${tidalArtistId}`,
@@ -1533,10 +1502,10 @@ async function getTidalArtistAlbums(
     }
 
     const response = await request(
-        `${Api.apiUrl()}/tidal/artists/albums?${query}`,
+        `${$apiUrl()}/tidal/artists/albums?${query}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1546,7 +1515,7 @@ async function getTidalArtistAlbums(
 async function getQobuzArtistAlbums(
     qobuzArtistId: number,
     albumType?: Api.QobuzAlbumType,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.QobuzPagingResponse<Api.QobuzAlbum>> {
     const query = new QueryParams({
         artistId: `${qobuzArtistId}`,
@@ -1557,10 +1526,10 @@ async function getQobuzArtistAlbums(
     }
 
     const response = await request(
-        `${Api.apiUrl()}/qobuz/artists/albums?${query}`,
+        `${$apiUrl()}/qobuz/artists/albums?${query}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1569,15 +1538,15 @@ async function getQobuzArtistAlbums(
 
 async function getAlbumFromTidalAlbumId(
     tidalAlbumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album> {
     const query = new QueryParams({
         tidalAlbumId: `${tidalAlbumId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${$apiUrl()}/album?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1585,15 +1554,15 @@ async function getAlbumFromTidalAlbumId(
 
 async function getAlbumFromQobuzAlbumId(
     qobuzAlbumId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album> {
     const query = new QueryParams({
         qobuzAlbumId: `${qobuzAlbumId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${$apiUrl()}/album?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1601,15 +1570,15 @@ async function getAlbumFromQobuzAlbumId(
 
 async function getLibraryAlbumsFromTidalArtistId(
     tidalArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album[]> {
     const query = new QueryParams({
         tidalArtistId: `${tidalArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
+    const response = await request(`${$apiUrl()}/albums?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1617,15 +1586,15 @@ async function getLibraryAlbumsFromTidalArtistId(
 
 async function getLibraryAlbumsFromQobuzArtistId(
     qobuzArtistId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album[]> {
     const query = new QueryParams({
         qobuzArtistId: `${qobuzArtistId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/albums?${query}`, {
+    const response = await request(`${$apiUrl()}/albums?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1633,15 +1602,15 @@ async function getLibraryAlbumsFromQobuzArtistId(
 
 async function getTidalAlbum(
     tidalAlbumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.TidalAlbum> {
     const query = new QueryParams({
         albumId: `${tidalAlbumId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/tidal/albums?${query}`, {
+    const response = await request(`${$apiUrl()}/tidal/albums?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1649,15 +1618,15 @@ async function getTidalAlbum(
 
 async function getQobuzAlbum(
     qobuzAlbumId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.QobuzAlbum> {
     const query = new QueryParams({
         albumId: `${qobuzAlbumId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/qobuz/albums?${query}`, {
+    const response = await request(`${$apiUrl()}/qobuz/albums?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1665,17 +1634,17 @@ async function getQobuzAlbum(
 
 async function getTidalAlbumTracks(
     tidalAlbumId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.PagingResponse<Api.TidalTrack>> {
     const query = new QueryParams({
         albumId: `${tidalAlbumId}`,
     });
 
     const response = await request(
-        `${Api.apiUrl()}/tidal/albums/tracks?${query}`,
+        `${$apiUrl()}/tidal/albums/tracks?${query}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1684,17 +1653,17 @@ async function getTidalAlbumTracks(
 
 async function getQobuzAlbumTracks(
     qobuzAlbumId: string,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.PagingResponse<Api.QobuzTrack>> {
     const query = new QueryParams({
         albumId: `${qobuzAlbumId}`,
     });
 
     const response = await request(
-        `${Api.apiUrl()}/qobuz/albums/tracks?${query}`,
+        `${$apiUrl()}/qobuz/albums/tracks?${query}`,
         {
             credentials: 'include',
-            signal,
+            signal: signal ?? null,
         },
     );
 
@@ -1703,15 +1672,15 @@ async function getQobuzAlbumTracks(
 
 async function getTidalTrack(
     tidalTrackId: number,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.TidalTrack> {
     const query = new QueryParams({
         trackId: `${tidalTrackId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/tidal/track?${query}`, {
+    const response = await request(`${$apiUrl()}/tidal/track?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1720,16 +1689,16 @@ async function getTidalTrack(
 async function getTidalTrackFileUrl(
     tidalTrackId: number,
     audioQuality: 'HIGH',
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<string> {
     const query = new QueryParams({
         audioQuality,
         trackId: `${tidalTrackId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/tidal/track/url?${query}`, {
+    const response = await request(`${$apiUrl()}/tidal/track/url?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     const { urls } = await response.json();
@@ -1740,16 +1709,16 @@ async function getTidalTrackFileUrl(
 async function getQobuzTrackFileUrl(
     qobuzTrackId: number,
     audioQuality: 'LOW',
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<string> {
     const query = new QueryParams({
         audioQuality,
         trackId: `${qobuzTrackId}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/qobuz/track/url?${query}`, {
+    const response = await request(`${$apiUrl()}/qobuz/track/url?${query}`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     const { url } = await response.json();
@@ -1762,21 +1731,21 @@ async function addAlbumToLibrary(
         tidalAlbumId?: number;
         qobuzAlbumId?: string;
     },
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<void> {
     const query = new QueryParams({
         albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
         source: albumId.tidalAlbumId
             ? 'TIDAL'
             : albumId.qobuzAlbumId
-            ? 'QOBUZ'
-            : undefined,
+              ? 'QOBUZ'
+              : undefined,
     });
 
-    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${$apiUrl()}/album?${query}`, {
         method: 'POST',
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1787,21 +1756,21 @@ async function removeAlbumFromLibrary(
         tidalAlbumId?: number;
         qobuzAlbumId?: string;
     },
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album> {
     const query = new QueryParams({
         albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
         source: albumId.tidalAlbumId
             ? 'TIDAL'
             : albumId.qobuzAlbumId
-            ? 'QOBUZ'
-            : undefined,
+              ? 'QOBUZ'
+              : undefined,
     });
 
-    const response = await request(`${Api.apiUrl()}/album?${query}`, {
+    const response = await request(`${$apiUrl()}/album?${query}`, {
         method: 'DELETE',
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1812,25 +1781,22 @@ async function refavoriteAlbum(
         tidalAlbumId?: number;
         qobuzAlbumId?: string;
     },
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.Album> {
     const query = new QueryParams({
         albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
         source: albumId.tidalAlbumId
             ? 'TIDAL'
             : albumId.qobuzAlbumId
-            ? 'QOBUZ'
-            : undefined,
+              ? 'QOBUZ'
+              : undefined,
     });
 
-    const response = await request(
-        `${Api.apiUrl()}/album/re-favorite?${query}`,
-        {
-            method: 'POST',
-            credentials: 'include',
-            signal,
-        },
-    );
+    const response = await request(`${$apiUrl()}/album/re-favorite?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
 
     return await response.json();
 }
@@ -1843,7 +1809,7 @@ async function download(
         albumIds?: number[];
     },
     source: Api.DownloadApiSource,
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<void> {
     const query = new QueryParams({
         trackId: items.trackId ? `${items.trackId}` : undefined,
@@ -1853,21 +1819,21 @@ async function download(
         source: `${source}`,
     });
 
-    const response = await request(`${Api.apiUrl()}/download?${query}`, {
+    const response = await request(`${$apiUrl()}/download?${query}`, {
         method: 'POST',
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
 }
 
 async function getDownloadTasks(
-    signal?: AbortSignal,
+    signal?: AbortSignal | null,
 ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>> {
-    const response = await request(`${Api.apiUrl()}/download-tasks`, {
+    const response = await request(`${$apiUrl()}/download-tasks`, {
         credentials: 'include',
-        signal,
+        signal: signal ?? null,
     });
 
     return await response.json();
@@ -1880,7 +1846,7 @@ function request(
     if (url[url.length - 1] === '?') url = url.substring(0, url.length - 1);
 
     const params = new QueryParams();
-    const clientId = Api.clientId();
+    const clientId = $clientId();
 
     if (clientId) {
         params.set('clientId', clientId);
@@ -1894,7 +1860,7 @@ function request(
 
     url += params.toString();
 
-    const token = Api.token();
+    const token = $token();
     if (token) {
         const headers = { ...(options?.headers ?? {}), Authorization: token };
         options = {

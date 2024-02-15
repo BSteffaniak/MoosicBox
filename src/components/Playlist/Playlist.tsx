@@ -8,8 +8,7 @@ import {
     removeTrackFromPlaylist,
 } from '~/services/player';
 import Album from '../Album';
-import { Track, trackId } from '~/services/api';
-import { A } from 'solid-start';
+import { type Track, trackId } from '~/services/api';
 
 export default function playlist() {
     const [playlist, setPlaylist] = createSignal<Track[]>([]);
@@ -54,9 +53,9 @@ export default function playlist() {
                                 trackId(track) && (
                                 <div class="playlist-tracks-playing-from">
                                     Playing from:{' '}
-                                    <A href={`/albums/${track.albumId}`}>
+                                    <a href={`/albums/${track.albumId}`}>
                                         {track.album}
-                                    </A>
+                                    </a>
                                 </div>
                             )}
                             {index() === (currentlyPlayingIndex() ?? 0) + 1 && (

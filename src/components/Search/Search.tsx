@@ -1,18 +1,11 @@
 import './search.css';
-import {
-    For,
-    JSXElement,
-    Show,
-    createSignal,
-    onCleanup,
-    onMount,
-} from 'solid-js';
+import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
+import type { JSXElement } from 'solid-js';
 import { debounce } from '@solid-primitives/scheduled';
 import { Api, api } from '~/services/api';
 import Artist from '../Artist';
 import Album from '../Album';
 import { isServer } from 'solid-js/web';
-import { A } from 'solid-start';
 import { artistRoute } from '../Artist/Artist';
 import { albumRoute } from '../Album/Album';
 
@@ -30,7 +23,7 @@ export default function searchInput() {
 
     const resizeListener = () => {
         const playerTop = document
-            .getElementsByClassName('footer-player-container')[0]
+            .getElementsByClassName('footer-player-container')[0]!
             .getBoundingClientRect().top;
 
         const searchContainerOffset =
@@ -130,7 +123,7 @@ export default function searchInput() {
                             <span class="search-results-result-details-stop-word">
                                 -
                             </span>{' '}
-                            <A
+                            <a
                                 href={artistRoute({
                                     id: artist.artistId,
                                     type: 'LIBRARY',
@@ -139,7 +132,7 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {artist.title}
-                            </A>
+                            </a>
                         </div>
                     </div>
                 );
@@ -165,7 +158,7 @@ export default function searchInput() {
                             <span class="search-results-result-details-stop-word">
                                 -
                             </span>{' '}
-                            <A
+                            <a
                                 href={albumRoute({
                                     id: album.albumId,
                                     type: 'LIBRARY',
@@ -174,11 +167,11 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {album.title}
-                            </A>{' '}
+                            </a>{' '}
                             <span class="search-results-result-details-stop-word">
                                 by
                             </span>{' '}
-                            <A
+                            <a
                                 href={artistRoute({
                                     id: album.artistId,
                                     type: 'LIBRARY',
@@ -187,7 +180,7 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {album.artist}
-                            </A>
+                            </a>
                         </div>
                     </div>
                 );
@@ -217,7 +210,7 @@ export default function searchInput() {
                             <span class="search-results-result-details-stop-word">
                                 -
                             </span>{' '}
-                            <A
+                            <a
                                 href={albumRoute({
                                     id: track.albumId,
                                     type: 'LIBRARY',
@@ -226,11 +219,11 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {track.title}
-                            </A>{' '}
+                            </a>{' '}
                             <span class="search-results-result-details-stop-word">
                                 on
                             </span>{' '}
-                            <A
+                            <a
                                 href={albumRoute({
                                     id: track.albumId,
                                     type: 'LIBRARY',
@@ -239,11 +232,11 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {track.album}
-                            </A>{' '}
+                            </a>{' '}
                             <span class="search-results-result-details-stop-word">
                                 by
                             </span>{' '}
-                            <A
+                            <a
                                 href={artistRoute({
                                     id: track.artistId,
                                     type: 'LIBRARY',
@@ -252,7 +245,7 @@ export default function searchInput() {
                                 tabindex="-1"
                             >
                                 {track.artist}
-                            </A>
+                            </a>
                         </div>
                     </div>
                 );
@@ -261,7 +254,12 @@ export default function searchInput() {
     }
 
     return (
-        <div class="search-container" ref={searchContainerRef!}>
+        <div
+            data-turbo-permanent
+            id="search-bar"
+            class="search-container"
+            ref={searchContainerRef!}
+        >
             <div class="search-label-container">
                 <label class="search-label">
                     <input
@@ -298,13 +296,13 @@ export default function searchInput() {
                 <Show when={(searchResults()?.length ?? 0) !== 0}>
                     <For each={searchResults()}>
                         {(result) => (
-                            <A
+                            <a
                                 href={searchResultLink(result)}
                                 class="search-results-result-link"
                                 onClick={() => closeSearch()}
                             >
                                 {searchResult(result)}
-                            </A>
+                            </a>
                         )}
                     </For>
                 </Show>
