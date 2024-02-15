@@ -60,11 +60,9 @@
         "astro": "^4.3.7",
         "astro-sst": "^2.40.3",
         "date-fns": "^3.3.1",
-        "flamethrower-router": "0.0.0-meme.12",
         "howler": "^2.2.4",
         "nanostores": "^0.9.5",
         "solid-js": "^1.8.14",
-        "swup": "^4.6.0",
         "typescript": "^5.3.3"
     },
     "description": "",
