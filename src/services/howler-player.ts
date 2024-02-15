@@ -15,15 +15,12 @@ import {
 } from './player';
 import type { PlayerType } from './player';
 import * as player from './player';
-import { QueryParams, clientSignal, orderedEntries } from './util';
+import { QueryParams, orderedEntries } from './util';
 
 export type TrackListenerCallback = (
     track: Api.Track,
     position: number,
 ) => void;
-
-const [$apiUrl] = clientSignal(apiUrl);
-const [$clientId] = clientSignal(clientId);
 
 export const [sound, setSound] = createSignal<Howl>();
 
@@ -43,11 +40,11 @@ export function createPlayer(id: number): PlayerType {
                     trackId: track.trackId.toString(),
                 });
 
-                const clientId = $clientId();
+                const clientIdParam = clientId.get();
                 const signatureToken = Api.signatureToken();
 
                 if (clientId && signatureToken) {
-                    query.set('clientId', clientId);
+                    query.set('clientId', clientIdParam);
                     query.set('signature', signatureToken);
                 }
 
@@ -55,7 +52,7 @@ export function createPlayer(id: number): PlayerType {
                     query.set('format', playbackQuality().format);
                 }
 
-                return `${$apiUrl()}/track?${query}`;
+                return `${apiUrl.get()}/track?${query}`;
             }
             case 'TIDAL': {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');

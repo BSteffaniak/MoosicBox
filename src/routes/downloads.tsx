@@ -151,7 +151,7 @@ export default function downloadsPage() {
             <div class="downloads-header-text-container">
                 <h1 class="downloads-header-text">Downloads</h1>
             </div>
-            <Show when={downloadsState.currentTasks.length > 0}>
+            {downloadsState.currentTasks.length > 0 && (
                 <div class="downloads-download-tasks downloads-download-tasks-current">
                     <h2 class="downloads-header-text">Queue</h2>
                     <For each={downloadsState.currentTasks}>
@@ -168,8 +168,8 @@ export default function downloadsPage() {
                         )}
                     </For>
                 </div>
-            </Show>
-            <Show when={downloadsState.historyTasks.length > 0}>
+            )}
+            {downloadsState.historyTasks.length > 0 && (
                 <div class="downloads-download-tasks downloads-download-tasks-history">
                     <h2 class="downloads-header-text">History</h2>
                     <For each={downloadsState.historyTasks}>
@@ -188,7 +188,7 @@ export default function downloadsPage() {
                         )}
                     </For>
                 </div>
-            </Show>
+            )}
         </div>
     );
 }

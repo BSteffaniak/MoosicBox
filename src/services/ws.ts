@@ -79,7 +79,10 @@ export const setConnectionName = (name: string) => {
     onConnectionNameChangedListener.trigger(name);
 };
 
-const onConnectListener = createListener<(value: string) => boolean | void>();
+const onConnectListener =
+    createListener<
+        (value: string) => boolean | void | Promise<boolean | void>
+    >();
 export const onConnect = onConnectListener.on;
 export const offConnect = onConnectListener.off;
 

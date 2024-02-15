@@ -3,10 +3,14 @@ import Modal from '../Modal';
 import PlaybackSessions from '../PlaybackSessions';
 import { createSession } from '~/services/ws';
 import { playerState } from '~/services/player';
-import { showPlaybackSessions } from '~/services/app';
+import { showPlaybackSessions, triggerStartup } from '~/services/app';
 import { clientSignal } from '~/services/util';
+import { onMount } from 'solid-js';
 
 export default function playbackSessionsModalFunc() {
+    onMount(async () => {
+        await triggerStartup();
+    });
     const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
 
     function createNewSession() {

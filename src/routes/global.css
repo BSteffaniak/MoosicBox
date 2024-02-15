@@ -106,26 +106,29 @@ button {
     display: flex;
 }
 
-.collapse-navigation-bar,
-.expand-navigation-bar {
+.toggle-expand-button {
     position: relative;
     bottom: 2px;
     margin-right: 0;
 }
 
-.collapse-navigation-bar img,
-.expand-navigation-bar img {
+.collapse-navigation-bar,
+.expand-navigation-bar {
     cursor: pointer;
     width: 22px;
 }
 
-.main-content {
-    padding-bottom: 20px;
-    width: calc(100% - max(240px, min(280px, 15vw)));
+.navigation-bar-container.expanded .expand-navigation-bar {
+    display: none;
 }
 
-.main-content.wide {
-    width: calc(100% - 60px);
+.navigation-bar-container.collapsed .collapse-navigation-bar {
+    display: none;
+}
+
+.main-content {
+    padding-bottom: 20px;
+    flex-grow: 1;
 }
 
 @media (max-width: 600px) {
@@ -137,10 +140,6 @@ button {
         width: 60px;
         height: 100vh;
         position: relative;
-    }
-
-    .main-content {
-        width: calc(100% - 60px);
     }
 }
 

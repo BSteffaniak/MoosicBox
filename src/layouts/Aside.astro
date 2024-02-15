@@ -1,0 +1,96 @@
+---
+import { isUserAgentMobile } from '~/services/util';
+
+const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
+const userAgent = Astro.request.headers.get('user-agent');
+const isMobile = isUserAgentMobile(userAgent);
+
+if (isMobile && !search.navCollapsed) {
+    search.navCollapsed = 'true';
+}
+---
+
+<navigation-sidebar data-turbo-permanent id="navigation-sidebar">
+    <aside
+        class={`navigation-bar-container${
+            search.navCollapsed === 'true' ? ' collapsed' : ' expanded'
+        }`}
+    >
+        <div class="navigation-bar">
+            <div class="navigation-bar-header">
+                <h1>MoosicBox</h1>
+                <a class="settings-link" href="/settings">
+                    <img
+                        class="settings-gear-icon"
+                        src="/img/settings-gear-white.svg"
+                    />
+                </a>
+                <div class="toggle-expand-button">
+                    <img
+                        class="collapse-navigation-bar"
+                        src="/img/chevron-left-white.svg"
+                    />
+                    <img
+                        class="expand-navigation-bar"
+                        src="/img/chevron-right-white.svg"
+                    />
+                </div>
+            </div>
+            <ul>
+                <li>
+                    <a href="/">Home</a>
+                </li>
+                <li>
+                    <a href="/downloads">Downloads {isMobile}</a>
+                </li>
+            </ul>
+            <h1 class="my-collection-header">My Collection</h1>
+            <ul>
+                <li>
+                    <a href="/albums">Albums</a>
+                </li>
+                <li>
+                    <a href="/artists">Artists</a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+</navigation-sidebar>
+
+<script>
+    import { isMobile, getQueryParam, setQueryParam } from '~/services/util';
+
+    class NavbarAside extends HTMLElement {
+        constructor() {
+            super();
+
+            const container = this.querySelector('.navigation-bar-container')!;
+            const toggleButton = this.querySelector('.toggle-expand-button')!;
+
+            toggleButton.addEventListener('click', () => {
+                container.classList.toggle('collapsed');
+                container.classList.toggle('expanded');
+
+                const mainContent = document.querySelector('.main-content')!;
+                const collapsed = container.classList.contains('collapsed');
+
+                setQueryParam('navCollapsed', collapsed.toString());
+
+                mainContent.classList.toggle('wide', collapsed);
+                mainContent.classList.toggle('normal', !collapsed);
+            });
+        }
+    }
+
+    customElements.define('navigation-sidebar', NavbarAside);
+
+    if (
+        (isMobile() && !getQueryParam('navCollapsed')) ||
+        getQueryParam('navCollapsed') === 'true'
+    ) {
+        const mainContent = document.querySelector('.main-content')!;
+
+        mainContent.classList.add('wide');
+        mainContent.classList.remove('normal');
+    }
+</script>
