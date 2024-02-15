@@ -59,7 +59,7 @@ module.exports = {
             },
         },
         {
-            files: ['**/sst-env.d.ts'],
+            files: ['**/*env.d.ts'],
             rules: {
                 '@typescript-eslint/triple-slash-reference': 'off',
             },
