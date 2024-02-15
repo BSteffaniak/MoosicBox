@@ -47,7 +47,6 @@ export function onStartup(func: StartupCallback) {
 
 export async function triggerStartup() {
     if (startedUp) return;
-    console.trace();
     startedUp = true;
 
     for (const func of startupCallbacks) {
