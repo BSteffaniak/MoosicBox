@@ -353,12 +353,17 @@ export namespace Api {
         dateReleased: string;
         numberOfTracks: number;
         audioQuality: 'LOSSLESS' | 'HIRES';
-        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        mediaMetadataTags: TidalMediaMetadataTag[];
         blur: boolean;
         type: 'TIDAL';
     }
 
     export type TidalAlbumType = 'LP' | 'EPS_AND_SINGLES' | 'COMPILATIONS';
+    export type TidalMediaMetadataTag =
+        | 'LOSSLESS'
+        | 'HIRES_LOSSLESS'
+        | 'MQA'
+        | 'DOLBY_ATMOS';
 
     export interface TidalTrack {
         id: number;
@@ -373,7 +378,7 @@ export namespace Api {
         copyright: string;
         numberOfTracks: number;
         audioQuality: 'LOSSLESS' | 'HIRES';
-        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        mediaMetadataTags: TidalMediaMetadataTag[];
         type: 'TIDAL';
     }
 
