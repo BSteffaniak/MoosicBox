@@ -131,6 +131,7 @@ button {
 .main-content {
     padding-bottom: 20px;
     flex-grow: 1;
+    overflow: auto;
 }
 
 @media (max-width: 600px) {
