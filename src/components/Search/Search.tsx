@@ -22,9 +22,12 @@ export default function searchInput() {
         createSignal<Api.GlobalSearchResult[]>();
 
     const resizeListener = () => {
-        const playerTop = document
-            .getElementsByClassName('footer-player-container')[0]!
-            .getBoundingClientRect().top;
+        const footerPlayerContainer = document
+            .getElementsByClassName('footer-player-container')[0];
+
+        if (!footerPlayerContainer) return;
+
+        const playerTop = footerPlayerContainer.getBoundingClientRect().top;
 
         const searchContainerOffset =
             searchContainerRef.getBoundingClientRect().bottom;
