@@ -113,6 +113,26 @@ export function displayApiSource(source: ApiSource) {
     }
 }
 
+export function downloadTaskStateClassName(state: Api.DownloadTaskState) {
+    switch (state) {
+        case 'PENDING':
+            return 'pending';
+        case 'PAUSED':
+            return 'paused';
+        case 'CANCELLED':
+            return 'cancelled';
+        case 'STARTED':
+            return 'started';
+        case 'ERROR':
+            return 'error';
+        case 'FINISHED':
+            return 'finished';
+        default:
+            state satisfies never;
+            throw new Error(`Invalid state: ${state}`);
+    }
+}
+
 export function displayDownloadTaskState(state: Api.DownloadTaskState) {
     switch (state) {
         case 'PENDING':

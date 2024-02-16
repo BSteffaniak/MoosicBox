@@ -1,6 +1,12 @@
 import Album from '~/components/Album';
-import './downloads.css';
-import { For, Show } from 'solid-js';
+import {
+    For,
+    Show,
+    createComputed,
+    createEffect,
+    createSignal,
+    on,
+} from 'solid-js';
 import type { JSXElement } from 'solid-js';
 import { Api } from '~/services/api';
 import type { ApiSource } from '~/services/api';
@@ -8,6 +14,7 @@ import { downloadsState } from '~/services/downloads';
 import {
     displayApiSource,
     displayDownloadTaskState,
+    downloadTaskStateClassName,
 } from '~/services/formatting';
 import Artist from '~/components/Artist';
 
@@ -145,23 +152,42 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
     }
 }
 
-export default function downloadsPage() {
+export type DownloadQueueState = 'QUEUED' | 'HISTORY';
+
+export default function downloadsPage(props: { state: DownloadQueueState }) {
+    const [tasks, setTasks] = createSignal<Api.DownloadTask[]>([]);
+
+    function initTasks() {
+        const state = props.state;
+
+        switch (state) {
+            case 'QUEUED':
+                setTasks(downloadsState.currentTasks);
+                break;
+            case 'HISTORY':
+                setTasks(downloadsState.historyTasks);
+                break;
+            default:
+                state satisfies never;
+                throw new Error(`Invalid DownloadQueueState '${state}'`);
+        }
+    }
+
+    createComputed(initTasks);
+    createEffect(on(() => downloadsState.tasks, initTasks));
+
     return (
-        <div class="downloads-page">
-            <div class="downloads-header-text-container">
-                <h1 class="downloads-header-text">Downloads</h1>
-            </div>
-            {downloadsState.currentTasks.length > 0 && (
-                <div class="downloads-download-tasks downloads-download-tasks-current">
-                    <h2 class="downloads-header-text">Queue</h2>
-                    <For each={downloadsState.currentTasks}>
+        <>
+            {tasks().length === 0 ? (
+                <div class="downloads-download-tasks">
+                    No {props.state === 'QUEUED' ? 'queued' : 'history'} tasks
+                </div>
+            ) : (
+                <div class="downloads-download-tasks">
+                    <For each={tasks()}>
                         {(task) => (
                             <div
-                                class={`downloads-download-task${
-                                    task.state === 'PENDING' ? ' pending' : ''
-                                }${task.state === 'PAUSED' ? ' paused' : ''}${
-                                    task.state === 'STARTED' ? ' started' : ''
-                                }`}
+                                class={`downloads-download-task ${downloadTaskStateClassName(task.state)}`}
                             >
                                 {downloadTask(task)}
                             </div>
@@ -169,26 +195,6 @@ export default function downloadsPage() {
                     </For>
                 </div>
             )}
-            {downloadsState.historyTasks.length > 0 && (
-                <div class="downloads-download-tasks downloads-download-tasks-history">
-                    <h2 class="downloads-header-text">History</h2>
-                    <For each={downloadsState.historyTasks}>
-                        {(task) => (
-                            <div
-                                class={`downloads-download-task${
-                                    task.state === 'CANCELLED'
-                                        ? ' cancelled'
-                                        : ''
-                                }${
-                                    task.state === 'FINISHED' ? ' finished' : ''
-                                }${task.state === 'ERROR' ? ' error' : ''}`}
-                            >
-                                {downloadTask(task)}
-                            </div>
-                        )}
-                    </For>
-                </div>
-            )}
-        </div>
+        </>
     );
 }
