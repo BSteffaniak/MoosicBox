@@ -27,4 +27,53 @@ addEventListener('turbo:before-fetch-response', defaultEventHandler);
 addEventListener('turbo:before-prefetch', defaultEventHandler);
 addEventListener('turbo:fetch-request-error', defaultEventHandler);
 
+let waitingForScrollSize: number | undefined;
+
+function restoreScrollPos(position: number) {
+    waitingForScrollSize = position;
+}
+
+window.addEventListener('beforeunload', () => {
+    localStorage.setItem(
+        'scrollTop',
+        document.documentElement.scrollTop.toString(),
+    );
+});
+
+window.addEventListener('popstate', (e) => {
+    if (!e.state?.turbo) return;
+
+    const restore =
+        window.Turbo.navigator.history.getRestorationDataForIdentifier(
+            e.state.turbo.restorationIdentifier,
+        );
+
+    if (restore.scrollPosition) {
+        restoreScrollPos(restore.scrollPosition.y);
+    }
+});
+
+const startTop = localStorage.getItem('scrollTop');
+
+if (startTop) {
+    restoreScrollPos(parseInt(startTop));
+}
+
+const resizeObserver = new ResizeObserver(() => {
+    if (!waitingForScrollSize) return;
+
+    if (document.documentElement.scrollHeight >= waitingForScrollSize) {
+        document.documentElement.scrollTop = waitingForScrollSize;
+        waitingForScrollSize = undefined;
+    }
+});
+
+function resetResizeObserver() {
+    resizeObserver.disconnect();
+    resizeObserver.observe(document.querySelector('main')!);
+}
+
+addEventListener('turbo:load', resetResizeObserver);
+addEventListener('turbo:render', resetResizeObserver);
+
 Turbo.start();
