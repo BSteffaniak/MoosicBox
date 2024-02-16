@@ -1,15 +1,20 @@
 import ArtistPage from '~/components/pages/artists/artist-page';
 import ArtistsPage from '~/components/pages/artists/artists-page';
+import { getQueryParam } from '~/services/util';
 
-export default function artistPage(params: Record<string, string>) {
+export default function artistPage() {
+    const artistId = getQueryParam('artistId');
+    const tidalArtistId = getQueryParam('tidalArtistId');
+    const qobuzArtistId = getQueryParam('qobuzArtistId');
+
     return (
         <>
-            {params.artistId ? (
-                <ArtistPage artistId={parseInt(params.artistId!)} />
-            ) : params.tidalArtistId ? (
-                <ArtistPage tidalArtistId={parseInt(params.tidalArtistId!)} />
-            ) : params.qobuzArtistId ? (
-                <ArtistPage qobuzArtistId={parseInt(params.qobuzArtistId!)} />
+            {artistId ? (
+                <ArtistPage artistId={parseInt(artistId!)} />
+            ) : tidalArtistId ? (
+                <ArtistPage tidalArtistId={parseInt(tidalArtistId!)} />
+            ) : qobuzArtistId ? (
+                <ArtistPage qobuzArtistId={parseInt(qobuzArtistId!)} />
             ) : (
                 <ArtistsPage />
             )}
