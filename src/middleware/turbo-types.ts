@@ -5,7 +5,7 @@ declare global {
         Turbo: {
             navigator: {
                 history: {
-                    replace(url: string): void;
+                    replace(url: URL): void;
                 };
             };
         };

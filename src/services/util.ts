@@ -248,11 +248,17 @@ export function setQueryParam(key: string, value: string | undefined) {
     if (typeof value === 'undefined') {
         url.searchParams.delete(key);
     } else {
+        if (url.searchParams.get(key) === value) {
+            console.debug('Query param', key, 'is already set');
+            return;
+        }
         url.searchParams.set(key, value);
     }
 
-    window.history.replaceState({}, '', url.toString());
-    window.Turbo.navigator.history.replace(url.toString());
+    console.debug('Replacing url state with', url.toString());
+
+    window.history.replaceState({}, '', url);
+    window.Turbo.navigator.history.replace(url);
 }
 
 export function isMobile() {
