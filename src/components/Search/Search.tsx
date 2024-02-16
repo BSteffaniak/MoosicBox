@@ -22,8 +22,9 @@ export default function searchInput() {
         createSignal<Api.GlobalSearchResult[]>();
 
     const resizeListener = () => {
-        const footerPlayerContainer = document
-            .getElementsByClassName('footer-player-container')[0];
+        const footerPlayerContainer = document.getElementsByClassName(
+            'footer-player-container',
+        )[0];
 
         if (!footerPlayerContainer) return;
 

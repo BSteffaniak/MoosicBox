@@ -354,9 +354,16 @@ export function setSeek(sessionId: number, seek: number) {
     });
 }
 
+const messageBuffer: OutboundMessage[] = [];
+
 function send<T extends OutboundMessage>(value: T) {
-    console.debug('Sending WebSocket message', value);
-    ws.send(JSON.stringify(value));
+    if (ws) {
+        console.debug('Sending WebSocket message', value);
+        ws.send(JSON.stringify(value));
+    } else {
+        console.debug('Adding WebSocket message to buffer', value);
+        messageBuffer.push(value);
+    }
 }
 
 const onMessageListener =
@@ -394,6 +401,13 @@ function newClient(): Promise<WebSocket> {
                 );
 
                 ws = client;
+
+                while (messageBuffer.length > 0) {
+                    const value = messageBuffer.shift();
+                    console.debug('Sending buffered WebSocket message', value);
+                    ws.send(JSON.stringify(value));
+                }
+
                 getConnectionId();
                 resolve(client);
             }
