@@ -78,11 +78,22 @@ export function displayAlbumVersionQuality(
 
 export function displayAlbumVersionQualities(
     versions: Api.AlbumVersionQuality[],
+    maxCharacters: number = 25,
 ): string {
     let str = displayAlbumVersionQuality(versions[0]!);
+    let count = 1;
 
-    if (versions.length > 1) {
-        str += ` (+${versions.length - 1})`;
+    for (let i = 1; i < versions.length; i++) {
+        const display = displayAlbumVersionQuality(versions[i]!);
+
+        if (str.length + display.length + ' / '.length > maxCharacters) break;
+
+        str += ' / ' + display;
+        count++;
+    }
+
+    if (versions.length - count > 0) {
+        str += ` (+${versions.length - count})`;
     }
 
     return str;
