@@ -245,6 +245,7 @@ export default function albumPage(props: {
     }
 
     async function downloadAlbum(source: Api.DownloadApiSource) {
+        console.debug('Downloading album from source: ', source);
         await api.download({ albumId: libraryAlbum()!.albumId }, source);
     }
 
@@ -531,6 +532,38 @@ export default function albumPage(props: {
         );
     }
 
+    function getTrackTitleDisplay(track: ApiTrack): string {
+        const trackType = track.type;
+
+        switch (trackType) {
+            case 'LIBRARY':
+                return track.title;
+            case 'TIDAL':
+                return track.title;
+            case 'QOBUZ':
+                return track.title;
+            default:
+                trackType satisfies never;
+                throw new Error(`Invalid trackType: ${trackType}`);
+        }
+    }
+
+    function isExplicit(track: ApiTrack): boolean {
+        const trackType = track.type;
+
+        switch (trackType) {
+            case 'LIBRARY':
+                return false;
+            case 'TIDAL':
+                return track.explicit;
+            case 'QOBUZ':
+                return track.parentalWarning;
+            default:
+                trackType satisfies never;
+                throw new Error(`Invalid trackType: ${trackType}`);
+        }
+    }
+
     function track(track: ApiTrack) {
         return (
             <tr
@@ -563,7 +596,16 @@ export default function albumPage(props: {
                         />
                     </div>
                 </td>
-                <td class="album-page-tracks-track-title">{track.title}</td>
+                <td class="album-page-tracks-track-title">
+                    {getTrackTitleDisplay(track)}
+                    {isExplicit(track) && (
+                        <img
+                            class="album-page-tracks-track-title-explicit"
+                            src="/img/explicit.svg"
+                            alt="Explicit"
+                        />
+                    )}
+                </td>
                 <td class="album-page-tracks-track-artist">
                     <a
                         href={artistRoute(track)}

@@ -252,6 +252,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -271,6 +272,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -290,6 +292,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -309,6 +312,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -328,6 +332,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -347,6 +352,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}
@@ -366,6 +372,7 @@ export default function artistPage(props: {
                                         album={album}
                                         artist={true}
                                         title={true}
+                                        year={true}
                                         controls={true}
                                         versionQualities={true}
                                         size={200}

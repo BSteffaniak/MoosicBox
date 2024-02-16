@@ -349,6 +349,7 @@ export namespace Api {
         artist: string;
         artistId: number;
         containsCover: boolean;
+        explicit: boolean;
         copyright: string;
         dateReleased: string;
         numberOfTracks: number;
@@ -372,6 +373,7 @@ export namespace Api {
         artist: string;
         artistId: number;
         containsCover: boolean;
+        explicit: boolean;
         album: string;
         albumId: number;
         duration: number;
@@ -396,6 +398,7 @@ export namespace Api {
         artist: string;
         artistId: number;
         containsCover: boolean;
+        parentalWarning: boolean;
         dateReleased: string;
         numberOfTracks: number;
         blur: boolean;
@@ -411,6 +414,7 @@ export namespace Api {
         artist: string;
         artistId: number;
         containsCover: boolean;
+        parentalWarning: boolean;
         album: string;
         albumId: number;
         duration: number;

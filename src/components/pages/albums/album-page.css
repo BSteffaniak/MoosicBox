@@ -189,6 +189,14 @@
     text-decoration: none;
 }
 
+.album-page-tracks-track-title-explicit {
+    width: 14px;
+    height: 14px;
+    position: relative;
+    top: 1.5px;
+    padding-left: 4px;
+}
+
 .album-page-artwork-previewer {
     background-color: rgba(0, 0, 0, 0.3);
     position: fixed;

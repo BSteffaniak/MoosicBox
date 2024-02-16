@@ -418,6 +418,7 @@ export default function albums() {
                                             controls={true}
                                             artist={true}
                                             title={true}
+                                            year={true}
                                             versionQualities={true}
                                         />
                                     )}

@@ -93,6 +93,18 @@
     text-decoration: underline;
 }
 
+.album-details-explicit-wordwrap {
+    white-space: nowrap;
+}
+
+.album-details-explicit {
+    width: 14px;
+    height: 14px;
+    position: relative;
+    top: 1.5px;
+    padding-left: 4px;
+}
+
 .album-title {
     margin-top: 3px;
     font-size: 16px;
