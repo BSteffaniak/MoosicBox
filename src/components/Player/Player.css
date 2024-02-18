@@ -130,9 +130,6 @@
 
 .player .player-media-controls-seeker-bar-progress {
     will-change: width;
-    transition-property: width;
-    transition-duration: 1s;
-    transition-timing-function: linear;
     height: 100%;
     background-color: #ffffff;
     border-top-right-radius: 10px;

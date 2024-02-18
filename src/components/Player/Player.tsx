@@ -35,6 +35,10 @@ import { clientSignal } from '~/services/util';
 
 let mouseX: number;
 
+function getTrackDuration() {
+    return playerState.currentTrack?.duration ?? currentTrackLength();
+}
+
 function eventToSeekPosition(element: HTMLElement): number {
     if (!element) return 0;
 
@@ -43,7 +47,7 @@ function eventToSeekPosition(element: HTMLElement): number {
         100,
         Math.max(0, (mouseX - pos.left) / pos.width),
     );
-    return currentTrackLength() * percentage;
+    return getTrackDuration() * percentage;
 }
 
 function seekTo(event: MouseEvent): void {
@@ -53,7 +57,6 @@ function seekTo(event: MouseEvent): void {
 let dragStartListener: (event: MouseEvent) => void;
 let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
-let visibilityChangeListener: () => void;
 let playlistSlideoutTimeout: NodeJS.Timeout | undefined;
 
 enum BackToNowPlayingPosition {
@@ -85,27 +88,20 @@ export default function player() {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
     });
 
-    function speedyProgressTransition() {
-        progressBar?.classList.add('no-transition');
-        setTimeout(() => {
-            progressBar?.classList.remove('no-transition');
-        }, 100);
-    }
-
     function getSeekPosition(): number {
-        return Math.max(Math.min(seekPosition() ?? 0, currentTrackLength()), 0);
+        return Math.max(Math.min(seekPosition() ?? 0, getTrackDuration()), 0);
     }
 
     function getCurrentSeekPosition(): number {
-        return Math.max(Math.min(currentSeek() ?? 0, currentTrackLength()), 0);
+        return Math.max(Math.min(currentSeek() ?? 0, getTrackDuration()), 0);
     }
 
     function getProgressBarWidth(): number {
         if (applyDrag() && dragging()) {
-            return (getSeekPosition() / currentTrackLength()) * 100;
+            return (getSeekPosition() / getTrackDuration()) * 100;
         }
 
-        return (getCurrentSeekPosition() / currentTrackLength()) * 100;
+        return (getCurrentSeekPosition() / getTrackDuration()) * 100;
     }
 
     function closePlaylist() {
@@ -152,8 +148,6 @@ export default function player() {
     }
 
     onMount(() => {
-        speedyProgressTransition();
-
         if (!isServer) {
             dragStartListener = (event: MouseEvent) => {
                 if (event.button === 0) {
@@ -181,21 +175,12 @@ export default function player() {
                 }
             };
 
-            visibilityChangeListener = () => {
-                if (document.visibilityState !== 'hidden') {
-                    speedyProgressTransition();
-                }
-            };
             progressBarTrigger?.addEventListener(
                 'mousedown',
                 dragStartListener,
             );
             window.addEventListener('mousemove', dragListener);
             window.addEventListener('mouseup', dragEndListener);
-            document.addEventListener(
-                'visibilitychange',
-                visibilityChangeListener,
-            );
         }
     });
 
@@ -207,24 +192,14 @@ export default function player() {
             );
             window.removeEventListener('mousemove', dragListener);
             window.removeEventListener('mouseup', dragEndListener);
-            document.removeEventListener(
-                'visibilitychange',
-                visibilityChangeListener,
-            );
         }
     });
 
     createEffect(
         on(
             () => currentSeek(),
-            (newSeek, oldSeek) => {
-                if (
-                    typeof newSeek === 'undefined' ||
-                    typeof oldSeek === 'undefined' ||
-                    Math.abs(newSeek - oldSeek) > 1.2
-                ) {
-                    speedyProgressTransition();
-                }
+            () => {
+                animationStart = document.timeline.currentTime as number;
             },
         ),
     );
@@ -242,6 +217,9 @@ export default function player() {
         on(
             () => playing(),
             () => {
+                if (playing()) {
+                    startAnimation();
+                }
                 if (dragging()) {
                     setApplyDrag(false);
                     progressBar?.classList.remove('no-transition');
@@ -381,6 +359,39 @@ export default function player() {
         });
     }
 
+    let animationStart: number | undefined;
+
+    function progressAnimationFrame(ts: number): void {
+        if (!playing()) {
+            animationStart = undefined;
+
+            return;
+        }
+        if (!animationStart) animationStart = ts;
+
+        const elapsed = ts - animationStart;
+
+        const duration = getTrackDuration();
+
+        if (
+            typeof currentSeek() !== 'undefined' &&
+            typeof duration !== 'undefined'
+        ) {
+            const offset = (elapsed / 1000) * (1 / duration) * 100;
+
+            progressBar!.style.width = `${getProgressBarWidth() + offset}%`;
+        }
+
+        window.requestAnimationFrame(progressAnimationFrame);
+    }
+
+    function startAnimation() {
+        window.requestAnimationFrame((ts) => {
+            animationStart = ts;
+            window.requestAnimationFrame(progressAnimationFrame);
+        });
+    }
+
     return (
         <>
             <div ref={playerRef!} class="player">
@@ -388,7 +399,6 @@ export default function player() {
                     <div
                         ref={progressBar!}
                         class="player-media-controls-seeker-bar-progress"
-                        style={{ width: `${getProgressBarWidth()}%` }}
                     ></div>
                     <div
                         ref={progressBarTrigger!}
@@ -399,7 +409,7 @@ export default function player() {
                         class="player-media-controls-seeker-bar-progress-tooltip"
                         style={{
                             left: `max(30px, min(100vw - 40px, ${
-                                (getSeekPosition() / currentTrackLength()) * 100
+                                (getSeekPosition() / getTrackDuration()) * 100
                             }%))`,
                             display:
                                 applyDrag() && dragging() ? 'block' : undefined,
@@ -523,7 +533,7 @@ export default function player() {
                             </span>
                             //
                             <span class="player-media-controls-seeker-total-time">
-                                {toTime(currentTrackLength())}
+                                {toTime(getTrackDuration())}
                             </span>
                         </div>
                     </div>

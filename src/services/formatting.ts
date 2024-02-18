@@ -5,7 +5,9 @@ function zeroPad(num: number, places: number) {
     return String(num).padStart(places, '0');
 }
 
-export function toTime(seconds: number) {
+export function toTime(value: number) {
+    const seconds = Math.round(value);
+
     const minutes = ~~(seconds / 60);
     const minutesAndSeconds = `${minutes % 60}:${zeroPad(seconds % 60, 2)}`;
 
