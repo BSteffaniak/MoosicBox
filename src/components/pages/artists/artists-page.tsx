@@ -250,7 +250,7 @@ export default function artists() {
 
     return (
         <>
-            <div class="artists-back-to-top-container">
+            <div class="artists-back-to-top-container main-content-back-to-top">
                 <div
                     onClick={() =>
                         document.documentElement.scroll({

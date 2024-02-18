@@ -42,14 +42,6 @@
     align-items: center;
 }
 
-.main-content .artists-back-to-top-container {
-    left: calc((100% + max(240px, min(280px, 15vw))) / 2);
-}
-
-.main-content.wide .artists-back-to-top-container {
-    left: calc((100% + 60px) / 2);
-}
-
 .artists-back-to-top-container {
     position: fixed;
     top: 0;
@@ -187,6 +179,10 @@
 }
 
 @media (max-width: 600px) {
+    .artists-page {
+        padding: 0;
+    }
+
     .artists-header-container {
         padding: 5px 10px 0 10px;
     }

@@ -54,11 +54,11 @@ button {
     position: relative;
 }
 
-.navigation-bar-container.collapsed {
+.navigation-bar-container.toggled {
     width: 60px;
 }
 
-.navigation-bar-container.collapsed .navigation-bar {
+.navigation-bar-container.toggled .navigation-bar {
     transform: translateX(calc(-100% + 60px));
 }
 
@@ -120,11 +120,11 @@ button {
     width: 22px;
 }
 
-.navigation-bar-container.expanded .expand-navigation-bar {
+.navigation-bar-container.default .expand-navigation-bar {
     display: none;
 }
 
-.navigation-bar-container.collapsed .collapse-navigation-bar {
+.navigation-bar-container.toggled .collapse-navigation-bar {
     display: none;
 }
 
@@ -135,7 +135,7 @@ button {
 }
 
 @media (max-width: 600px) {
-    .navigation-bar-container.expanded .navigation-bar {
+    .navigation-bar-container.toggled .navigation-bar {
         /*transform: translateX(calc(-100% + 60px));*/
     }
 
@@ -281,7 +281,68 @@ p {
     height: 60px;
 }
 
+.main-content-back-to-top {
+    left: calc((100% + max(240px, min(280px, 15vw))) / 2);
+}
+
+.main-content.wide .main-content-back-to-top {
+    left: calc((100% + 60px) / 2);
+}
+
+.mobile-toggle-expand-button {
+    display: none;
+}
+
+.mobile-expand-navigation-bar {
+    cursor: pointer;
+    width: 22px;
+}
+
 @media (max-width: 600px) {
-    .playback-sessions-modal-container {
+    .navigation-bar-container.default .mobile-toggle-expand-button {
+        position: fixed;
+        right: 10px;
+        padding: 9px;
+        background-color: white;
+        top: 55px;
+        z-index: 18;
+        display: flex;
+        border-radius: 100px;
+    }
+
+    .mobile-toggle-expand-button img {
+        position: relative;
+        right: 1px;
+    }
+
+    .main-content-back-to-top {
+        left: calc((100% - max(240px, min(280px, 15vw))) / 2);
+    }
+
+    .main-content.default .main-content-back-to-top {
+        left: calc(100% / 2);
+    }
+
+    .main-content.toggled .search-container {
+        z-index: 16;
+    }
+
+    .navigation-bar-container.default,
+    .navigation-bar-container.toggled,
+    .navigation-bar-container {
+        width: 0;
+    }
+
+    .navigation-bar-container.default .navigation-bar {
+        background: none;
+        transform: unset;
+    }
+
+    .navigation-bar-container.toggled .navigation-bar {
+        transform: translateX(-100%);
+    }
+
+    .navigation-bar-and-main-content {
+        flex-direction: row-reverse;
     }
 }

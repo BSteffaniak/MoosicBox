@@ -252,7 +252,7 @@ export default function albums() {
 
     return (
         <>
-            <div class="albums-back-to-top-container">
+            <div class="albums-back-to-top-container main-content-back-to-top">
                 <div
                     onClick={() =>
                         document.documentElement.scroll({

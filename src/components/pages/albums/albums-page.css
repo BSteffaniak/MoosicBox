@@ -27,14 +27,6 @@
     width: 25px;
 }
 
-.main-content .albums-back-to-top-container {
-    left: calc((100% + max(240px, min(280px, 15vw))) / 2);
-}
-
-.main-content.wide .albums-back-to-top-container {
-    left: calc((100% + 60px) / 2);
-}
-
 .albums-back-to-top-container {
     position: fixed;
     top: 0;
