@@ -24,6 +24,7 @@ export default {
             const domainName = `${subdomain}${DOMAIN}`;
 
             const site = new AstroSite(stack, 'MoosicBox', {
+                buildCommand: 'pnpm build --config astro.config.sst.mjs',
                 customDomain: {
                     hostedZone: DOMAIN,
                     domainName,
