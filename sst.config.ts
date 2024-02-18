@@ -1,5 +1,5 @@
 import { SSMClient } from '@aws-sdk/client-ssm';
-import type { SSTConfig } from 'sst';
+import { type SSTConfig } from 'sst';
 import { fetchSstSecret } from 'sst-secrets';
 import { AstroSite, type StackContext } from 'sst/constructs';
 

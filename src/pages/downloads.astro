@@ -30,13 +30,13 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
                 value="QUEUED"
                 class={`downloads-page-queued-downloads${search.tab === 'QUEUED' ? ' active' : ''}`}
             >
-                <DownloadQueue state="QUEUED" client:only />
+                <DownloadQueue state="QUEUED" client:only="solid-js" />
             </tab-content>
             <tab-content
                 value="HISTORY"
                 class={`downloads-page-history-downloads${search.tab === 'HISTORY' ? ' active' : ''}`}
             >
-                <DownloadQueue state="HISTORY" client:only />
+                <DownloadQueue state="HISTORY" client:only="solid-js" />
             </tab-content>
         </download-tabs>
     </div>

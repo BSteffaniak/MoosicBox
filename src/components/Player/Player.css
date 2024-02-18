@@ -130,9 +130,6 @@
 
 .player .player-media-controls-seeker-bar-progress {
     will-change: width;
-    transition-property: width;
-    transition-duration: 1s;
-    transition-timing-function: linear;
     height: 100%;
     background-color: #ffffff;
     border-top-right-radius: 10px;
@@ -192,27 +189,27 @@
     margin: 5px;
 }
 
-.play-button {
+.play-button-icon {
     width: 17px;
     position: relative;
     top: 2px;
     left: 2px;
 }
 
-.pause-button {
+.pause-button-icon {
     width: 17px;
     position: relative;
     top: 2px;
 }
 
-.next-track-button {
+.next-track-button-icon {
     width: 18px;
     position: relative;
     top: 2px;
     left: 1px;
 }
 
-.previous-track-button {
+.previous-track-button-icon {
     width: 18px;
     transform: scaleX(-1);
     position: relative;
@@ -356,4 +353,12 @@
     .player .player-now-playing-details {
         display: none;
     }
+}
+
+moosicbox-player {
+    display: block;
+}
+
+moosicbox-player .pause-button {
+    display: none;
 }

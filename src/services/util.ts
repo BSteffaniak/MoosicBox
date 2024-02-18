@@ -1,8 +1,7 @@
 import { isServer } from 'solid-js/web';
 import type { Entries } from './types';
 import { createSignal, onCleanup, onMount } from 'solid-js';
-import { atom } from 'nanostores';
-import type { WritableAtom } from 'nanostores';
+import { atom, type WritableAtom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 
 export class ClientAtom<T> {

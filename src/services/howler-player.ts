@@ -140,6 +140,7 @@ export function createPlayer(id: number): PlayerType {
             setSound(howl);
             const duration = Math.round(track.duration);
             if (!isNaN(duration) && isFinite(duration)) {
+                console.log(duration);
                 setCurrentTrackLength(duration);
             }
         }
@@ -192,6 +193,7 @@ export function createPlayer(id: number): PlayerType {
                     );
                     const duration = Math.round(sound()!.duration());
                     if (!isNaN(duration) && isFinite(duration)) {
+                        console.log(duration);
                         setCurrentTrackLength(duration);
                     }
                     if (typeof initialSeek === 'number') {

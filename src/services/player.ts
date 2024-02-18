@@ -609,16 +609,23 @@ export function sessionUpdated(update: PartialUpdateSession) {
     updatePlayback(playbackUpdate, false);
 }
 
+export const playbackUpdatedListener =
+    createListener<
+        (
+            value: Omit<PlaybackUpdate, 'sessionId'>,
+        ) => boolean | void | Promise<boolean | void>
+    >();
+
 export type PlaybackUpdate = {
     sessionId: number;
-    play?: boolean;
-    stop?: boolean;
-    playing?: boolean;
-    quality?: Api.PlaybackQuality;
-    position?: number;
-    seek?: number;
-    volume?: number;
-    tracks?: Track[];
+    play?: boolean | undefined;
+    stop?: boolean | undefined;
+    playing?: boolean | undefined;
+    quality?: Api.PlaybackQuality | undefined;
+    position?: number | undefined;
+    seek?: number | undefined;
+    volume?: number | undefined;
+    tracks?: Track[] | undefined;
 };
 
 async function updatePlayback(
@@ -686,6 +693,8 @@ async function updatePlayback(
     ) {
         return;
     }
+
+    playbackUpdatedListener.trigger(update);
 }
 
 function updateCurrentPlaybackSession(
