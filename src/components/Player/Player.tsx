@@ -209,6 +209,7 @@ export default function player() {
             () => currentTrackLength(),
             () => {
                 setSeekPosition(eventToSeekPosition(progressBarTrigger!));
+                updateProgressBarSize();
             },
         ),
     );
@@ -379,7 +380,7 @@ export default function player() {
         ) {
             const offset = (elapsed / 1000) * (1 / duration) * 100;
 
-            progressBar!.style.width = `${getProgressBarWidth() + offset}%`;
+            updateProgressBarSize(offset);
         }
 
         window.requestAnimationFrame(progressAnimationFrame);
@@ -390,6 +391,10 @@ export default function player() {
             animationStart = ts;
             window.requestAnimationFrame(progressAnimationFrame);
         });
+    }
+
+    function updateProgressBarSize(offset: number = 0) {
+        progressBar!.style.width = `${getProgressBarWidth() + offset}%`;
     }
 
     return (
