@@ -289,6 +289,7 @@ export default function playbackSessionsFunc() {
             <Modal
                 show={() => activePlayersSession()}
                 onClose={() => setActivePlayersSession(undefined)}
+                class="playback-session-active-players-modal"
             >
                 {(activePlayersSession) => (
                     <div class="playback-session-active-players-modal-container">

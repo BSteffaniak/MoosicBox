@@ -137,8 +137,6 @@
 }
 
 .playback-session-active-players-modal-container {
-    width: 600px;
-    max-width: 60vw;
     max-height: calc(70vh - 230px);
     overflow: auto;
     padding-bottom: 15px;
@@ -189,4 +187,15 @@
 .playback-session-active-players-modal-connection-player.active .audio-icon {
     filter: invert(46%) sepia(65%) saturate(3181%) hue-rotate(81deg)
         brightness(107%) contrast(118%);
+}
+
+.playback-session-active-players-modal {
+    width: auto;
+    max-width: 800px;
+}
+
+@media (max-width: 600px) {
+    .playback-session-active-players-modal {
+        width: 100%;
+    }
 }
