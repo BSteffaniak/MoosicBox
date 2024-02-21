@@ -162,11 +162,11 @@
     z-index: 20;
 }
 
-.main-content.wide .filter-artists {
+.main-content.toggled .filter-artists {
     width: calc(min(100vw - 60px - 90px, max(100px, 30vw)));
 }
 
-.main-content.wide .filter-artists:focus {
+.main-content.toggled .filter-artists:focus {
     width: calc(100% - 20px);
 }
 
