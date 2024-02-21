@@ -56,13 +56,8 @@
 }
 
 .search-container:focus-within {
-    left: max(240px, min(280px, 15vw));
-    width: calc(100% - max(240px, min(280px, 15vw)) - 60px);
-}
-
-.main-content.toggled .search-container:focus-within {
-    left: calc(60px);
-    width: calc(100% - 60px - 60px);
+    left: 0;
+    width: calc(100% - 60px);
 }
 
 .search-label-container {
