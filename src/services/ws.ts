@@ -4,7 +4,7 @@ import { Api, apiUrl, clientId, toSessionPlaylistTrack, token } from './api';
 import type { Track } from './api';
 import { onStartup, setAppState } from './app';
 import type { PartialUpdateSession } from './types';
-import { clientAtom, createListener } from './util';
+import { clientAtom, createListener, objToStr } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
 import { onDownloadEventListener } from './downloads';
@@ -40,6 +40,8 @@ function updateWsUrl(
     clientId: string | undefined,
     signatureToken: string | undefined,
 ) {
+    if (!apiUrl?.startsWith('http')) return;
+
     const params = [];
     if (clientId) {
         params.push(`clientId=${encodeURIComponent(clientId)}`);
@@ -545,7 +547,10 @@ async function attemptConnection(): Promise<WebSocket> {
                 break;
             }
 
-            console.error('WebSocket connection failed', e);
+            console.error(
+                `WebSocket connection failed at '${wsUrl}':`,
+                objToStr(e),
+            );
             console.debug(
                 `Failed to connect. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
             );
@@ -566,6 +571,10 @@ onStartup(async () => {
     updateWsUrl(apiUrl.get(), clientId.get(), Api.signatureToken());
     if (token.get() && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
+        return;
+    }
+    if (!wsUrl) {
+        console.debug('Waiting for wsUrl');
         return;
     }
     connectionPromise = attemptConnection();
