@@ -3,6 +3,7 @@ import { createEffect, createSignal, For, on, Show } from 'solid-js';
 import Album from '~/components/Album';
 import Artist from '~/components/Artist';
 import { Api, api, type Artist as ApiArtist } from '~/services/api';
+import { historyBack } from '~/services/util';
 
 export default function artistPage(props: {
     artistId?: number;
@@ -216,7 +217,7 @@ export default function artistPage(props: {
                         <a
                             class="back-button"
                             href="#"
-                            onClick={() => history.back()}
+                            onClick={() => historyBack()}
                         >
                             Back
                         </a>

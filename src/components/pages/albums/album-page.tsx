@@ -24,7 +24,7 @@ import {
     trackId,
 } from '~/services/api';
 import { artistRoute } from '~/components/Artist/Artist';
-import { areEqualShallow } from '~/services/util';
+import { areEqualShallow, historyBack } from '~/services/util';
 
 export default function albumPage(props: {
     albumId?: number;
@@ -629,7 +629,7 @@ export default function albumPage(props: {
                         <a
                             class="back-button"
                             href="#"
-                            onClick={() => history.back()}
+                            onClick={() => historyBack()}
                         >
                             Back
                         </a>

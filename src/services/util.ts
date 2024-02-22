@@ -261,6 +261,10 @@ export function setQueryParam(key: string, value: string | undefined) {
     window.Turbo.navigator.history.replace(url);
 }
 
+export function historyBack() {
+    window.history.back();
+}
+
 export function isMobile() {
     if (isServer) return false;
 
