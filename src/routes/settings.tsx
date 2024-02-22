@@ -1,5 +1,6 @@
+import { createSignal } from 'solid-js';
 import './settings.css';
-import { apiUrl, clientId, token } from '~/services/api';
+import { api, apiUrl, clientId, token } from '~/services/api';
 import { clientSignal } from '~/services/util';
 import { connectionName, setConnectionName } from '~/services/ws';
 
@@ -7,6 +8,9 @@ export default function settingsPage() {
     const [$apiUrl, setApiUrl] = clientSignal(apiUrl);
     const [$clientId, setClientId] = clientSignal(clientId);
     const [$token, setToken] = clientSignal(token);
+
+    const [status, setStatus] = createSignal<string>();
+    const [loading, setLoading] = createSignal(false);
 
     let clientIdInput: HTMLInputElement;
     let apiUrlInput: HTMLInputElement;
@@ -29,6 +33,22 @@ export default function settingsPage() {
 
     function saveToken() {
         setToken(tokenInput.value);
+    }
+
+    let magicTokenInput: HTMLInputElement;
+
+    async function saveMagicToken() {
+        const resp = await api.magicToken(magicTokenInput.value);
+        setLoading(false);
+
+        if (resp) {
+            clientId.set(resp.clientId);
+            token.set(resp.accessToken);
+            magicTokenInput.value = '';
+            setStatus('Successfully set values');
+        } else {
+            setStatus('Failed to authenticate with magic token');
+        }
     }
 
     return (
@@ -76,7 +96,18 @@ export default function settingsPage() {
                     />
                     <button onClick={saveToken}>save</button>
                 </li>
+                <li>
+                    Magic Token:{' '}
+                    <input
+                        ref={magicTokenInput!}
+                        type="text"
+                        onKeyUp={(e) => e.key === 'Enter' && saveMagicToken()}
+                    />
+                    <button onClick={saveMagicToken}>save</button>
+                </li>
             </ul>
+            {status() && status()}
+            {loading() && 'loading...'}
         </div>
     );
 }
