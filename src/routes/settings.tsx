@@ -2,12 +2,13 @@ import { createSignal } from 'solid-js';
 import './settings.css';
 import { api, apiUrl, clientId, token } from '~/services/api';
 import { clientSignal } from '~/services/util';
-import { connectionName, setConnectionName } from '~/services/ws';
+import { connectionName } from '~/services/ws';
 
 export default function settingsPage() {
     const [$apiUrl, setApiUrl] = clientSignal(apiUrl);
     const [$clientId, setClientId] = clientSignal(clientId);
     const [$token, setToken] = clientSignal(token);
+    const [$connectionName, setConnectionName] = clientSignal(connectionName);
 
     const [status, setStatus] = createSignal<string>();
     const [loading, setLoading] = createSignal(false);
@@ -69,7 +70,7 @@ export default function settingsPage() {
                     <input
                         ref={connectionNameInput!}
                         type="text"
-                        value={connectionName()}
+                        value={$connectionName()}
                         onKeyUp={(e) =>
                             e.key === 'Enter' && saveConnectionName()
                         }

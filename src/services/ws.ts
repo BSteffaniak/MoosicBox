@@ -4,7 +4,7 @@ import { Api, apiUrl, clientId, toSessionPlaylistTrack, token } from './api';
 import type { Track } from './api';
 import { onStartup, setAppState } from './app';
 import type { PartialUpdateSession } from './types';
-import { createListener } from './util';
+import { clientAtom, createListener } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
 import { onDownloadEventListener } from './downloads';
@@ -63,21 +63,10 @@ export const [connectionId, setConnectionId] = makePersisted(
     },
 );
 
-export const [_connectionName, _setConnectionName] = makePersisted(
-    createSignal<string>('New Connection', { equals: false }),
-    {
-        name: `ws.v1.connectionName`,
-    },
+export const connectionName = clientAtom<string>(
+    'New Connection',
+    'ws.v1.connectionName',
 );
-const onConnectionNameChangedListener =
-    createListener<(value: string) => boolean | void>();
-export const onConnectionNameChanged = onConnectionNameChangedListener.on;
-export const offConnectionNameChanged = onConnectionNameChangedListener.off;
-export const connectionName = _connectionName;
-export const setConnectionName = (name: string) => {
-    _setConnectionName(name);
-    onConnectionNameChangedListener.trigger(name);
-};
 
 const onConnectListener =
     createListener<

@@ -5,7 +5,6 @@ import {
     connectionId,
     connectionName,
     onConnect,
-    onConnectionNameChanged,
     onMessage,
     registerConnection,
 } from '~/services/ws';
@@ -48,8 +47,8 @@ function updateConnection(connectionId: string, name: string) {
 }
 
 onConnect(() => {
-    updateConnection(connectionId()!, connectionName());
+    updateConnection(connectionId()!, connectionName.get());
 });
-onConnectionNameChanged((name) => {
+connectionName.listen((name) => {
     updateConnection(connectionId()!, name);
 });
