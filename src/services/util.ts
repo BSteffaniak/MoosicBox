@@ -300,3 +300,34 @@ export function areEqualShallow(a: any, b: any) {
     }
     return true;
 }
+
+function circularStringify(obj: object): string {
+    const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (_key: string, value: unknown) => {
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) {
+                    return '[[circular]]';
+                }
+                seen.add(value);
+            }
+            return value;
+        };
+    };
+
+    return JSON.stringify(obj, getCircularReplacer());
+}
+
+export function objToStr(obj: unknown): string {
+    if (typeof obj === 'string') {
+        return obj;
+    } else if (typeof obj === 'undefined') {
+        return 'undefined';
+    } else if (obj === null) {
+        return 'null';
+    } else if (typeof obj === 'object') {
+        return circularStringify(obj);
+    } else {
+        return obj.toString();
+    }
+}
