@@ -37,9 +37,13 @@ export function onStartupFirst(func: StartupCallback) {
     startupCallbacks.unshift(func);
 }
 
-export function onStartup(func: StartupCallback) {
+export async function onStartup(func: StartupCallback) {
     if (startedUp) {
-        func();
+        try {
+            await func();
+        } catch (e) {
+            console.error('Startup error:', e);
+        }
         return;
     }
     startupCallbacks.push(func);
@@ -53,7 +57,7 @@ export async function triggerStartup() {
         try {
             await func();
         } catch (e) {
-            console.error(e);
+            console.error('Startup error:', e);
         }
     }
 }
