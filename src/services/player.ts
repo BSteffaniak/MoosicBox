@@ -47,7 +47,7 @@ const onPlaybackQualityChangedListener =
         (
             value: ReturnType<typeof _playbackQuality>,
             old: ReturnType<typeof _playbackQuality>,
-        ) => boolean | void
+        ) => boolean | void | Promise<boolean | void>
     >();
 export const onPlaybackQualityChanged = onPlaybackQualityChangedListener.on;
 export const offPlaybackQualityChanged = onPlaybackQualityChangedListener.off;
