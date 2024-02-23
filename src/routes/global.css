@@ -283,6 +283,10 @@ h6 {
 }
 
 @media (max-width: 600px) {
+    .main-content.toggled .main-content-back-to-top {
+        left: calc((100% - max(240px, min(280px, 15vw))) / 2);
+    }
+
     .navigation-bar-container.default .mobile-toggle-expand-button {
         position: fixed;
         right: 10px;
