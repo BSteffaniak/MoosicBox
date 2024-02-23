@@ -246,6 +246,10 @@
         flex-direction: column;
     }
 
+    .album-page-album-info-details {
+        align-self: auto;
+    }
+
     .album-page .album-icon-container,
     .album-page .album-icon {
         width: 200px !important;

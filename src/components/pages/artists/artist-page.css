@@ -94,6 +94,10 @@
     }
 
     .artist-page-artist-info-details {
+        align-self: auto;
+    }
+
+    .artist-page-artist-info-details {
         align-self: start;
     }
 
