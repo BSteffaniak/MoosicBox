@@ -1,3 +1,4 @@
+import { init } from '@free-log/node-client';
 import { appState } from '~/services/app';
 import { registerPlayer } from '~/services/player';
 import {
@@ -10,6 +11,8 @@ import {
 } from '~/services/ws';
 import { Api } from '~/services/api';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
+
+init({ logWriterApiUrl: 'https://logs.moosicbox.com', shimConsole: true });
 
 function updatePlayer() {
     const connection = appState.connections.find(
