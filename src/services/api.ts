@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js';
 import type { Setter } from 'solid-js';
-import { QueryParams, clientAtom, createListener } from './util';
+import { QueryParams, clientAtom, createListener, objToStr } from './util';
 import { makePersisted } from '@solid-primitives/storage';
 export type Artist = Api.Artist | Api.TidalArtist | Api.QobuzArtist;
 export type ArtistType = Artist['type'];
@@ -1769,7 +1769,29 @@ async function getDownloadTasks(
 
 class RequestError extends Error {
     constructor(public response: Response) {
-        super(`Request failed: ${response.status} (${response.statusText})`);
+        let message = `Request failed: ${response.status}`;
+
+        if (response.statusText) {
+            message += ` (${response.statusText})`;
+        }
+
+        if (response.url) {
+            message += ` (url='${response.url}')`;
+        }
+
+        if (typeof response.redirected !== 'undefined') {
+            message += ` (redirected=${response.redirected})`;
+        }
+
+        if (response.headers) {
+            message += ` (headers=${objToStr(response.headers)})`;
+        }
+
+        if (response.type) {
+            message += ` (type=${response.type})`;
+        }
+
+        super(message);
     }
 }
 
