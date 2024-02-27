@@ -59,7 +59,7 @@ dependencies:
 
 devDependencies:
   '@free-log/node-client':
-    specifier: 0.0.3
+    specifier: ^0.0.3
     version: 0.0.3
   '@solidjs/meta':
     specifier: ^0.29.3
