@@ -12,7 +12,11 @@ import {
 import { Api } from '~/services/api';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
 
-init({ logWriterApiUrl: 'https://logs.moosicbox.com', shimConsole: true });
+init({
+    logWriterApiUrl: 'https://logs.moosicbox.com',
+    shimConsole: true,
+    logLevel: 'WARN',
+});
 
 function updatePlayer() {
     const connection = appState.connections.find(
