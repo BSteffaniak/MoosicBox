@@ -1808,13 +1808,13 @@ async function requestJson<T>(
         params.set('clientId', clientId);
     }
 
-    if (url.indexOf('?') > 0) {
-        url += '&';
-    } else {
-        url += '?';
+    if (params.size > 0) {
+        if (url.indexOf('?') > 0) {
+            url += `&${params}`;
+        } else {
+            url += `?${params}`;
+        }
     }
-
-    url += params.toString();
 
     const token = $token();
     if (token) {
