@@ -5,8 +5,6 @@ import type { Track } from './api';
 import { onStartup, setAppState } from './app';
 import type { PartialUpdateSession } from './types';
 import { clientAtom, createListener, objToStr } from './util';
-import { makePersisted } from '@solid-primitives/storage';
-import { createSignal } from 'solid-js';
 import { onDownloadEventListener } from './downloads';
 import type { DownloadEvent } from './downloads';
 
@@ -58,12 +56,8 @@ let ws: WebSocket;
 let wsUrl: string;
 export let connectionPromise: Promise<WebSocket>;
 
-export const [connectionId, setConnectionId] = makePersisted(
-    createSignal<string | undefined>(undefined, { equals: false }),
-    {
-        name: `ws.v1.connectionId`,
-    },
-);
+export const connectionId = clientAtom<string>('', 'ws.v1.connectionId');
+const $connectionId = () => apiUrl.get();
 
 export const connectionName = clientAtom<string>(
     'New Connection',
@@ -78,8 +72,8 @@ export const onConnect = onConnectListener.on;
 export const offConnect = onConnectListener.off;
 
 onConnect((id) => {
-    if (!connectionId()) {
-        setConnectionId(id);
+    if (!$connectionId()) {
+        connectionId.set(id);
     }
     getSessions();
 });

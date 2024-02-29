@@ -21,7 +21,7 @@
     },
     "type": "module",
     "devDependencies": {
-        "@free-log/node-client": "^0.0.3",
+        "@free-log/node-client": "^0.0.5",
         "@solidjs/meta": "^0.29.3",
         "@solidjs/testing-library": "^0.8.6",
         "@testing-library/jest-dom": "^5.17.0",

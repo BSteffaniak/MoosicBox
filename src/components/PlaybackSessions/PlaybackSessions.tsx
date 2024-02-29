@@ -14,12 +14,15 @@ import * as ws from '~/services/ws';
 import { produce } from 'solid-js/store';
 import Modal from '../Modal/Modal';
 import { appState } from '~/services/app';
+import { clientSignal } from '~/services/util';
+import { connectionId } from '~/services/ws';
 
 const queuedTracksCache: {
     [id: number]: { position?: number; tracks: Track[] };
 } = {};
 
 export default function playbackSessionsFunc() {
+    const [$connectionId] = clientSignal(connectionId);
     const [sessions, setSessions] = createSignal<Api.PlaybackSession[]>(
         playerState.playbackSessions,
     );
@@ -43,10 +46,10 @@ export default function playbackSessionsFunc() {
         const dead = appState.connections.filter((c) => !c.alive);
 
         const aliveCurrent = alive.filter(
-            (a) => a.connectionId == ws.connectionId(),
+            (a) => a.connectionId == $connectionId(),
         );
         const aliveOthers = alive.filter(
-            (a) => a.connectionId != ws.connectionId(),
+            (a) => a.connectionId != $connectionId(),
         );
 
         setConnections([...aliveCurrent, ...aliveOthers, ...dead]);

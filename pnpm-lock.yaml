@@ -59,8 +59,8 @@ dependencies:
 
 devDependencies:
   '@free-log/node-client':
-    specifier: ^0.0.3
-    version: 0.0.3
+    specifier: ^0.0.5
+    version: 0.0.5
   '@solidjs/meta':
     specifier: ^0.29.3
     version: 0.29.3(solid-js@1.8.15)
@@ -2264,8 +2264,8 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  /@free-log/node-client@0.0.3:
-    resolution: {integrity: sha512-hDKd/zaFCIbaBAvh5ZeQZEdcbYmmtGM8ApO/V6KNVfj/x87yC9jqtVIAFDZJOAINaJSzPPI7U1IQn+1L/HV1fw==}
+  /@free-log/node-client@0.0.5:
+    resolution: {integrity: sha512-E/4okCqmQ+X6wj8w/ukJVH7l4K2TnaOXxJFbTrRFUQliIX2wwNaSMjabfgIl2OmcNYEf+TFJ/M83hBGf/uWjIg==}
     dev: true
 
   /@graphql-tools/executor@0.0.18(graphql@16.8.1):
