@@ -1,4 +1,4 @@
-import { init, withProperties } from '@free-log/node-client';
+import { init, setProperty } from '@free-log/node-client';
 import { appState } from '~/services/app';
 import { registerPlayer } from '~/services/player';
 import {
@@ -17,7 +17,8 @@ init({
     shimConsole: true,
     logLevel: 'WARN',
 });
-withProperties({ connectionId: connectionId.get() });
+setProperty('connectionId', connectionId.get());
+setProperty('connectionName', connectionName.get());
 
 function updatePlayer() {
     const connection = appState.connections.find(
@@ -57,8 +58,9 @@ function updateConnection(connectionId: string, name: string) {
 onConnect(() => {
     updateConnection(connectionId.get()!, connectionName.get());
 
-    withProperties({ connectionId: connectionId.get() });
+    setProperty('connectionId', connectionId.get());
 });
-connectionName.listen((name) => {
-    updateConnection(connectionId.get()!, name);
+connectionName.listen((connectionName) => {
+    updateConnection(connectionId.get()!, connectionName);
+    setProperty('connectionName', connectionName);
 });
