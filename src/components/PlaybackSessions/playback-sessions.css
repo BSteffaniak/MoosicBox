@@ -192,6 +192,7 @@
 .playback-session-active-players-modal {
     width: auto;
     max-width: 800px;
+    min-width: calc(min(90dvw, 500px));
 }
 
 @media (max-width: 600px) {
