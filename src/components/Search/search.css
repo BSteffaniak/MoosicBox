@@ -119,8 +119,8 @@
     right: 0;
     top: 72px;
     z-index: 18;
-    min-width: calc(100vw - max(240px, min(280px, 15vw)) - 60px - 20px);
-    max-height: calc(100vh - 72px - 380px);
+    min-width: calc(100dvw - max(240px, min(280px, 15dvw)) - 60px - 20px);
+    max-height: calc(100dvh - 72px - 160px);
     overflow: auto;
     overflow-x: hidden;
     margin: 20px 30px;
