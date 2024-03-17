@@ -135,6 +135,7 @@
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     pointer-events: none;
+    transform: translateZ(0);
 }
 
 .player-media-controls-seeker-bar-progress-trigger:hover
