@@ -56,6 +56,9 @@ export function displayAlbumVersionQuality(
             case Api.AudioFormat.MP3:
                 str += 'MP3';
                 break;
+            case Api.AudioFormat.OPUS:
+                str += 'OPUS';
+                break;
             case Api.AudioFormat.SOURCE:
                 break;
             default:

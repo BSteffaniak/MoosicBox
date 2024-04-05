@@ -206,6 +206,7 @@ export namespace Api {
         AAC: 'AAC',
         FLAC: 'FLAC',
         MP3: 'MP3',
+        OPUS: 'OPUS',
         SOURCE: 'SOURCE',
     } as const;
 

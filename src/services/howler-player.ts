@@ -111,6 +111,9 @@ export function createPlayer(id: number): PlayerType {
                         case Api.AudioFormat.MP3:
                             format = 'mp3';
                             break;
+                        case Api.AudioFormat.OPUS:
+                            format = 'opus';
+                            break;
                         case Api.AudioFormat.SOURCE:
                             break;
                         default:
