@@ -113,7 +113,6 @@ export default function playbackSessionsFunc() {
         if (sessionId === playerState.currentPlaybackSession?.sessionId) {
             setPlayerState(
                 produce((state) => {
-                    state.currentPlaybackSession;
                     state.playbackSessions.find(
                         (s) => s.sessionId === sessionId,
                     );
