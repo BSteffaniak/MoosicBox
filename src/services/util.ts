@@ -331,3 +331,5 @@ export function objToStr(obj: unknown): string {
         return obj.toString();
     }
 }
+
+export const trace = console.trace;
