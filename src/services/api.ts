@@ -695,6 +695,10 @@ export interface ApiType {
     getDownloadTasks(
         signal?: AbortSignal | null,
     ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
+    getTrackVisualization(
+        track: Track | number,
+        signal?: AbortSignal | null,
+    ): Promise<number[]>;
 }
 
 async function getArtist(
@@ -1769,6 +1773,21 @@ async function getDownloadTasks(
     });
 }
 
+async function getTrackVisualization(
+    track: Track | number,
+    signal?: AbortSignal | null,
+): Promise<number[]> {
+    const query = new QueryParams({
+        trackId: `${trackId(track)}`,
+        max: `${Math.max(window.innerWidth, 2000)}`,
+    });
+
+    return await requestJson(`${$apiUrl()}/track/visualization?${query}`, {
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -1918,5 +1937,6 @@ export const api: ApiType = {
     removeAlbumFromLibrary,
     refavoriteAlbum,
     getDownloadTasks,
+    getTrackVisualization,
     download,
 };
