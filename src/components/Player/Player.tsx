@@ -1,4 +1,5 @@
 import {
+    For,
     Show,
     createComputed,
     createEffect,
@@ -32,8 +33,13 @@ import Volume from '../Volume';
 import { albumRoute } from '../Album/Album';
 import { artistRoute } from '../Artist/Artist';
 import { clientSignal } from '~/services/util';
+import { api } from '~/services/api';
 
+const VIZ_HEIGHT = 40;
+let visualizationData: number[] | undefined;
 let mouseX: number;
+let waitingForPlayback = true;
+let targetPlaybackPos = 0;
 
 function getTrackDuration() {
     return playerState.currentTrack?.duration ?? currentTrackLength();
@@ -51,12 +57,18 @@ function eventToSeekPosition(element: HTMLElement): number {
 }
 
 function seekTo(event: MouseEvent): void {
-    seek(Math.round(eventToSeekPosition(event.target as HTMLElement)), true);
+    const seekPos = Math.round(
+        eventToSeekPosition(event.target as HTMLElement),
+    );
+    seek(seekPos, true);
+    waitingForPlayback = true;
+    targetPlaybackPos = seekPos;
 }
 
 let dragStartListener: (event: MouseEvent) => void;
 let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
+let visibilityChangeListener: () => void;
 let playlistSlideoutTimeout: NodeJS.Timeout | undefined;
 
 enum BackToNowPlayingPosition {
@@ -67,7 +79,7 @@ enum BackToNowPlayingPosition {
 
 export default function player() {
     let progressBar: HTMLDivElement | undefined;
-    let progressBarTrigger: HTMLDivElement | undefined;
+    let progressBarVisualizer: HTMLDivElement | undefined;
     let playlistSlideout: HTMLDivElement | undefined;
     let playlistSlideoutContentRef: HTMLDivElement | undefined;
     let backToNowPlayingTopRef: HTMLDivElement | undefined;
@@ -83,6 +95,7 @@ export default function player() {
 
     const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
     const [$showPlaybackQuality] = clientSignal(showPlaybackQuality);
+    const [data, setData] = createSignal<number[]>([]);
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -162,7 +175,7 @@ export default function player() {
                     event.preventDefault();
                     if (!applyDrag()) return;
                 }
-                setSeekPosition(eventToSeekPosition(progressBarTrigger!));
+                setSeekPosition(eventToSeekPosition(progressBarVisualizer!));
             };
             dragEndListener = (event: MouseEvent) => {
                 if (event.button === 0 && dragging()) {
@@ -175,31 +188,111 @@ export default function player() {
                 }
             };
 
-            progressBarTrigger?.addEventListener(
+            visibilityChangeListener = () => {
+                if (document.visibilityState !== 'hidden') {
+                    animationStart = undefined;
+                }
+            };
+
+            progressBarVisualizer?.addEventListener(
                 'mousedown',
                 dragStartListener,
             );
             window.addEventListener('mousemove', dragListener);
             window.addEventListener('mouseup', dragEndListener);
+            document.addEventListener(
+                'visibilitychange',
+                visibilityChangeListener,
+            );
         }
     });
 
     onCleanup(() => {
         if (!isServer) {
-            progressBarTrigger?.removeEventListener(
+            progressBarVisualizer?.removeEventListener(
                 'mousedown',
                 dragStartListener,
             );
             window.removeEventListener('mousemove', dragListener);
             window.removeEventListener('mouseup', dragEndListener);
+            document.removeEventListener(
+                'visibilitychange',
+                visibilityChangeListener,
+            );
         }
     });
 
     createEffect(
         on(
             () => currentSeek(),
-            () => {
+            (value) => {
                 animationStart = document.timeline.currentTime as number;
+                if (
+                    waitingForPlayback &&
+                    (value ?? 0) > targetPlaybackPos &&
+                    (targetPlaybackPos === 0 ||
+                        (value ?? 0) <= targetPlaybackPos + 1) &&
+                    playing()
+                ) {
+                    console.debug('playback started');
+                    waitingForPlayback = false;
+                    animationStart = undefined;
+                    startAnimation();
+                }
+            },
+        ),
+    );
+
+    function resetVisualizationOpacity() {
+        const children = progressBarVisualizer?.children;
+        if (children && children.length > 0) {
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i] as HTMLElement;
+                child.style.removeProperty('opacity');
+            }
+        }
+    }
+
+    function initVisualization() {
+        if (!visualizationData) {
+            throw new Error('No visualizationData set');
+        }
+
+        const delta = Math.max(1, visualizationData.length / window.innerWidth);
+
+        const sizedData: number[] = [];
+
+        for (let i = 0; i < visualizationData.length; i += delta) {
+            sizedData.push(visualizationData[~~i]!);
+        }
+
+        setData(sizedData);
+
+        resetVisualizationOpacity();
+    }
+
+    createEffect(
+        on(
+            () => playerState.currentTrack,
+            async (track) => {
+                waitingForPlayback = true;
+                targetPlaybackPos = 0;
+                setData([]);
+                resetVisualizationOpacity();
+
+                if (track) {
+                    const data: number[] =
+                        await api.getTrackVisualization(track);
+                    data.forEach((x, i) => {
+                        data[i] = Math.max(
+                            3,
+                            Math.round((x / 255) * VIZ_HEIGHT),
+                        );
+                    });
+                    visualizationData = data;
+
+                    initVisualization();
+                }
             },
         ),
     );
@@ -208,8 +301,8 @@ export default function player() {
         on(
             () => currentTrackLength(),
             () => {
-                setSeekPosition(eventToSeekPosition(progressBarTrigger!));
-                updateProgressBarSize();
+                setSeekPosition(eventToSeekPosition(progressBarVisualizer!));
+                updateVisualizationBarOpacity();
             },
         ),
     );
@@ -218,9 +311,6 @@ export default function player() {
         on(
             () => playing(),
             () => {
-                if (playing()) {
-                    startAnimation();
-                }
                 if (dragging()) {
                     setApplyDrag(false);
                     progressBar?.classList.remove('no-transition');
@@ -363,8 +453,9 @@ export default function player() {
     let animationStart: number | undefined;
 
     function progressAnimationFrame(ts: number): void {
-        if (!playing()) {
+        if (!playing() || waitingForPlayback) {
             animationStart = undefined;
+            console.debug('Stopping animation');
 
             return;
         }
@@ -380,7 +471,7 @@ export default function player() {
         ) {
             const offset = (elapsed / 1000) * (1 / duration) * 100;
 
-            updateProgressBarSize(offset);
+            updateVisualizationBarOpacity(offset);
         }
 
         window.requestAnimationFrame(progressAnimationFrame);
@@ -393,8 +484,41 @@ export default function player() {
         });
     }
 
-    function updateProgressBarSize(offset: number = 0) {
-        progressBar!.style.width = `${getProgressBarWidth() + offset}%`;
+    function updateVisualizationBarOpacity(offset: number = 0) {
+        if (waitingForPlayback) {
+            return;
+        }
+
+        const pastOpacity = 0.1;
+        const width = getProgressBarWidth();
+        const children = progressBarVisualizer?.children;
+
+        if (children && children.length > 0) {
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i] as HTMLElement;
+                const pos = (i / children.length) * 100;
+
+                if (pos <= width + offset) {
+                    child.style.opacity = `${pastOpacity}`;
+                    continue;
+                }
+
+                if (playing()) {
+                    const sliceSize = Math.max(
+                        0.5,
+                        children.length / window.innerWidth,
+                    );
+                    if (pos <= width + offset + sliceSize) {
+                        const percent = (pos - (width + offset)) / sliceSize;
+                        child.style.opacity = `${pastOpacity + percent * (1 - pastOpacity)}`;
+                        continue;
+                    }
+                }
+
+                child.style.removeProperty('opacity');
+                break;
+            }
+        }
     }
 
     return (
@@ -402,14 +526,25 @@ export default function player() {
             <div ref={playerRef!} class="player">
                 <div class="player-media-controls-seeker-bar">
                     <div
-                        ref={progressBar!}
-                        class="player-media-controls-seeker-bar-progress"
-                    ></div>
-                    <div
-                        ref={progressBarTrigger!}
-                        class="player-media-controls-seeker-bar-progress-trigger"
+                        ref={progressBarVisualizer!}
+                        class="player-media-controls-seeker-bar-progress-trigger player-media-controls-seeker-bar-visualizer"
+                        style={{
+                            top: `-${Math.round(VIZ_HEIGHT / 2) - 2}px`,
+                            height: `${VIZ_HEIGHT}px`,
+                        }}
                         onClick={(e) => seekTo(e)}
-                    ></div>
+                    >
+                        <For each={data()}>
+                            {(point) => (
+                                <div
+                                    class="player-media-controls-seeker-bar-visualizer-bar"
+                                    style={{
+                                        height: `${point}px`,
+                                    }}
+                                ></div>
+                            )}
+                        </For>
+                    </div>
                     <div
                         class="player-media-controls-seeker-bar-progress-tooltip"
                         style={{
