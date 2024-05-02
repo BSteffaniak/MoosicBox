@@ -15,8 +15,9 @@ export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ';
 
 type GenericTrack = Track;
 
-export function trackId(track: Track | undefined): number | undefined {
+export function trackId(track: Track | number | undefined): number | undefined {
     if (!track) return undefined;
+    if (typeof track === 'number') return track;
     return 'trackId' in track
         ? track.trackId
         : 'id' in track
