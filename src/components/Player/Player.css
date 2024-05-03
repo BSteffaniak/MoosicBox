@@ -138,6 +138,13 @@
     background-color: #ffffff;
 }
 
+.player-media-controls-seeker-bar-cursor {
+    background-color: red;
+    width: 1px;
+    position: absolute;
+    left: 0;
+}
+
 .player-media-controls-seeker-bar-visualizer-bar:nth-child(odd) {
     background-color: #dddddd;
 }

@@ -80,6 +80,7 @@ enum BackToNowPlayingPosition {
 export default function player() {
     let progressBar: HTMLDivElement | undefined;
     let progressBarVisualizer: HTMLDivElement | undefined;
+    let progressBarCursor: HTMLDivElement;
     let playlistSlideout: HTMLDivElement | undefined;
     let playlistSlideoutContentRef: HTMLDivElement | undefined;
     let backToNowPlayingTopRef: HTMLDivElement | undefined;
@@ -493,9 +494,12 @@ export default function player() {
         const width = getProgressBarWidth();
         const children = progressBarVisualizer?.children;
 
+        progressBarCursor.style.left = `${width + offset}%`;
+
         if (children && children.length > 0) {
             for (let i = 0; i < children.length; i++) {
                 const child = children[i] as HTMLElement;
+                if (child == progressBarCursor) continue;
                 const pos = (i / children.length) * 100;
 
                 if (pos <= width + offset) {
@@ -534,6 +538,13 @@ export default function player() {
                         }}
                         onClick={(e) => seekTo(e)}
                     >
+                        <div
+                            ref={progressBarCursor!}
+                            class="player-media-controls-seeker-bar-cursor"
+                            style={{
+                                height: `${VIZ_HEIGHT}px`,
+                            }}
+                        ></div>
                         <For each={data()}>
                             {(point) => (
                                 <div
