@@ -37,6 +37,7 @@ import { api } from '~/services/api';
 
 const VIZ_HEIGHT = 40;
 let visualizationData: number[] | undefined;
+let visualizationPos = 0;
 let mouseX: number;
 let waitingForPlayback = true;
 let targetPlaybackPos = 0;
@@ -245,6 +246,7 @@ export default function player() {
     );
 
     function resetVisualizationOpacity() {
+        visualizationPos = 0;
         const children = progressBarVisualizer?.children;
         if (children && children.length > 0) {
             for (let i = 0; i < children.length; i++) {
@@ -311,7 +313,11 @@ export default function player() {
     createEffect(
         on(
             () => playing(),
-            () => {
+            (playing) => {
+                if (!playing) {
+                    waitingForPlayback = true;
+                    visualizationPos = 0;
+                }
                 if (dragging()) {
                     setApplyDrag(false);
                     progressBar?.classList.remove('no-transition');
@@ -454,12 +460,6 @@ export default function player() {
     let animationStart: number | undefined;
 
     function progressAnimationFrame(ts: number): void {
-        if (!playing() || waitingForPlayback) {
-            animationStart = undefined;
-            console.debug('Stopping animation');
-
-            return;
-        }
         if (!animationStart) animationStart = ts;
 
         const elapsed = ts - animationStart;
@@ -473,6 +473,13 @@ export default function player() {
             const offset = (elapsed / 1000) * (1 / duration) * 100;
 
             updateVisualizationBarOpacity(offset);
+        }
+
+        if (!playing() || waitingForPlayback) {
+            animationStart = undefined;
+            console.debug('Stopping animation');
+
+            return;
         }
 
         window.requestAnimationFrame(progressAnimationFrame);
@@ -497,13 +504,14 @@ export default function player() {
         progressBarCursor.style.left = `${width + offset}%`;
 
         if (children && children.length > 0) {
-            for (let i = 0; i < children.length; i++) {
+            for (let i = visualizationPos + 1; i < children.length; i++) {
                 const child = children[i] as HTMLElement;
-                if (child == progressBarCursor) continue;
+                if (child === progressBarCursor) continue;
                 const pos = (i / children.length) * 100;
 
                 if (pos <= width + offset) {
                     child.style.opacity = `${pastOpacity}`;
+                    visualizationPos = i;
                     continue;
                 }
 
@@ -517,6 +525,10 @@ export default function player() {
                         child.style.opacity = `${pastOpacity + percent * (1 - pastOpacity)}`;
                         continue;
                     }
+                }
+                if (child.style.opacity) {
+                    child.style.removeProperty('opacity');
+                    continue;
                 }
 
                 break;

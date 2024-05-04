@@ -141,6 +141,7 @@
 .player-media-controls-seeker-bar-cursor {
     background-color: #ffffff;
     width: 2px;
+    transform: translateX(-2px);
     position: absolute;
     left: 0;
 }
