@@ -519,7 +519,6 @@ export default function player() {
                     }
                 }
 
-                child.style.removeProperty('opacity');
                 break;
             }
         }
