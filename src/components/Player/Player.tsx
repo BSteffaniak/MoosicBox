@@ -251,6 +251,7 @@ export default function player() {
         if (children && children.length > 0) {
             for (let i = 0; i < children.length; i++) {
                 const child = children[i] as HTMLElement;
+                if (child === progressBarCursor) continue;
                 child.style.removeProperty('opacity');
             }
         }
