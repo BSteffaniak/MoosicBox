@@ -33,7 +33,7 @@ import Volume from '../Volume';
 import { albumRoute } from '../Album/Album';
 import { artistRoute } from '../Artist/Artist';
 import { clientSignal } from '~/services/util';
-import { api } from '~/services/api';
+import { api, trackId } from '~/services/api';
 
 const VIZ_HEIGHT = 40;
 let visualizationData: number[] | undefined;
@@ -278,7 +278,9 @@ export default function player() {
     createEffect(
         on(
             () => playerState.currentTrack,
-            async (track) => {
+            async (track, prev) => {
+                if (prev && track && trackId(prev) === trackId(track)) return;
+
                 waitingForPlayback = true;
                 targetPlaybackPos = 0;
                 setData([]);
