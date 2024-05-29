@@ -1,5 +1,4 @@
 import {
-    For,
     createComputed,
     createEffect,
     createSignal,
@@ -23,7 +22,6 @@ import { api, trackId } from '~/services/api';
 
 const VIZ_HEIGHT = 40;
 let visualizationData: number[] | undefined;
-let visualizationPos = 0;
 let mouseX: number;
 let waitingForPlayback = true;
 let targetPlaybackPos = 0;
@@ -64,6 +62,7 @@ enum BackToNowPlayingPosition {
 }
 
 export default function player() {
+    let canvas: HTMLCanvasElement;
     let progressBar: HTMLDivElement | undefined;
     let progressBarVisualizer: HTMLDivElement | undefined;
     let progressBarCursor: HTMLDivElement;
@@ -93,14 +92,22 @@ export default function player() {
 
     function getProgressBarWidth(): number {
         if (applyDrag() && dragging()) {
-            return (getSeekPosition() / getTrackDuration()) * 100;
+            return getSeekPosition() / getTrackDuration();
         }
 
-        return (getCurrentSeekPosition() / getTrackDuration()) * 100;
+        return getCurrentSeekPosition() / getTrackDuration();
     }
 
     onMount(() => {
         if (!isServer) {
+            const ratio = window.devicePixelRatio;
+            canvas.width = window.innerWidth * ratio;
+            canvas.height = VIZ_HEIGHT * ratio;
+
+            const ctx = canvas.getContext('2d')!;
+            ctx.scale(ratio, ratio);
+            ctx.fillStyle = 'white';
+
             dragStartListener = (event: MouseEvent) => {
                 if (event.button === 0) {
                     progressBar?.classList.add('no-transition');
@@ -183,7 +190,6 @@ export default function player() {
     );
 
     function resetVisualizationOpacity() {
-        visualizationPos = 0;
         const children = progressBarVisualizer?.children;
         if (children && children.length > 0) {
             for (let i = 0; i < children.length; i++) {
@@ -199,17 +205,51 @@ export default function player() {
             throw new Error('No visualizationData set');
         }
 
-        const delta = Math.max(1, visualizationData.length / window.innerWidth);
+        const delta = Math.max(
+            1,
+            (visualizationData.length / window.innerWidth) * 2,
+        );
 
         const sizedData: number[] = [];
 
-        for (let i = 0; i < visualizationData.length; i += delta) {
+        for (
+            let i = 0;
+            i < visualizationData.length &&
+            sizedData.length < window.innerWidth;
+            i += delta
+        ) {
             sizedData.push(visualizationData[~~i]!);
         }
 
         setData(sizedData);
 
         resetVisualizationOpacity();
+    }
+
+    function drawVisualization(
+        cursor: number,
+        start: number = 0,
+        end: number = 1,
+    ) {
+        const ctx = canvas.getContext('2d')!;
+        const ratio = window.devicePixelRatio;
+        const paintStart = ~~((start * canvas.width) / ratio);
+        const paintEnd = Math.ceil((end * canvas.width) / ratio);
+        ctx.clearRect(paintStart, 0, paintEnd - paintStart, canvas.height);
+
+        const points = data();
+
+        const paintStartI = ~~(start * points.length);
+        const paintEndI = Math.ceil(end * points.length);
+
+        for (let i = paintStartI; i < paintEndI; i++) {
+            const point = points[i]!;
+            ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
+        }
+
+        ctx.fillRect((canvas.width * cursor) / ratio, 0, 2, VIZ_HEIGHT);
+        start = Math.min(Math.max(0, start), 1);
+        end = Math.min(Math.max(0, end), 1);
     }
 
     createEffect(
@@ -220,8 +260,6 @@ export default function player() {
 
                 waitingForPlayback = true;
                 targetPlaybackPos = 0;
-                setData([]);
-                resetVisualizationOpacity();
 
                 if (track) {
                     const data: number[] =
@@ -235,6 +273,8 @@ export default function player() {
                     visualizationData = data;
 
                     initVisualization();
+                    const cursor = getProgressBarWidth();
+                    drawVisualization(cursor);
                 }
             },
         ),
@@ -256,7 +296,6 @@ export default function player() {
             (playing) => {
                 if (!playing) {
                     waitingForPlayback = true;
-                    visualizationPos = 0;
                 }
                 if (dragging()) {
                     setApplyDrag(false);
@@ -354,7 +393,7 @@ export default function player() {
             typeof currentSeek() !== 'undefined' &&
             typeof duration !== 'undefined'
         ) {
-            const offset = (elapsed / 1000) * (1 / duration) * 100;
+            const offset = (elapsed / 1000) * (1 / duration);
 
             updateVisualizationBarOpacity(offset);
         }
@@ -381,43 +420,13 @@ export default function player() {
             return;
         }
 
-        const pastOpacity = 0.1;
-        const width = getProgressBarWidth();
-        const children = progressBarVisualizer?.children;
-
-        progressBarCursor.style.left = `${width + offset}%`;
-
-        if (children && children.length > 0) {
-            for (let i = visualizationPos + 1; i < children.length; i++) {
-                const child = children[i] as HTMLElement;
-                if (child === progressBarCursor) continue;
-                const pos = (i / children.length) * 100;
-
-                if (pos <= width + offset) {
-                    child.style.opacity = `${pastOpacity}`;
-                    visualizationPos = i;
-                    continue;
-                }
-
-                if (playing()) {
-                    const sliceSize = Math.max(
-                        0.5,
-                        children.length / window.innerWidth,
-                    );
-                    if (pos <= width + offset + sliceSize) {
-                        const percent = (pos - (width + offset)) / sliceSize;
-                        child.style.opacity = `${pastOpacity + percent * (1 - pastOpacity)}`;
-                        continue;
-                    }
-                }
-                if (child.style.opacity) {
-                    child.style.removeProperty('opacity');
-                    continue;
-                }
-
-                break;
-            }
-        }
+        const cursor = getProgressBarWidth() + offset;
+        const prevOffset = window.innerWidth / data().length / 200;
+        drawVisualization(
+            cursor,
+            Math.max(0, cursor - prevOffset),
+            Math.min(1, cursor),
+        );
     }
 
     return (
@@ -433,23 +442,12 @@ export default function player() {
                         }}
                         onClick={(e) => seekTo(e)}
                     >
-                        <div
-                            ref={progressBarCursor!}
-                            class="visualization-media-controls-seeker-bar-cursor"
-                            style={{
-                                height: `${VIZ_HEIGHT}px`,
-                            }}
-                        ></div>
-                        <For each={data()}>
-                            {(point) => (
-                                <div
-                                    class="visualization-media-controls-seeker-bar-visualizer-bar"
-                                    style={{
-                                        height: `${point}px`,
-                                    }}
-                                ></div>
-                            )}
-                        </For>
+                        <canvas
+                            ref={canvas!}
+                            class="visualization-canvas"
+                            width="0"
+                            height={VIZ_HEIGHT}
+                        ></canvas>
                     </div>
                     <div
                         class="visualization-media-controls-seeker-bar-progress-tooltip"
