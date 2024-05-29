@@ -10,7 +10,15 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
     >
         <div class="navigation-bar">
             <div class="navigation-bar-header">
-                <h1>MoosicBox</h1>
+                <a href="/" class="navigation-bar-header-home-link">
+                    <img
+                        class="navigation-bar-header-home-link-logo-icon"
+                        src="/img/icon128.png"
+                    />
+                    <h1 class="navigation-bar-header-home-link-text">
+                        MoosicBox
+                    </h1>
+                </a>
                 <a class="settings-link" href="/settings">
                     <img
                         class="settings-gear-icon"

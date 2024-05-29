@@ -282,6 +282,18 @@ h6 {
     width: 22px;
 }
 
+.navigation-bar-header-home-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.navigation-bar-header-home-link-logo-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 5px;
+}
+
 @media (max-width: 600px) {
     .main-content.toggled .main-content-back-to-top {
         left: calc((100% - max(240px, min(280px, 15vw))) / 2);
