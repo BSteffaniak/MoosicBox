@@ -287,12 +287,15 @@ export default function player() {
     }
 
     function drawVisualizationPoints(start: number, end: number) {
+        if (start >= end) return;
+
         const ctx = canvas.getContext('2d')!;
         const points = data();
 
+        ctx.clearRect(start * 2 - 0.5, 0, (end - start) * 2 - 0.5, VIZ_HEIGHT);
+
         for (let i = start; i < end; i++) {
             const point = points[i]!;
-            ctx.clearRect(i * 2 - 0.5, 0, 2, VIZ_HEIGHT);
             ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
         }
     }
