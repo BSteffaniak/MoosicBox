@@ -86,6 +86,7 @@ export default function player() {
 
     const [data, setData] = createSignal<number[]>([]);
     const [lastCursor, setLastCursor] = createSignal<number>();
+    const [lastDarken, setLastDarken] = createSignal(0);
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -143,9 +144,6 @@ export default function player() {
 
             resizeListener = debounce(() => {
                 initVisualization();
-                drawVisualizationPoints(0, data().length);
-                const cursor = getProgressBarWidth();
-                drawVisualization(cursor);
             });
 
             progressBarVisualizer?.addEventListener(
@@ -204,6 +202,8 @@ export default function player() {
             throw new Error('No visualizationData set');
         }
 
+        setLastDarken(0);
+
         const ratio = window.devicePixelRatio;
         canvas.width = window.innerWidth * ratio;
         canvas.height = VIZ_HEIGHT * ratio;
@@ -229,6 +229,29 @@ export default function player() {
         }
 
         setData(sizedData);
+
+        const cursor = getProgressBarWidth();
+        ctx.fillStyle = 'white';
+        drawVisualizationPoints(0, data().length);
+        darkenVisualization(cursor);
+        drawVisualization(cursor);
+    }
+
+    function darkenVisualization(cursor: number) {
+        const ctx = canvas.getContext('2d')!;
+        const lastDarkenValue = lastDarken();
+
+        const points = data();
+        const darken = ~~(cursor * points.length);
+
+        if (lastDarkenValue > darken) {
+            ctx.fillStyle = 'white';
+            drawVisualizationPoints(darken + 1, lastDarkenValue);
+        }
+
+        ctx.fillStyle = '#222222';
+        drawVisualizationPoints(Math.max(0, lastDarkenValue - 1), darken + 1);
+        setLastDarken(darken);
     }
 
     function drawVisualization(cursor: number) {
@@ -239,7 +262,7 @@ export default function player() {
         if (typeof lastCursorValue === 'number') {
             const start = lastCursorValue;
             const end = lastCursorValue;
-            const paintStart = ~~((start * canvas.width) / ratio) - 3;
+            const paintStart = ~~((start * canvas.width) / ratio) - 1;
             const paintEnd = Math.ceil((end * canvas.width) / ratio) + 3;
             ctx.clearRect(paintStart, 0, paintEnd - paintStart, canvas.height);
 
@@ -247,9 +270,18 @@ export default function player() {
             const paintStartI = ~~(start * points.length) - 2;
             const paintEndI = Math.ceil(end * points.length) + 2;
 
-            drawVisualizationPoints(paintStartI, paintEndI);
+            darkenVisualization(cursor);
+            const lastDarkenValue = lastDarken();
+            ctx.fillStyle = 'white';
+            drawVisualizationPoints(
+                Math.max(lastDarkenValue + 1, paintStartI),
+                paintEndI,
+            );
+        } else {
+            darkenVisualization(cursor);
         }
 
+        ctx.fillStyle = 'white';
         ctx.fillRect((canvas.width * cursor) / ratio, 0, 2, VIZ_HEIGHT);
         setLastCursor(cursor);
     }
@@ -260,6 +292,7 @@ export default function player() {
 
         for (let i = start; i < end; i++) {
             const point = points[i]!;
+            ctx.clearRect(i * 2 - 0.5, 0, 2, VIZ_HEIGHT);
             ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
         }
     }
@@ -287,9 +320,6 @@ export default function player() {
                     }
 
                     initVisualization();
-                    drawVisualizationPoints(0, data().length);
-                    const cursor = getProgressBarWidth();
-                    drawVisualization(cursor);
                 }
             },
         ),
