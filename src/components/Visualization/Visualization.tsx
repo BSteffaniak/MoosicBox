@@ -30,6 +30,14 @@ function getTrackDuration() {
     return playerState.currentTrack?.duration ?? currentTrackLength();
 }
 
+function debounce(func: (e: Event) => void): (event: Event) => void {
+    let timer: NodeJS.Timeout;
+    return function (event: Event) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(func, 300, event);
+    };
+}
+
 function eventToSeekPosition(element: HTMLElement): number {
     if (!element) return 0;
 
@@ -54,6 +62,7 @@ let dragStartListener: (event: MouseEvent) => void;
 let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
 let visibilityChangeListener: () => void;
+let resizeListener: (event: Event) => void;
 
 enum BackToNowPlayingPosition {
     top = 'TOP',
@@ -65,7 +74,6 @@ export default function player() {
     let canvas: HTMLCanvasElement;
     let progressBar: HTMLDivElement | undefined;
     let progressBarVisualizer: HTMLDivElement | undefined;
-    let progressBarCursor: HTMLDivElement;
     let playlistSlideout: HTMLDivElement | undefined;
     let playlistSlideoutContentRef: HTMLDivElement | undefined;
     let backToNowPlayingTopRef: HTMLDivElement | undefined;
@@ -77,6 +85,7 @@ export default function player() {
     const [playing, setPlaying] = createSignal(playerPlaying());
 
     const [data, setData] = createSignal<number[]>([]);
+    const [lastCursor, setLastCursor] = createSignal<number>();
 
     createComputed(() => {
         setPlaying(playerState.currentPlaybackSession?.playing ?? false);
@@ -100,14 +109,6 @@ export default function player() {
 
     onMount(() => {
         if (!isServer) {
-            const ratio = window.devicePixelRatio;
-            canvas.width = window.innerWidth * ratio;
-            canvas.height = VIZ_HEIGHT * ratio;
-
-            const ctx = canvas.getContext('2d')!;
-            ctx.scale(ratio, ratio);
-            ctx.fillStyle = 'white';
-
             dragStartListener = (event: MouseEvent) => {
                 if (event.button === 0) {
                     progressBar?.classList.add('no-transition');
@@ -140,6 +141,13 @@ export default function player() {
                 }
             };
 
+            resizeListener = debounce(() => {
+                initVisualization();
+                drawVisualizationPoints(0, data().length);
+                const cursor = getProgressBarWidth();
+                drawVisualization(cursor);
+            });
+
             progressBarVisualizer?.addEventListener(
                 'mousedown',
                 dragStartListener,
@@ -150,6 +158,7 @@ export default function player() {
                 'visibilitychange',
                 visibilityChangeListener,
             );
+            window.addEventListener('resize', resizeListener);
         }
     });
 
@@ -165,6 +174,7 @@ export default function player() {
                 'visibilitychange',
                 visibilityChangeListener,
             );
+            window.removeEventListener('resize', resizeListener);
         }
     });
 
@@ -189,21 +199,18 @@ export default function player() {
         ),
     );
 
-    function resetVisualizationOpacity() {
-        const children = progressBarVisualizer?.children;
-        if (children && children.length > 0) {
-            for (let i = 0; i < children.length; i++) {
-                const child = children[i] as HTMLElement;
-                if (child === progressBarCursor) continue;
-                child.style.removeProperty('opacity');
-            }
-        }
-    }
-
     function initVisualization() {
         if (!visualizationData) {
             throw new Error('No visualizationData set');
         }
+
+        const ratio = window.devicePixelRatio;
+        canvas.width = window.innerWidth * ratio;
+        canvas.height = VIZ_HEIGHT * ratio;
+
+        const ctx = canvas.getContext('2d')!;
+        ctx.scale(ratio, ratio);
+        ctx.fillStyle = 'white';
 
         const delta = Math.max(
             1,
@@ -222,34 +229,39 @@ export default function player() {
         }
 
         setData(sizedData);
-
-        resetVisualizationOpacity();
     }
 
-    function drawVisualization(
-        cursor: number,
-        start: number = 0,
-        end: number = 1,
-    ) {
+    function drawVisualization(cursor: number) {
         const ctx = canvas.getContext('2d')!;
         const ratio = window.devicePixelRatio;
-        const paintStart = ~~((start * canvas.width) / ratio);
-        const paintEnd = Math.ceil((end * canvas.width) / ratio);
-        ctx.clearRect(paintStart, 0, paintEnd - paintStart, canvas.height);
+        const lastCursorValue = lastCursor();
 
-        const points = data();
+        if (typeof lastCursorValue === 'number') {
+            const start = lastCursorValue;
+            const end = lastCursorValue;
+            const paintStart = ~~((start * canvas.width) / ratio) - 3;
+            const paintEnd = Math.ceil((end * canvas.width) / ratio) + 3;
+            ctx.clearRect(paintStart, 0, paintEnd - paintStart, canvas.height);
 
-        const paintStartI = ~~(start * points.length);
-        const paintEndI = Math.ceil(end * points.length);
+            const points = data();
+            const paintStartI = ~~(start * points.length) - 2;
+            const paintEndI = Math.ceil(end * points.length) + 2;
 
-        for (let i = paintStartI; i < paintEndI; i++) {
-            const point = points[i]!;
-            ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
+            drawVisualizationPoints(paintStartI, paintEndI);
         }
 
         ctx.fillRect((canvas.width * cursor) / ratio, 0, 2, VIZ_HEIGHT);
-        start = Math.min(Math.max(0, start), 1);
-        end = Math.min(Math.max(0, end), 1);
+        setLastCursor(cursor);
+    }
+
+    function drawVisualizationPoints(start: number, end: number) {
+        const ctx = canvas.getContext('2d')!;
+        const points = data();
+
+        for (let i = start; i < end; i++) {
+            const point = points[i]!;
+            ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
+        }
     }
 
     createEffect(
@@ -262,17 +274,20 @@ export default function player() {
                 targetPlaybackPos = 0;
 
                 if (track) {
-                    const data: number[] =
-                        await api.getTrackVisualization(track);
-                    data.forEach((x, i) => {
-                        data[i] = Math.max(
-                            3,
-                            Math.round((x / 255) * VIZ_HEIGHT),
-                        );
-                    });
-                    visualizationData = data;
+                    {
+                        const data: number[] =
+                            await api.getTrackVisualization(track);
+                        data.forEach((x, i) => {
+                            data[i] = Math.max(
+                                3,
+                                Math.round((x / 255) * VIZ_HEIGHT),
+                            );
+                        });
+                        visualizationData = data;
+                    }
 
                     initVisualization();
+                    drawVisualizationPoints(0, data().length);
                     const cursor = getProgressBarWidth();
                     drawVisualization(cursor);
                 }
@@ -421,12 +436,7 @@ export default function player() {
         }
 
         const cursor = getProgressBarWidth() + offset;
-        const prevOffset = window.innerWidth / data().length / 200;
-        drawVisualization(
-            cursor,
-            Math.max(0, cursor - prevOffset),
-            Math.min(1, cursor),
-        );
+        drawVisualization(cursor);
     }
 
     return (
