@@ -697,6 +697,7 @@ export interface ApiType {
     ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
     getTrackVisualization(
         track: Track | number,
+        max: number,
         signal?: AbortSignal | null,
     ): Promise<number[]>;
 }
@@ -1775,11 +1776,12 @@ async function getDownloadTasks(
 
 async function getTrackVisualization(
     track: Track | number,
+    max: number,
     signal?: AbortSignal | null,
 ): Promise<number[]> {
     const query = new QueryParams({
         trackId: `${trackId(track)}`,
-        max: `${Math.max(window.innerWidth, 2000)}`,
+        max: `${Math.ceil(max)}`,
     });
 
     return await requestJson(`${$apiUrl()}/track/visualization?${query}`, {

@@ -21,6 +21,8 @@ import { isServer } from 'solid-js/web';
 import { api, trackId } from '~/services/api';
 
 const VIZ_HEIGHT = 40;
+const BAR_WIDTH = 2;
+const BAR_GAP = 1;
 let visualizationData: number[] | undefined;
 let mouseX: number;
 let waitingForPlayback = true;
@@ -292,11 +294,21 @@ export default function player() {
         const ctx = canvas.getContext('2d')!;
         const points = data();
 
-        ctx.clearRect(start * 2 - 0.5, 0, (end - start) * 2 - 0.5, VIZ_HEIGHT);
+        ctx.clearRect(
+            start * (BAR_GAP + BAR_WIDTH) - 0.5,
+            0,
+            (end - start) * (BAR_GAP + BAR_WIDTH) - 0.5,
+            VIZ_HEIGHT,
+        );
 
         for (let i = start; i < end; i++) {
             const point = points[i]!;
-            ctx.fillRect(i * 2, VIZ_HEIGHT / 2 - point / 2, 1, point);
+            ctx.fillRect(
+                i * (BAR_GAP + BAR_WIDTH),
+                VIZ_HEIGHT / 2 - point / 2,
+                BAR_WIDTH / 2,
+                point,
+            );
         }
     }
 
@@ -311,8 +323,11 @@ export default function player() {
 
                 if (track) {
                     {
-                        const data: number[] =
-                            await api.getTrackVisualization(track);
+                        const max = window.innerWidth / (BAR_GAP + BAR_WIDTH);
+                        const data: number[] = await api.getTrackVisualization(
+                            track,
+                            max,
+                        );
                         data.forEach((x, i) => {
                             data[i] = Math.max(
                                 3,
