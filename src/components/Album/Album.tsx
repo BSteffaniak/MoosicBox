@@ -108,6 +108,7 @@ function albumDetails(props: AlbumProps) {
                         <a
                             href={albumRoute(props.album)}
                             class="album-title-text"
+                            title={`${props.album.title}${isExplicit(props) ? ' (Explicit)' : ''}`}
                         >
                             {allButLastWord(getAlbumTitleDisplay(props))}
                             {lastWord(getAlbumTitleDisplay(props)) ? (
@@ -135,7 +136,10 @@ function albumDetails(props: AlbumProps) {
                             )}
                         </a>
                     ) : (
-                        <span class="album-title-text">
+                        <span
+                            class="album-title-text"
+                            title={`${props.album.title}${isExplicit(props) ? ' (Explicit)' : ''}`}
+                        >
                             {props.album.title}
                         </span>
                     )}

@@ -113,6 +113,10 @@
 .album-title-text {
     cursor: pointer;
     text-decoration: none;
+    width: 100%;
+    text-overflow: ellipsis;
+    display: inline-block;
+    overflow: hidden;
 }
 
 .album-artist {

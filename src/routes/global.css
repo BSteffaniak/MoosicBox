@@ -32,8 +32,9 @@ button {
 }
 
 #root {
-    min-height: calc(100% - 160px);
-    padding-bottom: 160px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 #root.dark {
@@ -106,6 +107,8 @@ button {
 
 .navigation-bar-and-main-content {
     display: flex;
+    flex-grow: 1;
+    height: 100px;
 }
 
 .toggle-expand-button {
@@ -147,10 +150,7 @@ button {
 }
 
 .footer-player-footer {
-    position: fixed;
-    bottom: 0;
-    flex: 1 1 auto;
-    flex-basis: 100%;
+    position: relative;
     z-index: 18;
 }
 
@@ -165,8 +165,6 @@ h6 {
 
 .footer-player-container {
     display: flex;
-    position: fixed;
-    bottom: 0;
     align-items: end;
     text-align: center;
     width: 100%;
