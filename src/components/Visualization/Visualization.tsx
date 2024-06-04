@@ -18,7 +18,7 @@ import {
 } from '~/services/player';
 import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
-import { api, trackId } from '~/services/api';
+import { api, trackId, type Track } from '~/services/api';
 
 const VIZ_HEIGHT = 40;
 const BAR_WIDTH = 2;
@@ -144,8 +144,11 @@ export default function player() {
                 }
             };
 
-            resizeListener = debounce(() => {
-                initVisualization();
+            resizeListener = debounce(async () => {
+                if (playerState.currentTrack) {
+                    await loadVisualizationData(playerState.currentTrack);
+                    initVisualization();
+                }
             });
 
             progressBarVisualizer?.addEventListener(
@@ -312,6 +315,15 @@ export default function player() {
         }
     }
 
+    async function loadVisualizationData(track: Track): Promise<void> {
+        const max = window.innerWidth / (BAR_GAP + BAR_WIDTH);
+        const data: number[] = await api.getTrackVisualization(track, max);
+        data.forEach((x, i) => {
+            data[i] = Math.max(3, Math.round((x / 255) * VIZ_HEIGHT));
+        });
+        visualizationData = data;
+    }
+
     createEffect(
         on(
             () => playerState.currentTrack,
@@ -322,21 +334,7 @@ export default function player() {
                 targetPlaybackPos = 0;
 
                 if (track) {
-                    {
-                        const max = window.innerWidth / (BAR_GAP + BAR_WIDTH);
-                        const data: number[] = await api.getTrackVisualization(
-                            track,
-                            max,
-                        );
-                        data.forEach((x, i) => {
-                            data[i] = Math.max(
-                                3,
-                                Math.round((x / 255) * VIZ_HEIGHT),
-                            );
-                        });
-                        visualizationData = data;
-                    }
-
+                    await loadVisualizationData(track);
                     initVisualization();
                 }
             },
