@@ -20,7 +20,7 @@ import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import { api, trackId, type Track } from '~/services/api';
 
-const VIZ_HEIGHT = 40;
+const VIZ_HEIGHT = 30;
 const BAR_WIDTH = 2;
 const BAR_GAP = 1;
 let visualizationData: number[] | undefined;
@@ -503,6 +503,7 @@ export default function player() {
                             class="visualization-canvas"
                             width="0"
                             height={VIZ_HEIGHT}
+                            style={{ height: `${VIZ_HEIGHT}px` }}
                         ></canvas>
                     </div>
                     <div
