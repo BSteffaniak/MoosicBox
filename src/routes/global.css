@@ -9,13 +9,13 @@ html,
 body {
     height: 100%;
     margin: 0;
-    background: #181a1b;
+    background: #080a0b;
 }
 
 @media (prefers-color-scheme: dark) {
     html,
     body {
-        background: #181a1b;
+        background: #080a0b;
     }
 }
 
@@ -38,7 +38,7 @@ button {
 }
 
 #root.dark {
-    background-color: #181a1b;
+    background-color: #080a0b;
     color: white;
 }
 
@@ -135,6 +135,7 @@ button {
     padding-bottom: 20px;
     flex-grow: 1;
     overflow: auto;
+    background-color: #181a1b;
 }
 
 @media (max-width: 600px) {
