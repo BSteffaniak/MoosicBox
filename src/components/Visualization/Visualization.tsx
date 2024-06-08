@@ -259,6 +259,12 @@ export default function player() {
         setLastDarken(darken);
     }
 
+    function clearVisualization(cursor: number) {
+        const ctx = canvas.getContext('2d')!;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawVisualization(cursor);
+    }
+
     function drawVisualization(cursor: number) {
         const ctx = canvas.getContext('2d')!;
         const ratio = window.devicePixelRatio;
@@ -329,6 +335,10 @@ export default function player() {
             () => playerState.currentTrack,
             async (track, prev) => {
                 if (prev && track && trackId(prev) === trackId(track)) return;
+                visualizationData = undefined;
+                setData([]);
+                const cursor = getProgressBarWidth();
+                clearVisualization(cursor);
 
                 waitingForPlayback = true;
                 targetPlaybackPos = 0;
