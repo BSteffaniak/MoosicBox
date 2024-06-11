@@ -61,7 +61,7 @@ export default function albums() {
     let backToTopTimeout: NodeJS.Timeout;
     const scrollListener = () => {
         if (
-            document.documentElement.scrollTop >
+            (document.querySelector('main')?.scrollTop ?? 0) >
             albumsHeaderContainerRef.getBoundingClientRect().bottom
         ) {
             showBackToTop();
@@ -72,14 +72,18 @@ export default function albums() {
 
     onMount(() => {
         if (isServer) return;
-        document.addEventListener('scroll', scrollListener);
+        document
+            .querySelector('main')
+            ?.addEventListener('scroll', scrollListener);
 
         scrollListener();
     });
 
     onCleanup(() => {
         if (isServer) return;
-        document.removeEventListener('scroll', scrollListener);
+        document
+            .querySelector('main')
+            ?.removeEventListener('scroll', scrollListener);
     });
 
     function setSearchParam(name: string, value: string) {
@@ -255,7 +259,7 @@ export default function albums() {
             <div class="albums-back-to-top-container main-content-back-to-top">
                 <div
                     onClick={() =>
-                        document.documentElement.scroll({
+                        document.querySelector('main')?.scroll({
                             top: 0,
                             behavior: 'smooth',
                         })
@@ -393,7 +397,7 @@ export default function albums() {
                                 search: e.target.value ?? undefined,
                             },
                         });
-                        document.documentElement.scroll({
+                        document.querySelector('main')?.scroll({
                             top: 0,
                             behavior: 'instant',
                         });

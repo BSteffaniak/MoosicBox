@@ -221,7 +221,7 @@ export default function artists() {
     let backToTopTimeout: NodeJS.Timeout;
     const scrollListener = () => {
         if (
-            document.documentElement.scrollTop >
+            (document.querySelector('main')?.scrollTop ?? 0) >
             artistsHeaderContainerRef.getBoundingClientRect().bottom
         ) {
             showBackToTop();
@@ -232,14 +232,18 @@ export default function artists() {
 
     onMount(() => {
         if (isServer) return;
-        document.addEventListener('scroll', scrollListener);
+        document
+            .querySelector('main')
+            ?.addEventListener('scroll', scrollListener);
 
         scrollListener();
     });
 
     onCleanup(() => {
         if (isServer) return;
-        document.removeEventListener('scroll', scrollListener);
+        document
+            .querySelector('main')
+            ?.removeEventListener('scroll', scrollListener);
     });
 
     onMount(async () => {
@@ -253,7 +257,7 @@ export default function artists() {
             <div class="artists-back-to-top-container main-content-back-to-top">
                 <div
                     onClick={() =>
-                        document.documentElement.scroll({
+                        document.querySelector('main')?.scroll({
                             top: 0,
                             behavior: 'smooth',
                         })
@@ -336,7 +340,7 @@ export default function artists() {
                                 search: e.target.value ?? undefined,
                             },
                         });
-                        document.documentElement.scroll({
+                        document.querySelector('main')?.scroll({
                             top: 0,
                             behavior: 'instant',
                         });

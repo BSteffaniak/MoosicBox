@@ -1,6 +1,6 @@
 // @ts-ignore
 import * as Turbo from '@hotwired/turbo'; // eslint-disable-line
-import type { TurboEvent } from './turbo-types';
+import type { TurboEvent, TurboVisitEvent } from './turbo-types';
 
 function defaultEventHandler(_event: TurboEvent) {}
 
@@ -34,39 +34,94 @@ function restoreScrollPos(position: number) {
 }
 
 window.addEventListener('beforeunload', () => {
-    localStorage.setItem(
-        'scrollTop',
-        document.documentElement.scrollTop.toString(),
-    );
+    const main = document.querySelector('main');
+    if (main) {
+        scrollTops['refresh'] = main.scrollTop;
+    }
+    localStorage.setItem('scrollTops', JSON.stringify(scrollTops));
 });
 
-window.addEventListener('popstate', (e) => {
-    if (!e.state?.turbo) return;
+const scrollTopsJson = localStorage.getItem('scrollTops');
+const scrollTops: { [restorationId: string]: number } = scrollTopsJson
+    ? JSON.parse(scrollTopsJson)
+    : {};
 
-    const restore =
-        window.Turbo.navigator.history.getRestorationDataForIdentifier(
-            e.state.turbo.restorationIdentifier,
-        );
+if (scrollTops['refresh']) {
+    const pos = scrollTops['refresh'];
+    delete scrollTops['refresh'];
+    restoreScrollPos(pos);
+}
 
-    if (restore.scrollPosition) {
-        restoreScrollPos(restore.scrollPosition.y);
+document.addEventListener('turbo:visit', (event: TurboVisitEvent) => {
+    switch (event.detail?.action) {
+        case 'restore': {
+            const main = document.querySelector('main');
+
+            if (main) {
+                const restorationId =
+                    Turbo.navigator.history.restorationIdentifier;
+                console.log(
+                    'restore to',
+                    scrollTops[restorationId],
+                    restorationId,
+                );
+                restoreScrollPos(scrollTops[restorationId] ?? 0);
+            }
+            break;
+        }
+        case 'advance':
+        case 'replace': {
+            const main = document.querySelector('main');
+
+            if (main) {
+                const restorationId =
+                    Turbo.navigator.history.restorationIdentifier;
+                scrollTops[restorationId] = main.scrollTop;
+                console.log('set to', scrollTops[restorationId], restorationId);
+            }
+            break;
+        }
     }
 });
-
-const startTop = localStorage.getItem('scrollTop');
-
-if (startTop) {
-    restoreScrollPos(parseInt(startTop));
-}
 
 const resizeObserver = new ResizeObserver(() => {
     if (!waitingForScrollSize) return;
 
-    if (document.documentElement.scrollHeight >= waitingForScrollSize) {
-        document.documentElement.scrollTop = waitingForScrollSize;
-        waitingForScrollSize = undefined;
+    const main = document.querySelector('main');
+
+    if (main) {
+        console.log(
+            'on resize',
+            waitingForScrollSize,
+            main.scrollHeight,
+            main.scrollTop,
+        );
+        if (main.scrollHeight >= waitingForScrollSize) {
+            trySetScrollTop(main, waitingForScrollSize);
+            waitingForScrollSize = undefined;
+        }
     }
 });
+
+function trySetScrollTop(
+    element: HTMLElement,
+    pos: number,
+    attempt: number = 0,
+) {
+    if (attempt > 20) return;
+
+    element.scrollTop = pos;
+    console.log(
+        'resized',
+        waitingForScrollSize,
+        element.scrollHeight,
+        element.scrollTop,
+    );
+
+    if (element.scrollTop === pos) return;
+
+    setTimeout(() => trySetScrollTop(element, pos, attempt + 1), 10);
+}
 
 function resetResizeObserver() {
     resizeObserver.disconnect();
