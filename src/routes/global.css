@@ -80,17 +80,29 @@ button {
     margin: 0;
 }
 
+.navigation-bar-header-action-links > *,
 .navigation-bar-header > * {
-    margin: 0 10px;
+    margin-right: 5px;
+}
+
+.navigation-bar-header-action-links {
+    margin-left: auto;
+    margin-right: 0;
 }
 
 .settings-link {
     margin-left: auto;
 }
 
+.settings-link,
+.settings-link:hover {
+    text-decoration: none;
+}
+
 .settings-gear-icon {
     width: 20px;
     height: 20px;
+    vertical-align: middle;
 }
 
 .my-collection-header {
@@ -112,18 +124,31 @@ button {
 }
 
 .toggle-expand-button {
-    position: relative;
-    bottom: 2px;
     margin-right: 0;
+    margin-left: auto;
+
+    /* Remove default button styles */
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
 }
 
 .collapse-navigation-bar,
 .expand-navigation-bar {
     cursor: pointer;
     width: 22px;
+    vertical-align: middle;
 }
 
 .navigation-bar-container.default .expand-navigation-bar {
+    display: none;
+}
+
+.navigation-bar-container.toggled .settings-link {
     display: none;
 }
 

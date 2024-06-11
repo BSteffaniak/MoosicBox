@@ -19,21 +19,43 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
                         MoosicBox
                     </h1>
                 </a>
-                <a class="settings-link" href="/settings">
-                    <img
-                        class="settings-gear-icon"
-                        src="/img/settings-gear-white.svg"
-                    />
-                </a>
-                <div class="toggle-expand-button">
-                    <img
-                        class="collapse-navigation-bar"
-                        src="/img/chevron-left-white.svg"
-                    />
-                    <img
-                        class="expand-navigation-bar"
-                        src="/img/chevron-right-white.svg"
-                    />
+                <div class="navigation-bar-header-action-links">
+                    <a
+                        class="settings-link"
+                        href="/settings"
+                        aria-describedby="settings-link-description"
+                    >
+                        <img
+                            class="settings-gear-icon"
+                            src="/img/settings-gear-white.svg"
+                            alt="View MoosicBox Settings"
+                        />
+                    </a>
+                    <div id="settings-link-description" style="display:none">
+                        View MoosicBox Settings
+                    </div>
+                    <button
+                        type="button"
+                        class="toggle-expand-button"
+                        aria-describedby="toggle-expand-button-link-description"
+                    >
+                        <img
+                            class="collapse-navigation-bar"
+                            src="/img/chevron-left-white.svg"
+                            alt="Collapse navigation"
+                        />
+                        <img
+                            class="expand-navigation-bar"
+                            src="/img/chevron-right-white.svg"
+                            alt="Expand navigation"
+                        />
+                    </button>
+                    <div
+                        id="toggle-expand-button-link-description"
+                        style="display:none"
+                    >
+                        Toggle navigation bar collapsed
+                    </div>
                 </div>
             </div>
             <ul>
