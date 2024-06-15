@@ -319,6 +319,10 @@ h6 {
 }
 
 @media (max-width: 600px) {
+    .navigation-bar-container.toggled .settings-link {
+        display: inline;
+    }
+
     .main-content.toggled .main-content-back-to-top {
         left: calc((100% - max(240px, min(280px, 15vw))) / 2);
     }
