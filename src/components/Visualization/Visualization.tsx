@@ -132,7 +132,7 @@ export default function player() {
                     setDragging(false);
                     if (!applyDrag()) return;
                     setApplyDrag(false);
-                    seek(Math.round(seekPosition()!), true);
+                    seekTo(event);
                     progressBar?.classList.remove('no-transition');
                     event.preventDefault();
                 }
@@ -526,7 +526,6 @@ export default function player() {
                             top: `-${Math.round(VIZ_HEIGHT / 2) - 2}px`,
                             height: `${VIZ_HEIGHT}px`,
                         }}
-                        onClick={(e) => seekTo(e)}
                     >
                         <canvas
                             ref={canvas!}
