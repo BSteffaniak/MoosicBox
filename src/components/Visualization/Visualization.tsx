@@ -12,6 +12,8 @@ import {
     currentTrackLength,
     offNextTrack,
     offPreviousTrack,
+    offSeek,
+    onSeek,
     playing as playerPlaying,
     playerState,
     seek,
@@ -66,6 +68,7 @@ let dragListener: (event: MouseEvent) => void;
 let dragEndListener: (event: MouseEvent) => void;
 let visibilityChangeListener: () => void;
 let resizeListener: (event: Event) => void;
+let onSeekListener: (seek: number, manual: boolean) => void;
 
 enum BackToNowPlayingPosition {
     top = 'TOP',
@@ -163,6 +166,14 @@ export default function player() {
                 visibilityChangeListener,
             );
             window.addEventListener('resize', resizeListener);
+
+            onSeekListener = (_seek, manual) => {
+                if (manual) {
+                    if (!visualizationData) return;
+                    initVisualization();
+                }
+            };
+            onSeek(onSeekListener);
         }
     });
 
@@ -179,6 +190,7 @@ export default function player() {
                 visibilityChangeListener,
             );
             window.removeEventListener('resize', resizeListener);
+            offSeek(onSeekListener);
         }
     });
 

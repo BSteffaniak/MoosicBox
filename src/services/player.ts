@@ -296,6 +296,7 @@ export async function seek(seek: number, manual = false) {
         console.debug(`Setting seek to ${seek}`);
         await updatePlayback({ play: playing(), seek });
     }
+    seekListener.trigger(seek, manual);
 }
 
 const pauseListener = createListener<() => void>();
