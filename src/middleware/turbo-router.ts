@@ -60,11 +60,6 @@ document.addEventListener('turbo:visit', (event: TurboVisitEvent) => {
             if (main) {
                 const restorationId =
                     Turbo.navigator.history.restorationIdentifier;
-                console.log(
-                    'restore to',
-                    scrollTops[restorationId],
-                    restorationId,
-                );
                 restoreScrollPos(scrollTops[restorationId] ?? 0);
             }
             break;
@@ -77,7 +72,6 @@ document.addEventListener('turbo:visit', (event: TurboVisitEvent) => {
                 const restorationId =
                     Turbo.navigator.history.restorationIdentifier;
                 scrollTops[restorationId] = main.scrollTop;
-                console.log('set to', scrollTops[restorationId], restorationId);
             }
             break;
         }
@@ -90,12 +84,6 @@ const resizeObserver = new ResizeObserver(() => {
     const main = document.querySelector('main');
 
     if (main) {
-        console.log(
-            'on resize',
-            waitingForScrollSize,
-            main.scrollHeight,
-            main.scrollTop,
-        );
         if (main.scrollHeight >= waitingForScrollSize) {
             trySetScrollTop(main, waitingForScrollSize);
             waitingForScrollSize = undefined;
@@ -111,12 +99,6 @@ function trySetScrollTop(
     if (attempt > 20) return;
 
     element.scrollTop = pos;
-    console.log(
-        'resized',
-        waitingForScrollSize,
-        element.scrollHeight,
-        element.scrollTop,
-    );
 
     if (element.scrollTop === pos) return;
 
