@@ -23,6 +23,7 @@ import { Api, api, trackId, type Track } from '~/services/api';
 const VIZ_HEIGHT = 30;
 const BAR_WIDTH = 2;
 const BAR_GAP = 1;
+const CURSOR_OFFSET = -1;
 let visualizationData: number[] | undefined;
 let mouseX: number;
 let waitingForPlayback = true;
@@ -293,7 +294,12 @@ export default function player() {
         }
 
         ctx.fillStyle = 'white';
-        ctx.fillRect((canvas.width * cursor) / ratio, 0, 2, VIZ_HEIGHT);
+        ctx.fillRect(
+            (canvas.width * cursor) / ratio + CURSOR_OFFSET,
+            0,
+            2,
+            VIZ_HEIGHT,
+        );
         setLastCursor(cursor);
     }
 
@@ -304,7 +310,7 @@ export default function player() {
         const points = data();
 
         ctx.clearRect(
-            start * (BAR_GAP + BAR_WIDTH) - 0.5,
+            start * (BAR_GAP + BAR_WIDTH) - 0.5 + CURSOR_OFFSET,
             0,
             (end - start) * (BAR_GAP + BAR_WIDTH) - 0.5,
             VIZ_HEIGHT,
@@ -313,7 +319,7 @@ export default function player() {
         for (let i = start; i < end; i++) {
             const point = points[i]!;
             ctx.fillRect(
-                i * (BAR_GAP + BAR_WIDTH),
+                i * (BAR_GAP + BAR_WIDTH) + CURSOR_OFFSET,
                 VIZ_HEIGHT / 2 - point / 2,
                 BAR_WIDTH / 2,
                 point,
