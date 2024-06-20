@@ -18,7 +18,7 @@ import {
 } from '~/services/player';
 import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
-import { api, trackId, type Track } from '~/services/api';
+import { Api, api, trackId, type Track } from '~/services/api';
 
 const VIZ_HEIGHT = 30;
 const BAR_WIDTH = 2;
@@ -323,7 +323,27 @@ export default function player() {
 
     async function loadVisualizationData(track: Track): Promise<void> {
         const max = window.innerWidth / (BAR_GAP + BAR_WIDTH);
-        const data: number[] = await api.getTrackVisualization(track, max);
+        const trackType = track.type;
+        let source: Api.TrackSource;
+        switch (trackType) {
+            case 'LIBRARY':
+                source = Api.TrackSource.LOCAL;
+                break;
+            case 'TIDAL':
+                source = Api.TrackSource.TIDAL;
+                break;
+            case 'QOBUZ':
+                source = Api.TrackSource.QOBUZ;
+                break;
+            default:
+                trackType satisfies never;
+                throw new Error(`Invalid track type "${trackType}"`);
+        }
+        const data: number[] = await api.getTrackVisualization(
+            track,
+            source,
+            max,
+        );
         data.forEach((x, i) => {
             data[i] = Math.max(3, Math.round((x / 255) * VIZ_HEIGHT));
         });
