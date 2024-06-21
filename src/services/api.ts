@@ -190,6 +190,7 @@ export namespace Api {
         sampleRate: number;
         channels: number;
         type: 'LIBRARY';
+        source: ApiSource;
     }
 
     export interface AlbumVersion {
@@ -384,6 +385,7 @@ export namespace Api {
         audioQuality: 'LOSSLESS' | 'HIRES';
         mediaMetadataTags: TidalMediaMetadataTag[];
         type: 'TIDAL';
+        source: ApiSource;
     }
 
     export interface QobuzArtist {
@@ -425,6 +427,7 @@ export namespace Api {
         audioQuality: 'LOSSLESS' | 'HIRES';
         mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
         type: 'QOBUZ';
+        source: ApiSource;
     }
 
     export type DownloadTaskState =
@@ -472,7 +475,7 @@ export namespace Api {
         | 'FLAC_HI_RES'
         | 'FLAC_HIGHEST_RES';
 
-    export type DownloadApiSource = Omit<ApiSource, 'LIBRARY'>;
+    export type DownloadApiSource = Omit<ApiSource, 'LOCAL'>;
 
     export interface DownloadTask {
         id: number;
@@ -697,7 +700,7 @@ export interface ApiType {
     ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
     getTrackVisualization(
         track: Track | number,
-        source: Api.TrackSource,
+        source: ApiSource,
         max: number,
         signal?: AbortSignal | null,
     ): Promise<number[]>;
@@ -1777,7 +1780,7 @@ async function getDownloadTasks(
 
 async function getTrackVisualization(
     track: Track | number,
-    source: Api.TrackSource,
+    source: ApiSource,
     max: number,
     signal?: AbortSignal | null,
 ): Promise<number[]> {

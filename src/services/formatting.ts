@@ -111,7 +111,7 @@ export function displayApiSource(source: ApiSource) {
         case 'QOBUZ':
             return 'Qobuz';
         case 'LIBRARY':
-            return 'LIBRARY';
+            return 'Library';
         default:
             source satisfies never;
             throw new Error(`Invalid ApiSource: ${source}`);
