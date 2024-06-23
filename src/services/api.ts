@@ -440,6 +440,7 @@ export namespace Api {
 
     export type DownloadItemType = 'TRACK' | 'ALBUM_COVER' | 'ARTIST_COVER';
     export type TrackDownloadItem = {
+        id: number;
         type: 'TRACK';
         artistId: number;
         albumId: number;
@@ -685,6 +686,7 @@ export interface ApiType {
         },
         signal?: AbortSignal | null,
     ): Promise<Api.Album>;
+    retryDownload(taskId: number, signal?: AbortSignal | null): Promise<void>;
     download(
         items: {
             trackId?: number;
@@ -1744,6 +1746,21 @@ async function refavoriteAlbum(
     });
 }
 
+async function retryDownload(
+    taskId: number,
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const query = new QueryParams({
+        taskId: `${taskId}`,
+    });
+
+    return await requestJson(`${$apiUrl()}/retry-download?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 async function download(
     items: {
         trackId?: number;
@@ -1946,5 +1963,6 @@ export const api: ApiType = {
     refavoriteAlbum,
     getDownloadTasks,
     getTrackVisualization,
+    retryDownload,
     download,
 };
