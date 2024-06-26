@@ -61,6 +61,10 @@
     max-height: 100%;
 }
 
+.artist-page .artist-icon {
+    object-fit: contain;
+}
+
 @media (max-width: 600px) {
     .artist-page {
         padding: 0 10px;
