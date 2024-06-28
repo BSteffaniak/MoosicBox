@@ -1,5 +1,11 @@
 import { Show, createSignal, onMount } from 'solid-js';
-import { api, apiUrl, clientId, token } from '~/services/api';
+import {
+    api,
+    connection,
+    getNewConnectionId,
+    setConnection,
+    type Connection,
+} from '~/services/api';
 import { getQueryParam } from '~/services/util';
 
 export default function authPage() {
@@ -9,6 +15,12 @@ export default function authPage() {
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string>();
 
+    function saveConnection(values: Partial<Connection>) {
+        const con = connection.get();
+        const id = con?.id ?? getNewConnectionId();
+        setConnection(id, values);
+    }
+
     onMount(async () => {
         if (!magicTokenParam) {
             setLoading(false);
@@ -17,15 +29,19 @@ export default function authPage() {
         }
 
         if (apiUrlParam) {
-            apiUrl.set(apiUrlParam);
+            saveConnection({
+                apiUrl: apiUrlParam,
+            });
         }
 
         const resp = await api.magicToken(magicTokenParam);
         setLoading(false);
 
         if (resp) {
-            clientId.set(resp.clientId);
-            token.set(resp.accessToken);
+            saveConnection({
+                clientId: resp.clientId,
+                token: resp.accessToken,
+            });
             window.location.href = '/';
         } else {
             setError('Failed to authenticate with magic token');

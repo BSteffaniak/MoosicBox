@@ -1,7 +1,7 @@
 import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import type { HowlCallback } from 'howler';
-import { Api, api, apiUrl, clientId } from './api';
+import { Api, api, getConnection } from './api';
 import type { Track } from './api';
 import {
     currentSeek,
@@ -40,19 +40,23 @@ export function createPlayer(id: number): PlayerType {
                     trackId: track.trackId.toString(),
                 });
 
-                const clientIdParam = clientId.get();
+                const con = getConnection();
+                const clientIdParam = con.clientId;
                 const signatureToken = Api.signatureToken();
 
-                if (clientId && signatureToken) {
+                if (con.clientId && signatureToken) {
                     query.set('clientId', clientIdParam);
                     query.set('signature', signatureToken);
+                }
+                if (con.staticToken) {
+                    query.set('authorization', con.staticToken);
                 }
 
                 if (playbackQuality().format !== Api.AudioFormat.SOURCE) {
                     query.set('format', playbackQuality().format);
                 }
 
-                return `${apiUrl.get()}/track?${query}`;
+                return `${con.apiUrl}/track?${query}`;
             }
             case 'TIDAL': {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');

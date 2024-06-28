@@ -1,6 +1,6 @@
 import * as player from './player';
 import { produce } from 'solid-js/store';
-import { Api, apiUrl, clientId, toSessionPlaylistTrack, token } from './api';
+import { Api, connection, toSessionPlaylistTrack } from './api';
 import type { Track } from './api';
 import { onStartup, setAppState } from './app';
 import type { PartialUpdateSession } from './types';
@@ -8,25 +8,27 @@ import { clientAtom, createListener, objToStr } from './util';
 import { onDownloadEventListener } from './downloads';
 import type { DownloadEvent } from './downloads';
 
-apiUrl.listen((url) => {
-    updateWsUrl(url, clientId.get(), Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
-        console.debug('Waiting for signature token');
-        return;
-    }
-    reconnect();
-});
-clientId.listen((clientId) => {
-    updateWsUrl(apiUrl.get(), clientId, Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
+connection.listen((con) => {
+    if (!con) return;
+
+    updateWsUrl(
+        con.apiUrl,
+        con.clientId,
+        Api.signatureToken(),
+        con.staticToken,
+    );
+    if (con.token && !Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }
     reconnect();
 });
 Api.onSignatureTokenUpdated((signatureToken) => {
-    updateWsUrl(apiUrl.get(), clientId.get(), signatureToken);
-    if (token.get() && !Api.signatureToken()) {
+    const con = connection.get();
+    if (!con) return;
+
+    updateWsUrl(con.apiUrl, con.clientId, signatureToken, con.staticToken);
+    if (con.token && !signatureToken) {
         console.debug('Waiting for signature token');
         return;
     }
@@ -37,6 +39,7 @@ function updateWsUrl(
     apiUrl: string,
     clientId: string | undefined,
     signatureToken: string | undefined,
+    staticToken: string | undefined,
 ) {
     if (!apiUrl?.startsWith('http')) return;
 
@@ -46,6 +49,9 @@ function updateWsUrl(
     }
     if (signatureToken) {
         params.push(`signature=${encodeURIComponent(signatureToken)}`);
+    }
+    if (staticToken) {
+        params.push(`authorization=${encodeURIComponent(staticToken)}`);
     }
     wsUrl = `ws${apiUrl.slice(4)}/ws${
         params.length > 0 ? `?${params.join('&')}` : ''
@@ -57,7 +63,7 @@ let wsUrl: string;
 export let connectionPromise: Promise<WebSocket>;
 
 export const connectionId = clientAtom<string>('', 'ws.v1.connectionId');
-const $connectionId = () => apiUrl.get();
+const $connectionId = () => connectionId.get();
 
 export const connectionName = clientAtom<string>(
     'New Connection',
@@ -359,6 +365,7 @@ export const offMessage = onMessageListener.off;
 
 function newClient(): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
+        console.log('connecting to ', wsUrl);
         const client = new WebSocket(wsUrl);
 
         let pingInterval: NodeJS.Timeout | undefined;
@@ -562,8 +569,16 @@ function reconnect(): Promise<WebSocket> {
 }
 
 onStartup(async () => {
-    updateWsUrl(apiUrl.get(), clientId.get(), Api.signatureToken());
-    if (token.get() && !Api.signatureToken()) {
+    const con = connection.get();
+    if (!con) return;
+
+    updateWsUrl(
+        con.apiUrl,
+        con.clientId,
+        Api.signatureToken(),
+        con.staticToken,
+    );
+    if (!con.token && Api.signatureToken()) {
         console.debug('Waiting for signature token');
         return;
     }

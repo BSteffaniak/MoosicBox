@@ -1,5 +1,5 @@
 import { isServer } from 'solid-js/web';
-import { Api, api, clientId, token } from './api';
+import { Api, api, connection } from './api';
 import { createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { clientAtom } from './util';
@@ -76,14 +76,16 @@ export const [currentArtistSearch, setCurrentArtistSearch] =
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
 
-token.listen(() => {
-    api.refetchSignatureToken();
-});
-clientId.listen(() => {
-    api.refetchSignatureToken();
+connection.listen((con) => {
+    if (!con) return;
+    if (con.token) {
+        api.refetchSignatureToken();
+    }
 });
 onStartup(async () => {
-    if (token.get() && clientId.get()) {
+    const con = connection.get();
+
+    if (con && con.token && con.clientId) {
         await api.validateSignatureToken();
     }
 });

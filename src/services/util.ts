@@ -333,3 +333,7 @@ export function objToStr(obj: unknown): string {
 }
 
 export const trace = console.trace;
+
+export function throwExpression(errorMessage: string): never {
+    throw new Error(errorMessage);
+}
