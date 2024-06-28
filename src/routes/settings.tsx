@@ -120,6 +120,21 @@ export default function settingsPage() {
 
     return (
         <div>
+            <ul>
+                <li>
+                    Name:{' '}
+                    <input
+                        ref={connectionNameInput!}
+                        type="text"
+                        value={$connectionName()}
+                        onKeyUp={(e) =>
+                            e.key === 'Enter' && saveConnectionName()
+                        }
+                    />
+                    <button onClick={saveConnectionName}>save</button>
+                </li>
+            </ul>
+
             <Show when={$connections()}>
                 {(connections) => (
                     <select
@@ -169,18 +184,6 @@ export default function settingsPage() {
                         onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
                     />
                     <button onClick={saveApiUrl}>save</button>
-                </li>
-                <li>
-                    Name:{' '}
-                    <input
-                        ref={connectionNameInput!}
-                        type="text"
-                        value={$connectionName()}
-                        onKeyUp={(e) =>
-                            e.key === 'Enter' && saveConnectionName()
-                        }
-                    />
-                    <button onClick={saveConnectionName}>save</button>
                 </li>
                 <li>
                     Client ID:{' '}
