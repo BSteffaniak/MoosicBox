@@ -1969,7 +1969,7 @@ async function requestJson<T>(
         }
     }
 
-    const token = con.staticToken ?? con.token;
+    const token = con.staticToken || con.token;
     if (token) {
         const headers = { ...(options?.headers ?? {}), Authorization: token };
         options = {
