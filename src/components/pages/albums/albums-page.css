@@ -90,7 +90,8 @@
     z-index: -1;
 }
 
-.albums-sort-controls {
+.albums-controls {
+    display: flex;
     width: 200px;
     position: absolute;
     left: 100%;
@@ -114,6 +115,10 @@
 
 .albums-sort-controls > div:hover {
     background: #888a8b;
+}
+
+.albums-filter-controls {
+    min-width: fit-content;
 }
 
 .albums-header-controls {

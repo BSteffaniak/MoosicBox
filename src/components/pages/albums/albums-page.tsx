@@ -17,7 +17,6 @@ import { QueryParams } from '~/services/util';
 let historyListener: () => void;
 
 export default function albums() {
-    let albumSortControlsRef: HTMLDivElement | undefined;
     let albumsHeaderContainerRef: HTMLDivElement;
     let backToTopRef: HTMLDivElement;
 
@@ -26,8 +25,10 @@ export default function albums() {
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const [currentAlbumSort, setCurrentAlbumSort] =
         createSignal<Api.AlbumSort>('Artist');
-    const [showAlbumSortControls, setShowAlbumSortControls] =
-        createSignal(false);
+    const [currentAlbumSources, setCurrentAlbumSources] = createSignal<
+        Api.AlbumSource[]
+    >([]);
+    const [showAlbumControls, setShowAlbumControls] = createSignal(false);
 
     const searchParams = new QueryParams(
         isServer ? {} : window.location.search,
@@ -36,6 +37,9 @@ export default function albums() {
     createComputed(() => {
         if (searchParams.has('sort')) {
             setCurrentAlbumSort(searchParams.get('sort') as Api.AlbumSort);
+        }
+        if (searchParams.has('sources')) {
+            setCurrentAlbumSources(getAlbumSources() ?? []);
         }
     });
 
@@ -94,8 +98,13 @@ export default function albums() {
                 : `${window.location.pathname}?${searchParams}`;
         history.pushState(null, '', newRelativePathQuery);
 
-        if (name === 'sort') {
-            setCurrentAlbumSort(value as Api.AlbumSort);
+        switch (name) {
+            case 'sort':
+                setCurrentAlbumSort(value as Api.AlbumSort);
+                break;
+            case 'sources':
+                setCurrentAlbumSources(value.split(',') as Api.AlbumSource[]);
+                break;
         }
     }
 
@@ -137,6 +146,27 @@ export default function albums() {
             setSearchParam('search', search);
         }
         setSearchFilterValue(search);
+    }
+
+    async function toggleAlbumSource(
+        source: Api.AlbumSource,
+        enabled?: boolean | undefined,
+    ) {
+        const current = currentAlbumSources();
+
+        if (typeof enabled === 'undefined') {
+            enabled = !current.includes(source);
+        }
+
+        const sources = current.filter((x) => {
+            return enabled || x !== source;
+        });
+
+        if (enabled && !sources.includes(source)) {
+            sources.push(source);
+        }
+
+        await loadAlbums({ sources });
     }
 
     async function loadAlbums(
@@ -240,8 +270,8 @@ export default function albums() {
     });
 
     const handleAlbumSortClick = (_event: MouseEvent) => {
-        if (!showAlbumSortControls()) return;
-        setShowAlbumSortControls(false);
+        if (!showAlbumControls()) return;
+        setShowAlbumControls(false);
     };
 
     onMount(() => {
@@ -292,96 +322,131 @@ export default function albums() {
                             class="albums-header-sort-icon"
                             src="/img/more-options-white.svg"
                             onClick={(event) => {
-                                setShowAlbumSortControls(
-                                    !showAlbumSortControls(),
-                                );
+                                setShowAlbumControls(!showAlbumControls());
                                 event.stopPropagation();
                             }}
                         />
                     </h1>
-                    {showAlbumSortControls() && (
-                        <div
-                            class="albums-sort-controls"
-                            ref={albumSortControlsRef!}
-                        >
-                            <div onClick={() => loadAlbums({ sort: 'Artist' })}>
-                                Album Artist{' '}
-                                {currentAlbumSort() === 'Artist' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-up-white.svg"
-                                    />
-                                )}
-                                {currentAlbumSort() === 'Artist-Desc' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-down-white.svg"
-                                    />
-                                )}
+                    {showAlbumControls() && (
+                        <div class="albums-controls">
+                            <div class="albums-sort-controls">
+                                <div
+                                    onClick={() =>
+                                        loadAlbums({ sort: 'Artist' })
+                                    }
+                                >
+                                    Album Artist{' '}
+                                    {currentAlbumSort() === 'Artist' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-up-white.svg"
+                                        />
+                                    )}
+                                    {currentAlbumSort() === 'Artist-Desc' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-down-white.svg"
+                                        />
+                                    )}
+                                </div>
+                                <div
+                                    onClick={() => loadAlbums({ sort: 'Name' })}
+                                >
+                                    Album Name
+                                    {currentAlbumSort() === 'Name' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-up-white.svg"
+                                        />
+                                    )}
+                                    {currentAlbumSort() === 'Name-Desc' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-down-white.svg"
+                                        />
+                                    )}
+                                </div>
+                                <div
+                                    onClick={() =>
+                                        loadAlbums({
+                                            sort:
+                                                getAlbumSort() ===
+                                                'Release-Date-Desc'
+                                                    ? 'Release-Date'
+                                                    : 'Release-Date-Desc',
+                                        })
+                                    }
+                                >
+                                    Album Release Date
+                                    {currentAlbumSort() === 'Release-Date' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-up-white.svg"
+                                        />
+                                    )}
+                                    {currentAlbumSort() ===
+                                        'Release-Date-Desc' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-down-white.svg"
+                                        />
+                                    )}
+                                </div>
+                                <div
+                                    onClick={() =>
+                                        loadAlbums({
+                                            sort:
+                                                getAlbumSort() ===
+                                                'Date-Added-Desc'
+                                                    ? 'Date-Added'
+                                                    : 'Date-Added-Desc',
+                                        })
+                                    }
+                                >
+                                    Album Date Added
+                                    {currentAlbumSort() === 'Date-Added' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-up-white.svg"
+                                        />
+                                    )}
+                                    {currentAlbumSort() ===
+                                        'Date-Added-Desc' && (
+                                        <img
+                                            class="sort-chevron-icon"
+                                            src="/img/chevron-down-white.svg"
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            <div onClick={() => loadAlbums({ sort: 'Name' })}>
-                                Album Name
-                                {currentAlbumSort() === 'Name' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-up-white.svg"
+                            <div class="albums-filter-controls">
+                                <div onClick={() => toggleAlbumSource('Local')}>
+                                    Local{' '}
+                                    <input
+                                        type="checkbox"
+                                        checked={currentAlbumSources().includes(
+                                            'Local',
+                                        )}
                                     />
-                                )}
-                                {currentAlbumSort() === 'Name-Desc' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-down-white.svg"
+                                </div>
+                                <div onClick={() => toggleAlbumSource('Tidal')}>
+                                    Tidal{' '}
+                                    <input
+                                        type="checkbox"
+                                        checked={currentAlbumSources().includes(
+                                            'Tidal',
+                                        )}
                                     />
-                                )}
-                            </div>
-                            <div
-                                onClick={() =>
-                                    loadAlbums({
-                                        sort:
-                                            getAlbumSort() ===
-                                            'Release-Date-Desc'
-                                                ? 'Release-Date'
-                                                : 'Release-Date-Desc',
-                                    })
-                                }
-                            >
-                                Album Release Date
-                                {currentAlbumSort() === 'Release-Date' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-up-white.svg"
+                                </div>
+                                <div onClick={() => toggleAlbumSource('Qobuz')}>
+                                    Qobuz{' '}
+                                    <input
+                                        type="checkbox"
+                                        checked={currentAlbumSources().includes(
+                                            'Qobuz',
+                                        )}
                                     />
-                                )}
-                                {currentAlbumSort() === 'Release-Date-Desc' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-down-white.svg"
-                                    />
-                                )}
-                            </div>
-                            <div
-                                onClick={() =>
-                                    loadAlbums({
-                                        sort:
-                                            getAlbumSort() === 'Date-Added-Desc'
-                                                ? 'Date-Added'
-                                                : 'Date-Added-Desc',
-                                    })
-                                }
-                            >
-                                Album Date Added
-                                {currentAlbumSort() === 'Date-Added' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-up-white.svg"
-                                    />
-                                )}
-                                {currentAlbumSort() === 'Date-Added-Desc' && (
-                                    <img
-                                        class="sort-chevron-icon"
-                                        src="/img/chevron-down-white.svg"
-                                    />
-                                )}
+                                </div>
                             </div>
                         </div>
                     )}
