@@ -55,7 +55,7 @@ export namespace Api {
     export const offSignatureTokenUpdated =
         onSignatureTokenUpdatedListeners.off;
     const [_signatureToken, _setSignatureToken] = makePersisted(
-        createSignal(''),
+        createSignal('api.v2.signatureToken'),
         {
             name: 'signatureToken',
         },
