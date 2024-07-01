@@ -103,16 +103,25 @@ const search = Object.fromEntries(new URLSearchParams(Astro.url.searchParams));
                 }
             }
 
+            const queryParamValue = queryParam && getQueryParam(queryParam);
+
             tabs.forEach((tab) => {
                 tab.addEventListener('click', () => {
                     activateTab(tab as Tab);
                 });
 
                 if (queryParam) {
-                    const isDefault = tab.hasAttribute('default');
-
-                    if (isDefault && !getQueryParam(queryParam)) {
+                    if (
+                        queryParamValue &&
+                        tab.getAttribute('for') === queryParamValue
+                    ) {
                         activateTab(tab as Tab);
+                    } else {
+                        const isDefault = tab.hasAttribute('default');
+
+                        if (isDefault && !queryParamValue) {
+                            activateTab(tab as Tab);
+                        }
                     }
                 }
             });
