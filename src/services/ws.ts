@@ -2,7 +2,7 @@ import * as player from './player';
 import { produce } from 'solid-js/store';
 import { Api, connection, toSessionPlaylistTrack } from './api';
 import type { Track } from './api';
-import { onStartup, setAppState } from './app';
+import { setAppState } from './app';
 import type { PartialUpdateSession } from './types';
 import { clientAtom, createListener, objToStr } from './util';
 import { onDownloadEventListener } from './downloads';
@@ -567,24 +567,3 @@ function reconnect(): Promise<WebSocket> {
 
     return attemptConnection();
 }
-
-onStartup(async () => {
-    const con = connection.get();
-    if (!con) return;
-
-    updateWsUrl(
-        con.apiUrl,
-        con.clientId,
-        Api.signatureToken(),
-        con.staticToken,
-    );
-    if (!con.token && Api.signatureToken()) {
-        console.debug('Waiting for signature token');
-        return;
-    }
-    if (!wsUrl) {
-        console.debug('Waiting for wsUrl');
-        return;
-    }
-    connectionPromise = attemptConnection();
-});
