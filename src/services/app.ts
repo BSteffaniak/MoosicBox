@@ -76,9 +76,9 @@ export const [currentArtistSearch, setCurrentArtistSearch] =
 export const [currentAlbumSearch, setCurrentAlbumSearch] =
     createSignal<Api.Album[]>();
 
-connection.listen((con) => {
+connection.listen((con, prev) => {
     if (!con) return;
-    if (con.token) {
+    if (con.token !== prev?.token || con.clientId !== prev?.clientId) {
         api.refetchSignatureToken();
     }
 });
