@@ -5,11 +5,17 @@ import { atom } from 'nanostores';
 import type { WritableAtom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 
+type ListenerMapping<T> = {
+    baseListener: (value: T) => void;
+    listener: (value: T, prevValue: T) => void;
+};
+
 export class ClientAtom<T> {
     private _atom: WritableAtom<T>;
     private _initial: T;
+    private _prevValue: T;
     private _name: string | undefined;
-    private _listeners: ((value: T) => void)[] = [];
+    private _listeners: ListenerMapping<T>[] = [];
 
     constructor(initial: T, name?: string | undefined) {
         this._initial = initial;
@@ -22,6 +28,8 @@ export class ClientAtom<T> {
         } else {
             this._atom = atom(initial);
         }
+
+        this._prevValue = this.get();
     }
 
     get name(): string | undefined {
@@ -38,20 +46,25 @@ export class ClientAtom<T> {
 
     set(value: T) {
         this._atom.set(value);
+        this._prevValue = value;
     }
 
-    listen(listener: (value: T) => void) {
-        this._atom.listen(listener);
-        this._listeners.push(listener);
+    listen(listener: (value: T, prevValue: T) => void) {
+        const mapping: ListenerMapping<T> = {
+            baseListener: (v: T) => listener(v, this._prevValue),
+            listener,
+        };
+        this._atom.listen(mapping.baseListener);
+        this._listeners.push(mapping);
     }
 
-    off(listener: (value: T) => void) {
-        const index = this._listeners.indexOf(listener);
+    off(listener: (value: T, prevValue: T) => void) {
+        const index = this._listeners.findIndex((x) => x.listener === listener);
         if (index !== -1) {
             this._listeners.splice(index, 1);
             this._atom.off();
-            this._listeners.forEach((listener) => {
-                this._atom.listen(listener);
+            this._listeners.forEach((mapping) => {
+                this._atom.listen(mapping.baseListener);
             });
         }
     }
