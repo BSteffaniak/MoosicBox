@@ -64,6 +64,9 @@ export namespace Api {
         return _signatureToken();
     }
     export function setSignatureToken(url: string): void {
+        if (url === _signatureToken()) {
+            return;
+        }
         _setSignatureToken(url);
 
         onSignatureTokenUpdatedListeners.trigger(url);
