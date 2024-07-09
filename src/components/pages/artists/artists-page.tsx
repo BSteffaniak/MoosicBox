@@ -88,9 +88,13 @@ export default function artists() {
     async function loadArtists(
         request: Api.ArtistsRequest | undefined = undefined,
     ) {
-        if (currentArtistSearch() && !artists()) {
-            setArtists(currentArtistSearch());
-            return;
+        const query = searchParams.toString();
+        if (!artists()) {
+            const current = currentArtistSearch();
+            if (current && current.query === query) {
+                setArtists(current.results);
+                return;
+            }
         }
         if (request?.sources) setArtistSources(request.sources);
         if (request?.sort) setArtistSort(request.sort);
@@ -120,7 +124,11 @@ export default function artists() {
             setLoading(false);
         }
 
-        setCurrentArtistSearch(artists());
+        const results = artists();
+
+        if (results) {
+            setCurrentArtistSearch({ query, results });
+        }
     }
 
     if (!isServer) {

@@ -70,11 +70,15 @@ export const [appState, setAppState] = createStore<AppState>({
     connections: [],
 });
 
-export const [currentArtistSearch, setCurrentArtistSearch] =
-    createSignal<Api.Artist[]>();
+export const [currentArtistSearch, setCurrentArtistSearch] = createSignal<{
+    query: string;
+    results: Api.Artist[];
+}>();
 
-export const [currentAlbumSearch, setCurrentAlbumSearch] =
-    createSignal<Api.Album[]>();
+export const [currentAlbumSearch, setCurrentAlbumSearch] = createSignal<{
+    query: string;
+    results: Api.Album[];
+}>();
 
 connection.listen((con, prev) => {
     if (!con) return;

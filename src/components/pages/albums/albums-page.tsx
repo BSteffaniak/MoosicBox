@@ -172,9 +172,13 @@ export default function albums() {
     async function loadAlbums(
         request: Api.AlbumsRequest | undefined = undefined,
     ) {
-        if (currentAlbumSearch() && !albums()) {
-            setAlbums(currentAlbumSearch());
-            return;
+        const query = searchParams.toString();
+        if (!albums()) {
+            const current = currentAlbumSearch();
+            if (current && current.query === query) {
+                setAlbums(current.results);
+                return;
+            }
         }
         if (request?.sources) setAlbumSources(request.sources);
         if (request?.sort) setAlbumSort(request.sort);
@@ -199,7 +203,11 @@ export default function albums() {
             ),
         );
 
-        setCurrentAlbumSearch(albums());
+        const results = albums();
+
+        if (results) {
+            setCurrentAlbumSearch({ query, results });
+        }
     }
 
     if (!isServer) {
