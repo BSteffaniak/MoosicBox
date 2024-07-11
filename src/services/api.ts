@@ -36,12 +36,12 @@ export function toSessionPlaylistTrack(
 ): Api.UpdateSessionPlaylistTrack {
     if (track.type === 'LIBRARY') {
         return {
-            id: track.trackId,
+            id: `${track.trackId}`,
             type: track.type,
         };
     } else {
         return {
-            id: track.id,
+            id: `${track.id}`,
             type: track.type,
             data: JSON.stringify(track),
         };
@@ -243,7 +243,7 @@ export namespace Api {
     }
 
     export interface UpdateSessionPlaylistTrack {
-        id: number;
+        id: string;
         type: TrackType;
         data?: string;
     }
