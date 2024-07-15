@@ -28,15 +28,16 @@
 }
 
 .albums-back-to-top-container {
-    position: fixed;
-    top: 0;
-    transform: translateX(-50%);
+    position: absolute;
+    left: 50%;
     text-align: center;
     z-index: 17;
     pointer-events: none;
 }
 
 .albums-back-to-top {
+    position: fixed;
+    transform: translateX(-50%);
     background-color: #181a1b;
     cursor: pointer;
     display: inline-block;

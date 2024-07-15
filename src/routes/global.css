@@ -157,6 +157,7 @@ button {
 }
 
 .main-content {
+    position: relative;
     padding-bottom: 20px;
     flex-grow: 1;
     overflow: auto;
@@ -287,14 +288,6 @@ h6 {
 
 .search-header-offset {
     height: 60px;
-}
-
-.main-content-back-to-top {
-    left: calc((100% + max(240px, min(280px, 15vw))) / 2);
-}
-
-.main-content.toggled .main-content-back-to-top {
-    left: calc((100% + 60px) / 2);
 }
 
 .mobile-toggle-expand-button {
