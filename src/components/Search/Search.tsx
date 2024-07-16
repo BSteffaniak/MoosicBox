@@ -9,8 +9,6 @@ import { isServer } from 'solid-js/web';
 import { artistRoute } from '../Artist/Artist';
 import { albumRoute } from '../Album/Album';
 
-let searchResultsRefStyles: CSSStyleDeclaration | undefined = undefined;
-
 export default function searchInput() {
     let searchContainerRef: HTMLDivElement;
     let searchInputRef: HTMLInputElement;
@@ -20,26 +18,6 @@ export default function searchInput() {
     const [searchFilterValue, setSearchFilterValue] = createSignal('');
     const [searchResults, setSearchResults] =
         createSignal<Api.GlobalSearchResult[]>();
-
-    const resizeListener = () => {
-        const footerPlayerContainer = document.getElementsByClassName(
-            'footer-player-container',
-        )[0];
-
-        if (!footerPlayerContainer) return;
-
-        const playerTop = footerPlayerContainer.getBoundingClientRect().top;
-
-        const searchContainerOffset =
-            searchContainerRef.getBoundingClientRect().bottom;
-
-        searchResultsRefStyles =
-            searchResultsRefStyles ?? getComputedStyle(searchResultsRef);
-        const styles = searchResultsRefStyles;
-
-        searchResultsRef.style.top = `${searchContainerOffset}px`;
-        searchResultsRef.style.maxHeight = `calc(${playerTop}px - ${searchContainerOffset}px - ${styles.paddingTop} - ${styles.paddingBottom} - ${styles.marginBottom})`;
-    };
 
     function closeSearch() {
         searchInputRef.focus();
@@ -53,19 +31,14 @@ export default function searchInput() {
         },
     ) {
         e.target.select();
-        resizeListener();
     }
 
     onMount(() => {
         if (isServer) return;
-        window.addEventListener('resize', resizeListener);
-
-        resizeListener();
     });
 
     onCleanup(() => {
         if (isServer) return;
-        window.removeEventListener('resize', resizeListener);
     });
 
     async function search(searchString: string) {

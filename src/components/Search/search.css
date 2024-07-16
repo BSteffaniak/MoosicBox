@@ -1,6 +1,5 @@
 .search-input {
     position: relative;
-    height: 36px;
     padding: 0 10px;
     text-indent: 20px;
     padding-left: 20px;
@@ -8,11 +7,9 @@
     border-radius: 100px;
     box-shadow: 0px 0px 4px 4px rgba(6, 8, 9, 0.3);
     width: 100%;
+    height: 40px;
     z-index: 18;
     box-sizing: border-box;
-    transition:
-        text-indent 0.1s,
-        padding 0.1s;
 }
 
 .search-container:focus-within .search-input {
@@ -24,15 +21,13 @@
 .cancel-search-icon {
     cursor: pointer;
     position: absolute;
-    right: calc(6px + 30px);
+    right: 5px;
     top: 50%;
     transform: translateY(-50%);
-    bottom: 0;
     width: 25px;
     height: 25px;
     z-index: 18;
     opacity: 0;
-    transition: opacity 0.1s;
     pointer-events: none;
 }
 
@@ -43,24 +38,26 @@
 
 .search-container {
     position: fixed;
-    left: calc(100% - 30px - 10px - 30px - 30px);
+    right: 0;
     top: 0;
     z-index: 18;
     padding: 20px 30px;
     display: flex;
+    flex-direction: column;
     justify-content: end;
-    transition:
-        left 0.1s,
-        width 0.1s;
     width: 40px;
+    max-height: 100%;
+    box-sizing: content-box;
 }
 
 .search-container:focus-within {
     left: 0;
-    width: calc(100% - 60px);
+    width: unset;
+    box-sizing: border-box;
 }
 
 .search-label-container {
+    position: relative;
     display: flex;
     justify-content: end;
     width: 100%;
@@ -95,7 +92,6 @@
     opacity: 0;
     background-color: #000;
     pointer-events: none;
-    transition: opacity 0.1s;
     z-index: 12;
 }
 
@@ -114,17 +110,10 @@
 }
 
 .search-results {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 72px;
     z-index: 18;
-    min-width: calc(100dvw - max(240px, min(280px, 15dvw)) - 60px - 20px);
-    max-height: calc(100dvh - 72px - 160px);
     overflow: auto;
     overflow-x: hidden;
-    margin: 20px 30px;
-    padding: 20px 30px;
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -167,31 +156,4 @@ a.search-results-result-link {
 .search-results-result-link:focus,
 .search-results-result-link:hover {
     background-color: #333333;
-}
-
-@media (max-width: 600px) {
-    .search-container {
-        left: calc(100% - 30px - 10px - 10px - 10px);
-        padding: 10px;
-    }
-
-    .search-results {
-        position: fixed;
-        margin: 5px 10px;
-        padding: 5px 10px;
-    }
-
-    .search-container:focus-within {
-        left: calc(0px);
-        width: calc(100% - 20px);
-    }
-
-    .main-content.toggled .search-container:focus-within {
-        left: calc(0px);
-        width: calc(100% - 20px);
-    }
-
-    .cancel-search-icon {
-        right: calc(6px + 10px);
-    }
 }
