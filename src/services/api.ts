@@ -37,7 +37,7 @@ export function trackId(
     track: Track | number | undefined,
 ): string | number | undefined {
     if (!track) return undefined;
-    if (typeof track === 'number') return track;
+    if (typeof track === 'number' || typeof track === 'string') return track;
     return 'trackId' in track
         ? track.trackId
         : 'id' in track
