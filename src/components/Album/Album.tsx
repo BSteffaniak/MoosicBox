@@ -57,6 +57,8 @@ function getAlbumTitleDisplay(props: AlbumProps): string {
         }
         case 'QOBUZ':
             return props.album.title;
+        case 'YT':
+            return props.album.title;
         default:
             albumType satisfies never;
             throw new Error(`Invalid albumType: ${albumType}`);
@@ -73,6 +75,8 @@ function isExplicit(props: AlbumProps): boolean {
             return props.album.explicit;
         case 'QOBUZ':
             return props.album.parentalWarning;
+        case 'YT':
+            return false;
         default:
             albumType satisfies never;
             throw new Error(`Invalid albumType: ${albumType}`);
@@ -213,6 +217,14 @@ export function albumRoute(
                 }`;
             } else {
                 return `/albums?qobuzAlbumId=${
+                    (album as { id: number | string }).id
+                }`;
+            }
+        case 'YT':
+            if ('number' in album) {
+                return `/albums?ytAlbumId=${(album as Api.YtTrack).albumId}`;
+            } else {
+                return `/albums?ytAlbumId=${
                     (album as { id: number | string }).id
                 }`;
             }

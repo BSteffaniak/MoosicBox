@@ -15,7 +15,7 @@ import { createListener, orderedEntries } from './util';
 import { type PartialBy, type PartialUpdateSession } from './types';
 
 export type TrackListenerCallback = (
-    track: Api.Track,
+    track: Api.LibraryTrack,
     position: number,
 ) => void;
 
@@ -379,14 +379,14 @@ export async function playAlbum(album: Album | Track) {
 
     switch (albumType) {
         case 'LIBRARY': {
-            album = album as Api.Album;
+            album = album as Api.LibraryAlbum;
             const versions = await api.getAlbumVersions(album.albumId);
             const tracks = versions[0]!.tracks;
             await playPlaylist(tracks);
             break;
         }
         case 'TRACK': {
-            album = album as Api.Track;
+            album = album as Api.LibraryTrack;
             const versions = await api.getAlbumVersions(album.albumId);
             const tracks = versions[0]!.tracks;
             await playPlaylist(tracks);
@@ -402,6 +402,13 @@ export async function playAlbum(album: Album | Track) {
         case 'QOBUZ': {
             album = album as Api.QobuzAlbum;
             const page = await api.getQobuzAlbumTracks(album.id);
+            const tracks = page.items;
+            await playPlaylist(tracks);
+            break;
+        }
+        case 'YT': {
+            album = album as Api.YtAlbum;
+            const page = await api.getYtAlbumTracks(album.id);
             const tracks = page.items;
             await playPlaylist(tracks);
             break;
@@ -440,13 +447,13 @@ export async function addAlbumToQueue(album: Album | Track) {
 
     switch (albumType) {
         case 'LIBRARY': {
-            album = album as Api.Album;
+            album = album as Api.LibraryAlbum;
             const versions = await api.getAlbumVersions(album.albumId);
             const tracks = versions[0]!.tracks;
             return addTracksToQueue(tracks);
         }
         case 'TRACK': {
-            album = album as Api.Track;
+            album = album as Api.LibraryTrack;
             const versions = await api.getAlbumVersions(album.albumId);
             const tracks = versions[0]!.tracks;
             return addTracksToQueue(tracks);
@@ -460,6 +467,12 @@ export async function addAlbumToQueue(album: Album | Track) {
         case 'QOBUZ': {
             album = album as Api.QobuzAlbum;
             const page = await api.getQobuzAlbumTracks(album.id);
+            const tracks = page.items;
+            return addTracksToQueue(tracks);
+        }
+        case 'YT': {
+            album = album as Api.YtAlbum;
+            const page = await api.getYtAlbumTracks(album.id);
             const tracks = page.items;
             return addTracksToQueue(tracks);
         }

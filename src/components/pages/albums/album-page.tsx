@@ -37,7 +37,8 @@ export default function albumPage(props: {
     const [sourceImage, setSourceImage] = createSignal<HTMLImageElement>();
     const [activeVersion, setActiveVersion] = createSignal<Api.AlbumVersion>();
 
-    const [libraryAlbum, setLibraryAlbum] = createSignal<Api.Album | null>();
+    const [libraryAlbum, setLibraryAlbum] =
+        createSignal<Api.LibraryAlbum | null>();
 
     const [tidalAlbum, setTidalAlbum] = createSignal<Api.TidalAlbum>();
     const [tidalTracks, setTidalTracks] = createSignal<Api.TidalTrack[]>();
@@ -279,45 +280,6 @@ export default function albumPage(props: {
 
         if (removedEveryVersion) {
             setLibraryAlbum(null);
-
-            /*switch (source) {
-                case Api.TrackSource.TIDAL:
-                    if (!isInvalidFavorite(Api.TrackSource.TIDAL)) {
-                        navigate(
-                            albumRoute({
-                                id: albumId.tidalAlbumId!,
-                                type: 'TIDAL',
-                            }),
-                            {
-                                replace: true,
-                            },
-                        );
-                    } else {
-                        navigate(artistRoute(album), {
-                            replace: true,
-                        });
-                    }
-                    break;
-                case Api.TrackSource.QOBUZ:
-                    if (!isInvalidFavorite(Api.TrackSource.QOBUZ)) {
-                        navigate(
-                            albumRoute({
-                                id: albumId.qobuzAlbumId!,
-                                type: 'QOBUZ',
-                            }),
-                            {
-                                replace: true,
-                            },
-                        );
-                    } else {
-                        navigate(artistRoute(album), {
-                            replace: true,
-                        });
-                    }
-                    break;
-                default:
-                    source satisfies never;
-            }*/
         } else {
             if (props.albumId) {
                 setLibraryAlbum(album);
@@ -396,6 +358,11 @@ export default function albumPage(props: {
                 break;
             case Api.TrackSource.QOBUZ:
                 if (!libraryAlbum()!.qobuzId) {
+                    return false;
+                }
+                break;
+            case Api.TrackSource.YT:
+                if (!libraryAlbum()!.ytId) {
                     return false;
                 }
                 break;
@@ -542,6 +509,8 @@ export default function albumPage(props: {
                 return track.title;
             case 'QOBUZ':
                 return track.title;
+            case 'YT':
+                return track.title;
             default:
                 trackType satisfies never;
                 throw new Error(`Invalid trackType: ${trackType}`);
@@ -558,6 +527,8 @@ export default function albumPage(props: {
                 return track.explicit;
             case 'QOBUZ':
                 return track.parentalWarning;
+            case 'YT':
+                return false;
             default:
                 trackType satisfies never;
                 throw new Error(`Invalid trackType: ${trackType}`);

@@ -38,6 +38,9 @@ export function displayAlbumVersionQuality(
         case Api.TrackSource.QOBUZ:
             str += 'Qobuz';
             break;
+        case Api.TrackSource.YT:
+            str += 'YouTube Music';
+            break;
         default:
             version.source satisfies never;
     }
@@ -110,6 +113,8 @@ export function displayApiSource(source: ApiSource) {
             return 'Tidal';
         case 'QOBUZ':
             return 'Qobuz';
+        case 'YT':
+            return 'YouTube Music';
         case 'LIBRARY':
             return 'Library';
         default:

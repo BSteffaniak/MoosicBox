@@ -10,9 +10,10 @@ export default function artistPage(props: {
     tidalArtistId?: number;
     qobuzArtistId?: number;
 }) {
-    const [libraryArtist, setLibraryArtist] = createSignal<Api.Artist | null>();
+    const [libraryArtist, setLibraryArtist] =
+        createSignal<Api.LibraryArtist | null>();
     const [libraryAlbums, setLibraryAlbums] = createSignal<
-        Api.Album[] | null
+        Api.LibraryAlbum[] | null
     >();
 
     const [tidalArtist, setTidalArtist] = createSignal<Api.TidalArtist>();
@@ -57,7 +58,7 @@ export default function artistPage(props: {
         ]);
     }
 
-    async function loadLibraryArtist(): Promise<Api.Artist | undefined> {
+    async function loadLibraryArtist(): Promise<Api.LibraryArtist | undefined> {
         if (props.artistId) {
             const artist = await api.getArtist(props.artistId);
             setLibraryArtist(artist);

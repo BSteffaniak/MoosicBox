@@ -8,8 +8,8 @@ export function artistRoute(
         | Artist
         | Album
         | Track
-        | { id: number; type: ArtistType }
-        | { artistId: number; type: ArtistType },
+        | { id: string | number; type: ArtistType }
+        | { artistId: string | number; type: ArtistType },
 ): string {
     const artistType = artist.type;
 
@@ -41,6 +41,14 @@ export function artistRoute(
                 return `/artists?qobuzArtistId=${
                     (artist as Api.QobuzArtist).id
                 }`;
+            }
+        case 'YT':
+            if ('artistId' in artist) {
+                return `/artists?ytArtistId=${
+                    (artist as { artistId: number }).artistId
+                }`;
+            } else {
+                return `/artists?ytArtistId=${(artist as Api.YtArtist).id}`;
             }
         default:
             artistType satisfies never;

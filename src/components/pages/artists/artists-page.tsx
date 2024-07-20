@@ -22,7 +22,7 @@ export default function artists() {
     let artistsHeaderContainerRef: HTMLDivElement;
 
     const [loading, setLoading] = createSignal(false);
-    const [artists, setArtists] = createSignal<Api.Artist[]>();
+    const [artists, setArtists] = createSignal<Api.LibraryArtist[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const [currentArtistSort, setCurrentArtistSort] =
         createSignal<Api.ArtistSort>('Name');

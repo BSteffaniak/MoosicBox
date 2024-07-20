@@ -8,20 +8,34 @@ import {
     throwExpression,
 } from './util';
 import { makePersisted } from '@solid-primitives/storage';
-export type Artist = Api.Artist | Api.TidalArtist | Api.QobuzArtist;
+export type Artist =
+    | Api.LibraryArtist
+    | Api.TidalArtist
+    | Api.QobuzArtist
+    | Api.YtArtist;
 export type ArtistType = Artist['type'];
 
-export type Album = Api.Album | Api.TidalAlbum | Api.QobuzAlbum;
+export type Album =
+    | Api.LibraryAlbum
+    | Api.TidalAlbum
+    | Api.QobuzAlbum
+    | Api.YtAlbum;
 export type AlbumType = Album['type'];
 
-export type Track = Api.Track | Api.TidalTrack | Api.QobuzTrack;
+export type Track =
+    | Api.LibraryTrack
+    | Api.TidalTrack
+    | Api.QobuzTrack
+    | Api.YtTrack;
 export type TrackType = Track['type'];
 
-export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ';
+export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ' | 'YT';
 
 type GenericTrack = Track;
 
-export function trackId(track: Track | number | undefined): number | undefined {
+export function trackId(
+    track: Track | number | undefined,
+): string | number | undefined {
     if (!track) return undefined;
     if (typeof track === 'number') return track;
     return 'trackId' in track
@@ -81,7 +95,7 @@ export namespace Api {
 
     export interface GlobalArtistSearchResult {
         type: 'ARTIST';
-        artistId: number;
+        artistId: string | number;
         title: string;
         containsCover: boolean;
         blur: boolean;
@@ -89,9 +103,9 @@ export namespace Api {
 
     export interface GlobalAlbumSearchResult {
         type: 'ALBUM';
-        artistId: number;
+        artistId: string | number;
         artist: string;
-        albumId: number;
+        albumId: string | number;
         title: string;
         containsCover: boolean;
         blur: boolean;
@@ -102,11 +116,11 @@ export namespace Api {
 
     export interface GlobalTrackSearchResult {
         type: 'TRACK';
-        artistId: number;
+        artistId: string | number;
         artist: string;
-        albumId: number;
+        albumId: string | number;
         album: string;
-        trackId: number;
+        trackId: string | number;
         title: string;
         containsCover: boolean;
         blur: boolean;
@@ -138,7 +152,7 @@ export namespace Api {
         players: Player[];
     }
 
-    export interface Artist {
+    export interface LibraryArtist {
         artistId: number;
         title: string;
         containsCover: boolean;
@@ -152,6 +166,7 @@ export namespace Api {
         LOCAL = 'LOCAL',
         TIDAL = 'TIDAL',
         QOBUZ = 'QOBUZ',
+        YT = 'YT',
     }
 
     export interface AlbumVersionQuality {
@@ -162,7 +177,7 @@ export namespace Api {
         source: TrackSource;
     }
 
-    export interface Album {
+    export interface LibraryAlbum {
         albumId: number;
         title: string;
         artist: string;
@@ -174,12 +189,14 @@ export namespace Api {
         versions: AlbumVersionQuality[];
         tidalId?: number;
         qobuzId?: string;
+        ytId?: string;
         tidalArtistId?: number;
         qobuzArtistId?: number;
+        ytArtistId?: string;
         type: 'LIBRARY';
     }
 
-    export interface Track {
+    export interface LibraryTrack {
         trackId: number;
         number: number;
         title: string;
@@ -203,7 +220,7 @@ export namespace Api {
     }
 
     export interface AlbumVersion {
-        tracks: Api.Track[];
+        tracks: Api.LibraryTrack[];
         format: PlaybackQuality['format'] | null;
         bitDepth: number | null;
         audioBitrate: number | null;
@@ -366,7 +383,7 @@ export namespace Api {
         artistId: number;
         containsCover: boolean;
         explicit: boolean;
-        copyright: string;
+        copyright?: string | undefined;
         dateReleased: string;
         numberOfTracks: number;
         audioQuality: 'LOSSLESS' | 'HIRES';
@@ -443,6 +460,45 @@ export namespace Api {
         source: ApiSource;
     }
 
+    export interface YtArtist {
+        id: string;
+        title: string;
+        containsCover: boolean;
+        blur: boolean;
+        type: 'YT';
+    }
+
+    export interface YtAlbum {
+        id: string;
+        title: string;
+        artist: string;
+        artistId: string;
+        containsCover: boolean;
+        dateReleased: string;
+        numberOfTracks: number;
+        blur: boolean;
+        type: 'YT';
+    }
+
+    export interface YtTrack {
+        id: string;
+        number: number;
+        title: string;
+        artist: string;
+        artistId: string;
+        containsCover: boolean;
+        parentalWarning: boolean;
+        album: string;
+        albumId: number;
+        duration: number;
+        copyright: string;
+        numberOfTracks: number;
+        audioQuality: 'LOSSLESS' | 'HIRES';
+        mediaMetadataTags: ('LOSSLESS' | 'HIRES_LOSSLESS' | 'MQA')[];
+        type: 'YT';
+        source: ApiSource;
+    }
+
     export type DownloadTaskState =
         | 'PENDING'
         | 'PAUSED'
@@ -489,7 +545,7 @@ export namespace Api {
         | 'FLAC_HI_RES'
         | 'FLAC_HIGHEST_RES';
 
-    export type DownloadApiSource = Omit<ApiSource, 'LOCAL'>;
+    export type DownloadApiSource = 'TIDAL' | 'QOBUZ' | 'YT';
 
     export interface DownloadTask {
         id: number;
@@ -565,27 +621,30 @@ export interface ApiType {
     getArtist(
         artistId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Artist>;
+    ): Promise<Api.LibraryArtist>;
     getArtistCover(
         artist: Artist | Album | Track | undefined,
         width: number,
         height: number,
     ): string;
     getArtistSourceCover(artist: Artist | Album | Track | undefined): string;
-    getAlbum(id: number, signal?: AbortSignal | null): Promise<Api.Album>;
+    getAlbum(
+        id: number,
+        signal?: AbortSignal | null,
+    ): Promise<Api.LibraryAlbum>;
     getAlbums(
         request: Api.AlbumsRequest | undefined,
         signal?: AbortSignal | null,
-    ): Promise<Api.PagingResponseWithTotal<Api.Album>>;
+    ): Promise<Api.PagingResponseWithTotal<Api.LibraryAlbum>>;
     getAllAlbums(
         request: Api.AlbumsRequest | undefined,
         onAlbums?: (
-            albums: Api.Album[],
-            allAlbums: Api.Album[],
+            albums: Api.LibraryAlbum[],
+            allAlbums: Api.LibraryAlbum[],
             index: number,
         ) => void,
         signal?: AbortSignal | null,
-    ): Promise<Api.Album[]>;
+    ): Promise<Api.LibraryAlbum[]>;
     getAlbumArtwork(
         album: Album | Track | undefined,
         width: number,
@@ -599,7 +658,7 @@ export interface ApiType {
     getAlbumTracks(
         albumId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Track[]>;
+    ): Promise<Api.LibraryTrack[]>;
     getAlbumVersions(
         albumId: number,
         signal?: AbortSignal | null,
@@ -607,11 +666,11 @@ export interface ApiType {
     getTracks(
         trackIds: number[],
         signal?: AbortSignal | null,
-    ): Promise<Api.Track[]>;
+    ): Promise<Api.LibraryTrack[]>;
     getArtists(
         request: Api.ArtistsRequest | undefined,
         signal?: AbortSignal | null,
-    ): Promise<Api.Artist[]>;
+    ): Promise<Api.LibraryArtist[]>;
     fetchSignatureToken(
         signal?: AbortSignal | null,
     ): Promise<string | undefined>;
@@ -634,15 +693,15 @@ export interface ApiType {
     getArtistFromTidalArtistId(
         tidalArtistId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Artist>;
+    ): Promise<Api.LibraryArtist>;
     getArtistFromQobuzArtistId(
         qobuzArtistId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Artist>;
+    ): Promise<Api.LibraryArtist>;
     getArtistFromTidalAlbumId(
         tidalAlbumId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Artist>;
+    ): Promise<Api.LibraryArtist>;
     getTidalArtist(
         tidalArtistId: number,
         signal?: AbortSignal | null,
@@ -684,19 +743,19 @@ export interface ApiType {
     getAlbumFromTidalAlbumId(
         tidalAlbumId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Album>;
+    ): Promise<Api.LibraryAlbum>;
     getAlbumFromQobuzAlbumId(
         qobuzAlbumId: string,
         signal?: AbortSignal | null,
-    ): Promise<Api.Album>;
+    ): Promise<Api.LibraryAlbum>;
     getLibraryAlbumsFromTidalArtistId(
         tidalArtistId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Album[]>;
+    ): Promise<Api.LibraryAlbum[]>;
     getLibraryAlbumsFromQobuzArtistId(
         qobuzArtistId: number,
         signal?: AbortSignal | null,
-    ): Promise<Api.Album[]>;
+    ): Promise<Api.LibraryAlbum[]>;
     getTidalAlbum(
         tidalAlbumId: number,
         signal?: AbortSignal | null,
@@ -713,6 +772,10 @@ export interface ApiType {
         qobuzAlbumId: string,
         signal?: AbortSignal | null,
     ): Promise<Api.PagingResponse<Api.QobuzTrack>>;
+    getYtAlbumTracks(
+        ytAlbumId: string,
+        signal?: AbortSignal | null,
+    ): Promise<Api.PagingResponse<Api.YtTrack>>;
     getTidalTrack(
         tidalTrackId: number,
         signal?: AbortSignal | null,
@@ -740,14 +803,14 @@ export interface ApiType {
             qobuzAlbumId?: string;
         },
         signal?: AbortSignal | null,
-    ): Promise<Api.Album>;
+    ): Promise<Api.LibraryAlbum>;
     refavoriteAlbum(
         albumId: {
             tidalAlbumId?: number;
             qobuzAlbumId?: string;
         },
         signal?: AbortSignal | null,
-    ): Promise<Api.Album>;
+    ): Promise<Api.LibraryAlbum>;
     retryDownload(taskId: number, signal?: AbortSignal | null): Promise<void>;
     download(
         items: {
@@ -777,7 +840,7 @@ export function getConnection(): Connection {
 async function getArtist(
     artistId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Artist> {
+): Promise<Api.LibraryArtist> {
     const con = getConnection();
 
     const query = new QueryParams({
@@ -840,6 +903,20 @@ function getAlbumArtwork(
             }
             break;
 
+        case 'YT':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/${width}x${height}?${query}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(
+                        `albums/${album.id}/${width}x${height}?${query}`,
+                    );
+                }
+            }
+            break;
+
         default:
             albumType satisfies never;
     }
@@ -887,6 +964,18 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             }
             break;
 
+        case 'YT':
+            if (album.containsCover) {
+                if ('albumId' in album) {
+                    return Api.getPath(
+                        `albums/${album.albumId}/source?${query}`,
+                    );
+                } else if ('id' in album) {
+                    return Api.getPath(`albums/${album.id}/source?${query}`);
+                }
+            }
+            break;
+
         default:
             albumType satisfies never;
     }
@@ -897,7 +986,7 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
 async function getAlbum(
     id: number,
     signal?: AbortSignal | null,
-): Promise<Api.Album> {
+): Promise<Api.LibraryAlbum> {
     const con = getConnection();
 
     const query = new QueryParams({
@@ -913,7 +1002,7 @@ async function getAlbum(
 async function getAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
     signal?: AbortSignal | null,
-): Promise<Api.PagingResponseWithTotal<Api.Album>> {
+): Promise<Api.PagingResponseWithTotal<Api.LibraryAlbum>> {
     const con = getConnection();
     const query = new QueryParams({
         artistId: albumsRequest?.artistId?.toString(),
@@ -937,12 +1026,12 @@ async function getAlbums(
 async function getAllAlbums(
     albumsRequest: Api.AlbumsRequest | undefined = undefined,
     onAlbums?: (
-        albums: Api.Album[],
-        allAlbums: Api.Album[],
+        albums: Api.LibraryAlbum[],
+        allAlbums: Api.LibraryAlbum[],
         index: number,
     ) => void,
     signal?: AbortSignal | null,
-): Promise<Api.Album[]> {
+): Promise<Api.LibraryAlbum[]> {
     let offset = albumsRequest?.offset ?? 0;
     let limit = albumsRequest?.limit ?? 100;
 
@@ -1034,6 +1123,20 @@ function getArtistCover(
             }
             break;
 
+        case 'YT':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/${width}x${height}?${query}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.id}/${width}x${height}?${query}`,
+                    );
+                }
+            }
+            break;
+
         default:
             artistType satisfies never;
     }
@@ -1084,6 +1187,18 @@ function getArtistSourceCover(
             }
             break;
 
+        case 'YT':
+            if (artist.containsCover) {
+                if ('artistId' in artist) {
+                    return Api.getPath(
+                        `artists/${artist.artistId}/source?${query}`,
+                    );
+                } else if ('id' in artist) {
+                    return Api.getPath(`artists/${artist.id}/source?${query}`);
+                }
+            }
+            break;
+
         default:
             artistType satisfies never;
     }
@@ -1094,7 +1209,7 @@ function getArtistSourceCover(
 async function getAlbumTracks(
     albumId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Track[]> {
+): Promise<Api.LibraryTrack[]> {
     const con = getConnection();
     return await requestJson(`${con.apiUrl}/album/tracks?albumId=${albumId}`, {
         method: 'GET',
@@ -1121,7 +1236,7 @@ async function getAlbumVersions(
 async function getTracks(
     trackIds: number[],
     signal?: AbortSignal | null,
-): Promise<Api.Track[]> {
+): Promise<Api.LibraryTrack[]> {
     const con = getConnection();
     return await requestJson(
         `${con.apiUrl}/tracks?trackIds=${trackIds.join(',')}`,
@@ -1136,7 +1251,7 @@ async function getTracks(
 async function getArtists(
     artistsRequest: Api.ArtistsRequest | undefined = undefined,
     signal?: AbortSignal | null,
-): Promise<Api.Artist[]> {
+): Promise<Api.LibraryArtist[]> {
     const con = getConnection();
     const query = new QueryParams();
     if (artistsRequest?.sources)
@@ -1286,7 +1401,7 @@ async function globalSearch(
 async function getArtistFromTidalArtistId(
     tidalArtistId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Artist> {
+): Promise<Api.LibraryArtist> {
     const con = getConnection();
     const query = new QueryParams({
         tidalArtistId: `${tidalArtistId}`,
@@ -1301,7 +1416,7 @@ async function getArtistFromTidalArtistId(
 async function getArtistFromQobuzArtistId(
     qobuzArtistId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Artist> {
+): Promise<Api.LibraryArtist> {
     const con = getConnection();
     const query = new QueryParams({
         qobuzArtistId: `${qobuzArtistId}`,
@@ -1316,7 +1431,7 @@ async function getArtistFromQobuzArtistId(
 async function getArtistFromTidalAlbumId(
     tidalAlbumId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Artist> {
+): Promise<Api.LibraryArtist> {
     const con = getConnection();
     const query = new QueryParams({
         tidalAlbumId: `${tidalAlbumId}`,
@@ -1602,7 +1717,7 @@ async function getQobuzArtistAlbums(
 async function getAlbumFromTidalAlbumId(
     tidalAlbumId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Album> {
+): Promise<Api.LibraryAlbum> {
     const con = getConnection();
     const query = new QueryParams({
         tidalAlbumId: `${tidalAlbumId}`,
@@ -1617,7 +1732,7 @@ async function getAlbumFromTidalAlbumId(
 async function getAlbumFromQobuzAlbumId(
     qobuzAlbumId: string,
     signal?: AbortSignal | null,
-): Promise<Api.Album> {
+): Promise<Api.LibraryAlbum> {
     const con = getConnection();
     const query = new QueryParams({
         qobuzAlbumId: `${qobuzAlbumId}`,
@@ -1632,7 +1747,7 @@ async function getAlbumFromQobuzAlbumId(
 async function getLibraryAlbumsFromTidalArtistId(
     tidalArtistId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Album[]> {
+): Promise<Api.LibraryAlbum[]> {
     const con = getConnection();
     const query = new QueryParams({
         tidalArtistId: `${tidalArtistId}`,
@@ -1647,7 +1762,7 @@ async function getLibraryAlbumsFromTidalArtistId(
 async function getLibraryAlbumsFromQobuzArtistId(
     qobuzArtistId: number,
     signal?: AbortSignal | null,
-): Promise<Api.Album[]> {
+): Promise<Api.LibraryAlbum[]> {
     const con = getConnection();
     const query = new QueryParams({
         qobuzArtistId: `${qobuzArtistId}`,
@@ -1714,6 +1829,21 @@ async function getQobuzAlbumTracks(
     });
 
     return await requestJson(`${con.apiUrl}/qobuz/albums/tracks?${query}`, {
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function getYtAlbumTracks(
+    ytAlbumId: string,
+    signal?: AbortSignal | null,
+): Promise<Api.PagingResponse<Api.YtTrack>> {
+    const con = getConnection();
+    const query = new QueryParams({
+        albumId: `${ytAlbumId}`,
+    });
+
+    return await requestJson(`${con.apiUrl}/yt/albums/tracks?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1808,7 +1938,7 @@ async function removeAlbumFromLibrary(
         qobuzAlbumId?: string;
     },
     signal?: AbortSignal | null,
-): Promise<Api.Album> {
+): Promise<Api.LibraryAlbum> {
     const con = getConnection();
     const query = new QueryParams({
         albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
@@ -1832,7 +1962,7 @@ async function refavoriteAlbum(
         qobuzAlbumId?: string;
     },
     signal?: AbortSignal | null,
-): Promise<Api.Album> {
+): Promise<Api.LibraryAlbum> {
     const con = getConnection();
     const query = new QueryParams({
         albumId: albumId.tidalAlbumId?.toString() ?? albumId.qobuzAlbumId,
@@ -2065,6 +2195,7 @@ export const api: ApiType = {
     getQobuzAlbum,
     getTidalAlbumTracks,
     getQobuzAlbumTracks,
+    getYtAlbumTracks,
     getTidalTrack,
     getTidalTrackFileUrl,
     getQobuzTrackFileUrl,

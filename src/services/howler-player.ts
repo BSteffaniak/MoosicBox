@@ -18,7 +18,7 @@ import * as player from './player';
 import { QueryParams, orderedEntries } from './util';
 
 export type TrackListenerCallback = (
-    track: Api.Track,
+    track: Api.LibraryTrack,
     position: number,
 ) => void;
 
@@ -63,6 +63,9 @@ export function createPlayer(id: number): PlayerType {
             }
             case 'QOBUZ': {
                 return await api.getQobuzTrackFileUrl(track.id, 'LOW');
+            }
+            case 'YT': {
+                throw new Error('Not implemented yet');
             }
             default:
                 trackType satisfies never;
@@ -130,6 +133,7 @@ export function createPlayer(id: number): PlayerType {
                 }
                 case 'TIDAL':
                 case 'QOBUZ':
+                case 'YT':
                     format = 'source';
                     break;
                 default:

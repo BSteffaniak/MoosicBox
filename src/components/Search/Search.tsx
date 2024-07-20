@@ -80,8 +80,9 @@ export default function searchInput() {
         switch (result.type) {
             case 'ARTIST': {
                 const artist = result as Api.GlobalArtistSearchResult;
-                const libraryArtist: Api.Artist = {
+                const libraryArtist: Api.LibraryArtist = {
                     ...artist,
+                    artistId: artist.artistId as number,
                     type: 'LIBRARY',
                 };
                 return (
@@ -116,7 +117,12 @@ export default function searchInput() {
             }
             case 'ALBUM': {
                 const album = result as Api.GlobalAlbumSearchResult;
-                const libraryAlbum: Api.Album = { ...album, type: 'LIBRARY' };
+                const libraryAlbum: Api.LibraryAlbum = {
+                    ...album,
+                    albumId: album.albumId as number,
+                    artistId: album.artistId as number,
+                    type: 'LIBRARY',
+                };
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
@@ -163,8 +169,10 @@ export default function searchInput() {
                 );
             }
             case 'TRACK': {
-                const libraryAlbum: Api.Album = {
+                const libraryAlbum: Api.LibraryAlbum = {
                     ...result,
+                    albumId: result.albumId as number,
+                    artistId: result.artistId as number,
                     versions: [result],
                     type: 'LIBRARY',
                 };

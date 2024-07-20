@@ -21,7 +21,7 @@ export default function albums() {
     let backToTopRef: HTMLDivElement;
 
     const [loading, setLoading] = createSignal(false);
-    const [albums, setAlbums] = createSignal<Api.Album[]>();
+    const [albums, setAlbums] = createSignal<Api.LibraryAlbum[]>();
     const [searchFilterValue, setSearchFilterValue] = createSignal<string>();
     const [currentAlbumSort, setCurrentAlbumSort] =
         createSignal<Api.AlbumSort>('Artist');
