@@ -9,7 +9,12 @@ import {
 } from 'solid-js';
 import type { JSXElement } from 'solid-js';
 import { api, Api } from '~/services/api';
-import type { ApiSource } from '~/services/api';
+import type {
+    ApiSource,
+    Track as ApiTrack,
+    Album as ApiAlbum,
+    Artist as ApiArtist,
+} from '~/services/api';
 import { downloadsState } from '~/services/downloads';
 import {
     displayApiSource,
@@ -60,8 +65,8 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
                             album={
                                 {
                                     ...task.item,
-                                    type: 'LIBRARY',
-                                } as unknown as Api.Track
+                                    type: item.source,
+                                } as unknown as ApiTrack
                             }
                             size={80}
                         />
@@ -97,8 +102,8 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
                             album={
                                 {
                                     ...task.item,
-                                    type: 'LIBRARY',
-                                } as unknown as Api.Track
+                                    type: item.source,
+                                } as unknown as ApiAlbum
                             }
                             size={80}
                         />
@@ -128,8 +133,8 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
                             artist={
                                 {
                                     ...task.item,
-                                    type: 'LIBRARY',
-                                } as unknown as Api.Artist
+                                    type: item.source,
+                                } as unknown as ApiArtist
                             }
                             size={80}
                         />

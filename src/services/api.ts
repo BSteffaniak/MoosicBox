@@ -525,6 +525,7 @@ export namespace Api {
         artist: string;
         albumId: number;
         title: string;
+        source: DownloadApiSource;
         containsCover: boolean;
     };
     export type ArtistCoverDownloadItem = {
@@ -532,6 +533,7 @@ export namespace Api {
         artistId: number;
         albumId: number;
         title: string;
+        source: DownloadApiSource;
         containsCover: boolean;
     };
     export type DownloadItem =
@@ -814,10 +816,10 @@ export interface ApiType {
     retryDownload(taskId: number, signal?: AbortSignal | null): Promise<void>;
     download(
         items: {
-            trackId?: number;
-            trackIds?: number[];
-            albumId?: number;
-            albumIds?: number[];
+            trackId?: string | number;
+            trackIds?: (string | number)[];
+            albumId?: string | number;
+            albumIds?: (string | number)[];
         },
         source: Api.DownloadApiSource,
         signal?: AbortSignal | null,
@@ -1998,10 +2000,10 @@ async function retryDownload(
 
 async function download(
     items: {
-        trackId?: number;
-        trackIds?: number[];
-        albumId?: number;
-        albumIds?: number[];
+        trackId?: string | number;
+        trackIds?: (string | number)[];
+        albumId?: string | number;
+        albumIds?: (string | number)[];
     },
     source: Api.DownloadApiSource,
     signal?: AbortSignal | null,

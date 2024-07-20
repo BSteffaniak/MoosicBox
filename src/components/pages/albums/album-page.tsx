@@ -246,8 +246,24 @@ export default function albumPage(props: {
     }
 
     async function downloadAlbum(source: Api.DownloadApiSource) {
-        console.debug('Downloading album from source: ', source);
-        await api.download({ albumId: libraryAlbum()!.albumId }, source);
+        console.debug('Downloading album from source:', source);
+        switch (source) {
+            case 'QOBUZ':
+                await api.download(
+                    { albumId: libraryAlbum()!.qobuzId! },
+                    source,
+                );
+                break;
+            case 'TIDAL':
+                await api.download(
+                    { albumId: libraryAlbum()!.tidalId! },
+                    source,
+                );
+                break;
+            case 'YT':
+                await api.download({ albumId: libraryAlbum()!.ytId! }, source);
+                break;
+        }
     }
 
     let shouldNavigate = true;
