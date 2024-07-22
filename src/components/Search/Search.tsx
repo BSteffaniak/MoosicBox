@@ -2,21 +2,39 @@ import './search.css';
 import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
 import type { JSXElement } from 'solid-js';
 import { debounce } from '@solid-primitives/scheduled';
-import { Api, api } from '~/services/api';
+import {
+    Api,
+    api,
+    type ApiSource,
+    type Album as ApiAlbum,
+    type Artist as ApiArtist,
+    once,
+} from '~/services/api';
 import Artist from '../Artist';
 import Album from '../Album';
 import { isServer } from 'solid-js/web';
 import { artistRoute } from '../Artist/Artist';
 import { albumRoute } from '../Album/Album';
+import { displayApiSource } from '~/services/formatting';
+import Tabs from '../Tabs';
 
 export default function searchInput() {
     let searchContainerRef: HTMLDivElement;
     let searchInputRef: HTMLInputElement;
     let searchResultsRef: HTMLDivElement;
 
-    const [loading, setLoading] = createSignal(false);
+    const [libraryLoading, setLibraryLoading] = createSignal(false);
+    const [qobuzLoading, setQobuzLoading] = createSignal(false);
+    const [tidalLoading, setTidalLoading] = createSignal(false);
+    const [ytLoading, setYtLoading] = createSignal(false);
     const [searchFilterValue, setSearchFilterValue] = createSignal('');
     const [searchResults, setSearchResults] =
+        createSignal<Api.GlobalSearchResult[]>();
+    const [qobuzSearchResults, setQobuzSearchResults] =
+        createSignal<Api.GlobalSearchResult[]>();
+    const [tidalSearchResults, setTidalSearchResults] =
+        createSignal<Api.GlobalSearchResult[]>();
+    const [ytSearchResults, setYtSearchResults] =
         createSignal<Api.GlobalSearchResult[]>();
 
     function closeSearch() {
@@ -41,6 +59,88 @@ export default function searchInput() {
         if (isServer) return;
     });
 
+    function searchResultToApiArtist(
+        source: ApiSource,
+        result: Api.GlobalArtistSearchResult | Api.GlobalTrackSearchResult,
+    ): ApiArtist {
+        switch (source) {
+            case 'LIBRARY':
+                return {
+                    ...result,
+                    type: 'LIBRARY',
+                    artistId: result.artistId as number,
+                };
+            case 'TIDAL':
+                return {
+                    ...result,
+                    type: 'TIDAL',
+                    id: result.artistId as number,
+                };
+            case 'QOBUZ':
+                return {
+                    ...result,
+                    type: 'QOBUZ',
+                    id: result.artistId as number,
+                };
+            case 'YT':
+                return {
+                    ...result,
+                    type: 'YT',
+                    id: result.artistId as string,
+                };
+            default:
+                source satisfies never;
+                throw new Error(`Invalid ApiSource: "${source}"`);
+        }
+    }
+
+    function searchResultToApiAlbum(
+        source: ApiSource,
+        result: Api.GlobalAlbumSearchResult | Api.GlobalTrackSearchResult,
+    ): ApiAlbum {
+        switch (source) {
+            case 'LIBRARY':
+                return {
+                    ...result,
+                    type: 'LIBRARY',
+                    artistId: result.artistId as number,
+                    albumId: result.albumId as number,
+                    versions: [],
+                };
+            case 'TIDAL':
+                return {
+                    ...result,
+                    type: 'TIDAL',
+                    artistId: result.artistId as number,
+                    id: result.albumId as number,
+                    explicit: false,
+                    numberOfTracks: 0,
+                    audioQuality: 'LOSSLESS',
+                    mediaMetadataTags: [],
+                };
+            case 'QOBUZ':
+                return {
+                    ...result,
+                    type: 'QOBUZ',
+                    artistId: result.artistId as number,
+                    id: result.albumId as string,
+                    parentalWarning: false,
+                    numberOfTracks: 0,
+                };
+            case 'YT':
+                return {
+                    ...result,
+                    type: 'YT',
+                    artistId: result.artistId as string,
+                    id: result.albumId as string,
+                    numberOfTracks: 0,
+                };
+            default:
+                source satisfies never;
+                throw new Error(`Invalid ApiSource: "${source}"`);
+        }
+    }
+
     async function search(searchString: string) {
         setSearchFilterValue(searchString);
 
@@ -49,48 +149,81 @@ export default function searchInput() {
         searchResultsRef.scroll({ top: 0, behavior: 'instant' });
 
         try {
-            setLoading(true);
-            const response = await api.globalSearch(searchString, 0, 20);
-            setSearchResults(response.results);
+            setLibraryLoading(true);
+            setQobuzLoading(true);
+            setTidalLoading(true);
+            setYtLoading(true);
+            once('search', async (signal) => {
+                await api.searchAll(
+                    searchString,
+                    0,
+                    20,
+                    (results, _allResults, source) => {
+                        switch (source) {
+                            case 'LIBRARY':
+                                setSearchResults(results);
+                                setLibraryLoading(false);
+                                break;
+                            case 'QOBUZ':
+                                setQobuzSearchResults(results);
+                                setQobuzLoading(false);
+                                break;
+                            case 'TIDAL':
+                                setTidalSearchResults(results);
+                                setTidalLoading(false);
+                                break;
+                            case 'YT':
+                                setYtSearchResults(results);
+                                setYtLoading(false);
+                                break;
+                            default:
+                                console.log(
+                                    `received ${source} results:`,
+                                    results,
+                                );
+                        }
+                    },
+                    signal,
+                );
+            });
         } catch (e) {
             console.error('Failed to run global search', e);
-            setSearchResults(undefined);
-        } finally {
-            setLoading(false);
         }
     }
 
-    function searchResultLink(result: Api.GlobalSearchResult): string {
+    function searchResultLink(
+        source: ApiSource,
+        result: Api.GlobalSearchResult,
+    ): string {
         const resultType = result.type;
 
         switch (resultType) {
             case 'ARTIST':
-                return artistRoute({ id: result.artistId, type: 'LIBRARY' });
+                return artistRoute({ id: result.artistId, type: source });
             case 'ALBUM':
-                return albumRoute({ id: result.albumId, type: 'LIBRARY' });
+                return albumRoute({ id: result.albumId, type: source });
             case 'TRACK':
-                return albumRoute({ id: result.albumId, type: 'LIBRARY' });
+                return albumRoute({ id: result.albumId, type: source });
             default:
                 resultType satisfies never;
                 throw new Error(`Invalid result type: ${resultType}`);
         }
     }
 
-    function searchResult(result: Api.GlobalSearchResult): JSXElement {
+    function searchResult(
+        source: ApiSource,
+        result: Api.GlobalSearchResult,
+    ): JSXElement {
         switch (result.type) {
             case 'ARTIST': {
                 const artist = result as Api.GlobalArtistSearchResult;
-                const libraryArtist: Api.LibraryArtist = {
-                    ...artist,
-                    artistId: artist.artistId as number,
-                    type: 'LIBRARY',
-                };
+                const apiArtist = searchResultToApiArtist(source, artist);
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
                             <Artist
                                 size={50}
-                                artist={libraryArtist}
+                                artist={apiArtist}
                                 route={false}
                             />
                         </div>
@@ -104,7 +237,7 @@ export default function searchInput() {
                             <a
                                 href={artistRoute({
                                     id: artist.artistId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
@@ -117,12 +250,7 @@ export default function searchInput() {
             }
             case 'ALBUM': {
                 const album = result as Api.GlobalAlbumSearchResult;
-                const libraryAlbum: Api.LibraryAlbum = {
-                    ...album,
-                    albumId: album.albumId as number,
-                    artistId: album.artistId as number,
-                    type: 'LIBRARY',
-                };
+                const apiAlbum = searchResultToApiAlbum(source, album);
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
@@ -131,7 +259,7 @@ export default function searchInput() {
                                 artist={false}
                                 year={false}
                                 route={false}
-                                album={libraryAlbum}
+                                album={apiAlbum}
                             />
                         </div>
                         <div class="search-results-result-details">
@@ -144,7 +272,7 @@ export default function searchInput() {
                             <a
                                 href={albumRoute({
                                     id: album.albumId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-album"
                                 tabindex="-1"
@@ -157,7 +285,7 @@ export default function searchInput() {
                             <a
                                 href={artistRoute({
                                     id: album.artistId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
@@ -169,14 +297,8 @@ export default function searchInput() {
                 );
             }
             case 'TRACK': {
-                const libraryAlbum: Api.LibraryAlbum = {
-                    ...result,
-                    albumId: result.albumId as number,
-                    artistId: result.artistId as number,
-                    versions: [result],
-                    type: 'LIBRARY',
-                };
                 const track = result as Api.GlobalTrackSearchResult;
+                const apiAlbum = searchResultToApiAlbum(source, track);
                 return (
                     <div class="search-results-result">
                         <div class="search-results-result-icon">
@@ -185,7 +307,7 @@ export default function searchInput() {
                                 artist={false}
                                 year={false}
                                 route={false}
-                                album={libraryAlbum}
+                                album={apiAlbum}
                             />
                         </div>
                         <div class="search-results-result-details">
@@ -198,7 +320,7 @@ export default function searchInput() {
                             <a
                                 href={albumRoute({
                                     id: track.albumId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-track"
                                 tabindex="-1"
@@ -211,7 +333,7 @@ export default function searchInput() {
                             <a
                                 href={albumRoute({
                                     id: track.albumId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-album"
                                 tabindex="-1"
@@ -224,7 +346,7 @@ export default function searchInput() {
                             <a
                                 href={artistRoute({
                                     id: track.artistId,
-                                    type: 'LIBRARY',
+                                    type: source,
                                 })}
                                 class="search-results-result-details-artist"
                                 tabindex="-1"
@@ -236,6 +358,34 @@ export default function searchInput() {
                 );
             }
         }
+    }
+
+    function searchResultsList(
+        source: ApiSource,
+        loading: boolean,
+        results?: Api.GlobalSearchResult[],
+    ): JSXElement {
+        return (
+            <div
+                class={`search-results-list${loading ? ' loading' : ' loaded'}`}
+            >
+                <Show when={results?.length === 0}>No results</Show>
+                <Show when={(results?.length ?? 0) !== 0}>
+                    <For each={results}>
+                        {(result) => (
+                            <a
+                                href={searchResultLink(source, result)}
+                                class="search-results-result-link"
+                                onClick={() => closeSearch()}
+                            >
+                                {searchResult(source, result)}
+                            </a>
+                        )}
+                    </For>
+                </Show>
+                <Show when={loading}>Loading...</Show>
+            </div>
+        );
     }
 
     return (
@@ -271,26 +421,52 @@ export default function searchInput() {
                 />
             </div>
             <div
-                class={`search-results${loading() ? ' loading' : ' loaded'}`}
+                class="search-results"
                 style={{
                     display: searchFilterValue()?.trim() ? undefined : 'none',
                 }}
                 ref={searchResultsRef!}
             >
-                <Show when={searchResults()?.length === 0}>No results</Show>
-                <Show when={(searchResults()?.length ?? 0) !== 0}>
-                    <For each={searchResults()}>
-                        {(result) => (
-                            <a
-                                href={searchResultLink(result)}
-                                class="search-results-result-link"
-                                onClick={() => closeSearch()}
-                            >
-                                {searchResult(result)}
-                            </a>
-                        )}
-                    </For>
-                </Show>
+                <Tabs
+                    default={'LIBRARY'}
+                    tabs={{
+                        LIBRARY: displayApiSource('LIBRARY'),
+                        QOBUZ: displayApiSource('QOBUZ'),
+                        TIDAL: displayApiSource('TIDAL'),
+                        YT: displayApiSource('YT'),
+                    }}
+                >
+                    {(tab) => {
+                        switch (tab) {
+                            case 'LIBRARY':
+                                return searchResultsList(
+                                    'LIBRARY',
+                                    libraryLoading(),
+                                    searchResults(),
+                                );
+                            case 'QOBUZ':
+                                return searchResultsList(
+                                    'QOBUZ',
+                                    qobuzLoading(),
+                                    qobuzSearchResults(),
+                                );
+                            case 'TIDAL':
+                                return searchResultsList(
+                                    'TIDAL',
+                                    tidalLoading(),
+                                    tidalSearchResults(),
+                                );
+                            case 'YT':
+                                return searchResultsList(
+                                    'YT',
+                                    ytLoading(),
+                                    ytSearchResults(),
+                                );
+                            default:
+                                throw new Error(`Invalid tab: ${tab}`);
+                        }
+                    }}
+                </Tabs>
             </div>
         </div>
     );

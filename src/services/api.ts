@@ -692,6 +692,24 @@ export interface ApiType {
         limit?: number,
         signal?: AbortSignal | null,
     ): Promise<{ position: number; results: Api.GlobalSearchResult[] }>;
+    searchExternalMusicApi(
+        query: string,
+        api: string,
+        offset?: number,
+        limit?: number,
+        signal?: AbortSignal | null,
+    ): Promise<{ position: number; results: Api.GlobalSearchResult[] }>;
+    searchAll(
+        query: string,
+        offset?: number,
+        limit?: number,
+        onResults?: (
+            results: Api.GlobalSearchResult[],
+            allResults: Api.GlobalSearchResult[],
+            source: ApiSource,
+        ) => void,
+        signal?: AbortSignal | null,
+    ): Promise<Api.GlobalSearchResult[]>;
     getArtistFromTidalArtistId(
         tidalArtistId: number,
         signal?: AbortSignal | null,
@@ -1398,6 +1416,85 @@ async function globalSearch(
             signal: signal ?? null,
         },
     );
+}
+
+async function searchExternalMusicApi(
+    query: string,
+    api: string,
+    offset?: number,
+    limit?: number,
+    signal?: AbortSignal | null,
+): Promise<{ position: number; results: Api.GlobalSearchResult[] }> {
+    const con = getConnection();
+    const queryParams = new QueryParams({
+        query,
+        offset: offset?.toString() ?? undefined,
+        limit: limit?.toString() ?? undefined,
+    });
+    return await requestJson(
+        `${con.apiUrl}/${api}/search?${queryParams.toString()}`,
+        {
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
+}
+
+async function searchAll(
+    query: string,
+    offset?: number,
+    limit?: number,
+    onResults?: (
+        results: Api.GlobalSearchResult[],
+        allResults: Api.GlobalSearchResult[],
+        source: ApiSource,
+    ) => void,
+    signal?: AbortSignal | null,
+): Promise<Api.GlobalSearchResult[]> {
+    const allResults: Api.GlobalSearchResult[] = [];
+    await Promise.all([
+        (async () => {
+            const results = (await globalSearch(query, offset, limit, signal))
+                .results;
+            allResults.push(...allResults);
+            onResults?.(results, allResults, 'LIBRARY');
+        })(),
+        (async () => {
+            const results = (
+                await searchExternalMusicApi(
+                    query,
+                    'tidal',
+                    offset,
+                    limit,
+                    signal,
+                )
+            ).results;
+            allResults.push(...allResults);
+            onResults?.(results, allResults, 'TIDAL');
+        })(),
+        (async () => {
+            const results = (
+                await searchExternalMusicApi(
+                    query,
+                    'qobuz',
+                    offset,
+                    limit,
+                    signal,
+                )
+            ).results;
+            allResults.push(...allResults);
+            onResults?.(results, allResults, 'QOBUZ');
+        })(),
+        (async () => {
+            const results = (
+                await searchExternalMusicApi(query, 'yt', offset, limit, signal)
+            ).results;
+            allResults.push(...allResults);
+            onResults?.(results, allResults, 'YT');
+        })(),
+    ]);
+
+    return allResults;
 }
 
 async function getArtistFromTidalArtistId(
@@ -2180,6 +2277,8 @@ export const api: ApiType = {
     validateSignatureToken,
     magicToken,
     globalSearch,
+    searchExternalMusicApi,
+    searchAll,
     getArtistFromTidalArtistId,
     getArtistFromQobuzArtistId,
     getArtistFromTidalAlbumId,
