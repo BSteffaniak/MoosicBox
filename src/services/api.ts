@@ -30,6 +30,7 @@ export type Track =
 export type TrackType = Track['type'];
 
 export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ' | 'YT';
+export type Id = string | number;
 
 type GenericTrack = Track;
 
