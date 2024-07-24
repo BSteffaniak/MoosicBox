@@ -867,7 +867,7 @@ async function getArtist(
         artistId: `${artistId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/artist?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -890,7 +890,7 @@ function getAlbumArtwork(
         case 'LIBRARY':
             if (album.containsCover) {
                 return Api.getPath(
-                    `albums/${album.albumId}/${width}x${height}?${query}`,
+                    `files/albums/${album.albumId}/${width}x${height}?${query}`,
                 );
             }
             break;
@@ -899,11 +899,11 @@ function getAlbumArtwork(
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/${width}x${height}?${query}`,
+                        `files/albums/${album.albumId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in album) {
                     return Api.getPath(
-                        `albums/${album.id}/${width}x${height}?${query}`,
+                        `files/albums/${album.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -913,11 +913,11 @@ function getAlbumArtwork(
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/${width}x${height}?${query}`,
+                        `files/albums/${album.albumId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in album) {
                     return Api.getPath(
-                        `albums/${album.id}/${width}x${height}?${query}`,
+                        `files/albums/${album.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -927,11 +927,11 @@ function getAlbumArtwork(
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/${width}x${height}?${query}`,
+                        `files/albums/${album.albumId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in album) {
                     return Api.getPath(
-                        `albums/${album.id}/${width}x${height}?${query}`,
+                        `files/albums/${album.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -956,7 +956,9 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
     switch (albumType) {
         case 'LIBRARY':
             if (album.containsCover) {
-                return Api.getPath(`albums/${album.albumId}/source?${query}`);
+                return Api.getPath(
+                    `files/albums/${album.albumId}/source?${query}`,
+                );
             }
             break;
 
@@ -964,10 +966,12 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/source?${query}`,
+                        `files/albums/${album.albumId}/source?${query}`,
                     );
                 } else if ('id' in album) {
-                    return Api.getPath(`albums/${album.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/albums/${album.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -976,10 +980,12 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/source?${query}`,
+                        `files/albums/${album.albumId}/source?${query}`,
                     );
                 } else if ('id' in album) {
-                    return Api.getPath(`albums/${album.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/albums/${album.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -988,10 +994,12 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
             if (album.containsCover) {
                 if ('albumId' in album) {
                     return Api.getPath(
-                        `albums/${album.albumId}/source?${query}`,
+                        `files/albums/${album.albumId}/source?${query}`,
                     );
                 } else if ('id' in album) {
-                    return Api.getPath(`albums/${album.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/albums/${album.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -1013,7 +1021,7 @@ async function getAlbum(
         albumId: `${id}`,
     });
 
-    return await requestJson(`${con.apiUrl}/album?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1037,7 +1045,7 @@ async function getAlbums(
     if (albumsRequest?.filters?.search)
         query.set('search', albumsRequest.filters.search);
 
-    return await requestJson(`${con.apiUrl}/albums?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1110,7 +1118,7 @@ function getArtistCover(
         case 'LIBRARY':
             if (artist.containsCover) {
                 return Api.getPath(
-                    `artists/${artist.artistId}/${width}x${height}?${query}`,
+                    `files/artists/${artist.artistId}/${width}x${height}?${query}`,
                 );
             }
             break;
@@ -1119,11 +1127,11 @@ function getArtistCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/${width}x${height}?${query}`,
+                        `files/artists/${artist.artistId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in artist) {
                     return Api.getPath(
-                        `artists/${artist.id}/${width}x${height}?${query}`,
+                        `files/artists/${artist.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -1133,11 +1141,11 @@ function getArtistCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/${width}x${height}?${query}`,
+                        `files/artists/${artist.artistId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in artist) {
                     return Api.getPath(
-                        `artists/${artist.id}/${width}x${height}?${query}`,
+                        `files/artists/${artist.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -1147,11 +1155,11 @@ function getArtistCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/${width}x${height}?${query}`,
+                        `files/artists/${artist.artistId}/${width}x${height}?${query}`,
                     );
                 } else if ('id' in artist) {
                     return Api.getPath(
-                        `artists/${artist.id}/${width}x${height}?${query}`,
+                        `files/artists/${artist.id}/${width}x${height}?${query}`,
                     );
                 }
             }
@@ -1178,7 +1186,7 @@ function getArtistSourceCover(
         case 'LIBRARY':
             if (artist.containsCover) {
                 return Api.getPath(
-                    `artists/${artist.artistId}/source?${query}`,
+                    `files/artists/${artist.artistId}/source?${query}`,
                 );
             }
             break;
@@ -1187,10 +1195,12 @@ function getArtistSourceCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/source?${query}`,
+                        `files/artists/${artist.artistId}/source?${query}`,
                     );
                 } else if ('id' in artist) {
-                    return Api.getPath(`artists/${artist.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/artists/${artist.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -1199,10 +1209,12 @@ function getArtistSourceCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/source?${query}`,
+                        `files/artists/${artist.artistId}/source?${query}`,
                     );
                 } else if ('id' in artist) {
-                    return Api.getPath(`artists/${artist.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/artists/${artist.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -1211,10 +1223,12 @@ function getArtistSourceCover(
             if (artist.containsCover) {
                 if ('artistId' in artist) {
                     return Api.getPath(
-                        `artists/${artist.artistId}/source?${query}`,
+                        `files/artists/${artist.artistId}/source?${query}`,
                     );
                 } else if ('id' in artist) {
-                    return Api.getPath(`artists/${artist.id}/source?${query}`);
+                    return Api.getPath(
+                        `files/artists/${artist.id}/source?${query}`,
+                    );
                 }
             }
             break;
@@ -1231,11 +1245,14 @@ async function getAlbumTracks(
     signal?: AbortSignal | null,
 ): Promise<Api.LibraryTrack[]> {
     const con = getConnection();
-    return await requestJson(`${con.apiUrl}/album/tracks?albumId=${albumId}`, {
-        method: 'GET',
-        credentials: 'include',
-        signal: signal ?? null,
-    });
+    return await requestJson(
+        `${con.apiUrl}/menu/album/tracks?albumId=${albumId}`,
+        {
+            method: 'GET',
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
 }
 
 async function getAlbumVersions(
@@ -1244,7 +1261,7 @@ async function getAlbumVersions(
 ): Promise<Api.AlbumVersion[]> {
     const con = getConnection();
     return await requestJson(
-        `${con.apiUrl}/album/versions?albumId=${albumId}`,
+        `${con.apiUrl}/menu/album/versions?albumId=${albumId}`,
         {
             method: 'GET',
             credentials: 'include',
@@ -1259,7 +1276,7 @@ async function getTracks(
 ): Promise<Api.LibraryTrack[]> {
     const con = getConnection();
     return await requestJson(
-        `${con.apiUrl}/tracks?trackIds=${trackIds.join(',')}`,
+        `${con.apiUrl}/menu/tracks?trackIds=${trackIds.join(',')}`,
         {
             method: 'GET',
             credentials: 'include',
@@ -1280,7 +1297,7 @@ async function getArtists(
     if (artistsRequest?.filters?.search)
         query.set('search', artistsRequest.filters.search);
 
-    return await requestJson(`${con.apiUrl}/artists?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/artists?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1506,7 +1523,7 @@ async function getArtistFromTidalArtistId(
         tidalArtistId: `${tidalArtistId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/artist?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1521,7 +1538,7 @@ async function getArtistFromQobuzArtistId(
         qobuzArtistId: `${qobuzArtistId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/artist?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1536,7 +1553,7 @@ async function getArtistFromTidalAlbumId(
         tidalAlbumId: `${tidalAlbumId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/artist?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1822,7 +1839,7 @@ async function getAlbumFromTidalAlbumId(
         tidalAlbumId: `${tidalAlbumId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/album?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1837,7 +1854,7 @@ async function getAlbumFromQobuzAlbumId(
         qobuzAlbumId: `${qobuzAlbumId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/album?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1852,7 +1869,7 @@ async function getLibraryAlbumsFromTidalArtistId(
         tidalArtistId: `${tidalArtistId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/albums?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -1867,7 +1884,7 @@ async function getLibraryAlbumsFromQobuzArtistId(
         qobuzArtistId: `${qobuzArtistId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/albums?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -2024,7 +2041,7 @@ async function addAlbumToLibrary(
               : undefined,
     });
 
-    return await requestJson(`${con.apiUrl}/album?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         method: 'POST',
         credentials: 'include',
         signal: signal ?? null,
@@ -2048,7 +2065,7 @@ async function removeAlbumFromLibrary(
               : undefined,
     });
 
-    return await requestJson(`${con.apiUrl}/album?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         method: 'DELETE',
         credentials: 'include',
         signal: signal ?? null,
@@ -2072,7 +2089,7 @@ async function refavoriteAlbum(
               : undefined,
     });
 
-    return await requestJson(`${con.apiUrl}/album/re-favorite?${query}`, {
+    return await requestJson(`${con.apiUrl}/menu/album/re-favorite?${query}`, {
         method: 'POST',
         credentials: 'include',
         signal: signal ?? null,
@@ -2088,11 +2105,14 @@ async function retryDownload(
         taskId: `${taskId}`,
     });
 
-    return await requestJson(`${con.apiUrl}/retry-download?${query}`, {
-        method: 'POST',
-        credentials: 'include',
-        signal: signal ?? null,
-    });
+    return await requestJson(
+        `${con.apiUrl}/downloader/retry-download?${query}`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
 }
 
 async function download(
@@ -2114,7 +2134,7 @@ async function download(
         source: `${source}`,
     });
 
-    return await requestJson(`${con.apiUrl}/download?${query}`, {
+    return await requestJson(`${con.apiUrl}/downloader/download?${query}`, {
         method: 'POST',
         credentials: 'include',
         signal: signal ?? null,
@@ -2125,7 +2145,7 @@ async function getDownloadTasks(
     signal?: AbortSignal | null,
 ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>> {
     const con = getConnection();
-    return await requestJson(`${con.apiUrl}/download-tasks`, {
+    return await requestJson(`${con.apiUrl}/downloader/download-tasks`, {
         credentials: 'include',
         signal: signal ?? null,
     });
@@ -2144,10 +2164,13 @@ async function getTrackVisualization(
         source: `${source}`,
     });
 
-    return await requestJson(`${con.apiUrl}/track/visualization?${query}`, {
-        credentials: 'include',
-        signal: signal ?? null,
-    });
+    return await requestJson(
+        `${con.apiUrl}/files/track/visualization?${query}`,
+        {
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
 }
 
 class RequestError extends Error {

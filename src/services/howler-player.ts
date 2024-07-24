@@ -56,7 +56,7 @@ export function createPlayer(id: number): PlayerType {
                     query.set('format', playbackQuality().format);
                 }
 
-                return `${con.apiUrl}/track?${query}`;
+                return `${con.apiUrl}/files/track?${query}`;
             }
             case 'TIDAL': {
                 return await api.getTidalTrackFileUrl(track.id, 'HIGH');
