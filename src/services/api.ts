@@ -542,11 +542,14 @@ export namespace Api {
         | AlbumCoverDownloadItem
         | ArtistCoverDownloadItem;
 
+    export const TrackAudioQuality = {
+        Low: 'LOW', // MP3 320
+        FlacLossless: 'FLAC_LOSSLESS', // FLAC 16 bit 44.1kHz
+        FlacHiRes: 'FLAC_HI_RES', // FLAC 24 bit <= 96kHz
+        FlacHighestRes: 'FLAC_HIGHEST_RES', // FLAC 24 bit > 96kHz <= 192kHz
+    } as const;
     export type TrackAudioQuality =
-        | 'LOW'
-        | 'FLAC_LOSSLESS'
-        | 'FLAC_HI_RES'
-        | 'FLAC_HIGHEST_RES';
+        (typeof TrackAudioQuality)[keyof typeof TrackAudioQuality];
 
     export type DownloadApiSource = 'TIDAL' | 'QOBUZ' | 'YT';
 
