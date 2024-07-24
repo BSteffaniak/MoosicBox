@@ -58,18 +58,12 @@ export function createPlayer(id: number): PlayerType {
 
                 return `${con.apiUrl}/files/track?${query}`;
             }
-            case 'TIDAL': {
-                return await api.getTidalTrackFileUrl(track.id, 'HIGH');
-            }
-            case 'QOBUZ': {
-                return await api.getQobuzTrackFileUrl(track.id, 'LOW');
-            }
-            case 'YT': {
-                throw new Error('Not implemented yet');
-            }
             default:
-                trackType satisfies never;
-                throw new Error(`Invalid track type '${trackType}'`);
+                return await api.getTrackUrlForSource(
+                    track.id,
+                    trackType,
+                    Api.TrackAudioQuality.Low,
+                );
         }
     }
 

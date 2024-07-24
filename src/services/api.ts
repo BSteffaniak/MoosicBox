@@ -804,14 +804,10 @@ export interface ApiType {
         tidalTrackId: number,
         signal?: AbortSignal | null,
     ): Promise<Api.TidalTrack>;
-    getTidalTrackFileUrl(
-        tidalTrackId: number,
-        audioQuality: 'HIGH',
-        signal?: AbortSignal | null,
-    ): Promise<string>;
-    getQobuzTrackFileUrl(
-        qobuzTrackId: number,
-        audioQuality: 'LOW',
+    getTrackUrlForSource(
+        trackId: Id,
+        source: ApiSource,
+        audioQuality: Api.TrackAudioQuality,
         signal?: AbortSignal | null,
     ): Promise<string>;
     addAlbumToLibrary(
@@ -1984,19 +1980,21 @@ async function getTidalTrack(
     });
 }
 
-async function getTidalTrackFileUrl(
-    tidalTrackId: number,
-    audioQuality: 'HIGH',
+async function getTrackUrlForSource(
+    trackId: Id,
+    source: ApiSource,
+    audioQuality: Api.TrackAudioQuality,
     signal?: AbortSignal | null,
 ): Promise<string> {
     const con = getConnection();
     const query = new QueryParams({
         audioQuality,
-        trackId: `${tidalTrackId}`,
+        trackId: `${trackId}`,
+        source: `${source}`,
     });
 
-    const { urls } = await requestJson<{ urls: string[] }>(
-        `${con.apiUrl}/tidal/track/url?${query}`,
+    const urls = await requestJson<string[]>(
+        `${con.apiUrl}/files/tracks/url?${query}`,
         {
             credentials: 'include',
             signal: signal ?? null,
@@ -2004,28 +2002,6 @@ async function getTidalTrackFileUrl(
     );
 
     return urls[0]!;
-}
-
-async function getQobuzTrackFileUrl(
-    qobuzTrackId: number,
-    audioQuality: 'LOW',
-    signal?: AbortSignal | null,
-): Promise<string> {
-    const con = getConnection();
-    const query = new QueryParams({
-        audioQuality,
-        trackId: `${qobuzTrackId}`,
-    });
-
-    const { url } = await requestJson<{ url: string }>(
-        `${con.apiUrl}/qobuz/track/url?${query}`,
-        {
-            credentials: 'include',
-            signal: signal ?? null,
-        },
-    );
-
-    return url;
 }
 
 async function addAlbumToLibrary(
@@ -2325,8 +2301,7 @@ export const api: ApiType = {
     getQobuzAlbumTracks,
     getYtAlbumTracks,
     getTidalTrack,
-    getTidalTrackFileUrl,
-    getQobuzTrackFileUrl,
+    getTrackUrlForSource,
     addAlbumToLibrary,
     removeAlbumFromLibrary,
     refavoriteAlbum,
