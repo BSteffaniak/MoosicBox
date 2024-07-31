@@ -358,7 +358,11 @@ function send<T extends OutboundMessage>(value: T) {
 }
 
 const onMessageListener =
-    createListener<(message: InboundMessage) => boolean | void>();
+    createListener<
+        (
+            message: InboundMessage,
+        ) => boolean | void | Promise<boolean> | Promise<void>
+    >();
 export const onMessage = onMessageListener.on;
 export const onMessageFirst = onMessageListener.onFirst;
 export const offMessage = onMessageListener.off;
