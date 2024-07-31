@@ -107,64 +107,64 @@ export enum OutboundMessageType {
     SET_SEEK = 'SET_SEEK',
 }
 
-interface ConnectionIdMessage extends InboundMessage {
+export interface ConnectionIdMessage extends InboundMessage {
     connectionId: string;
     type: InboundMessageType.CONNECTION_ID;
 }
 
-interface SessionsMessage extends InboundMessage {
+export interface SessionsMessage extends InboundMessage {
     type: InboundMessageType.SESSIONS;
     payload: Api.PlaybackSession[];
 }
 
-interface ConnectionsMessage extends InboundMessage {
+export interface ConnectionsMessage extends InboundMessage {
     type: InboundMessageType.CONNECTIONS;
     payload: Api.Connection[];
 }
 
-interface SessionUpdatedMessage extends InboundMessage {
+export interface SessionUpdatedMessage extends InboundMessage {
     type: InboundMessageType.SESSION_UPDATED;
     payload: PartialUpdateSession;
 }
 
-interface SetSeek {
+export interface SetSeek {
     sessionId: number;
     seek: number;
 }
 
-interface SetSeekInboundMessage extends InboundMessage {
+export interface SetSeekInboundMessage extends InboundMessage {
     type: InboundMessageType.SET_SEEK;
     payload: SetSeek;
 }
 
-interface DownloadEventInboundMessage extends InboundMessage {
+export interface DownloadEventInboundMessage extends InboundMessage {
     type: InboundMessageType.DOWNLOAD_EVENT;
     payload: DownloadEvent;
 }
 
-interface GetConnectionIdMessage extends OutboundMessage {
+export interface GetConnectionIdMessage extends OutboundMessage {
     type: OutboundMessageType.GET_CONNECTION_ID;
 }
 
-interface SetSeekOutboundMessage extends OutboundMessage {
+export interface SetSeekOutboundMessage extends OutboundMessage {
     type: OutboundMessageType.SET_SEEK;
     payload: SetSeek;
 }
 
-interface PingMessage extends OutboundMessage {
+export interface PingMessage extends OutboundMessage {
     type: OutboundMessageType.PING;
 }
 
 export type RegisterConnection = Omit<Api.Connection, 'players' | 'alive'> & {
     players: RegisterPlayer[];
 };
-interface RegisterConnectionMessage extends OutboundMessage {
+export interface RegisterConnectionMessage extends OutboundMessage {
     type: OutboundMessageType.REGISTER_CONNECTION;
     payload: RegisterConnection;
 }
 
 export type RegisterPlayer = Omit<Api.Player, 'playerId'>;
-interface RegisterPlayersMessage extends OutboundMessage {
+export interface RegisterPlayersMessage extends OutboundMessage {
     type: OutboundMessageType.REGISTER_PLAYERS;
     payload: RegisterPlayer[];
 }
@@ -177,14 +177,14 @@ export enum PlaybackAction {
     PREVIOUS_TRACK = 'PREVIOUS_TRACK',
 }
 
-interface PlaybackActionMessage extends OutboundMessage {
+export interface PlaybackActionMessage extends OutboundMessage {
     type: OutboundMessageType.PLAYBACK_ACTION;
     payload: {
         action: PlaybackAction;
     };
 }
 
-interface GetSessionsMessage extends OutboundMessage {
+export interface GetSessionsMessage extends OutboundMessage {
     type: OutboundMessageType.GET_SESSIONS;
 }
 
@@ -193,7 +193,7 @@ export interface SetActivePlayers {
     players: number[];
 }
 
-interface SetActivePlayersMessage extends OutboundMessage {
+export interface SetActivePlayersMessage extends OutboundMessage {
     type: OutboundMessageType.SET_ACTIVE_PLAYERS;
     payload: SetActivePlayers;
 }
@@ -217,26 +217,26 @@ export interface CreateSessionPlaylist {
     tracks: Api.UpdateSessionPlaylistTrack[];
 }
 
-interface CreateSessionMessage extends OutboundMessage {
+export interface CreateSessionMessage extends OutboundMessage {
     type: OutboundMessageType.CREATE_SESSION;
     payload: CreateSession;
 }
 
-interface UpdateSessionMessage extends OutboundMessage {
+export interface UpdateSessionMessage extends OutboundMessage {
     type: OutboundMessageType.UPDATE_SESSION;
     payload: Api.UpdatePlaybackSession;
 }
 
-interface DeleteSessionMessage extends OutboundMessage {
+export interface DeleteSessionMessage extends OutboundMessage {
     type: OutboundMessageType.DELETE_SESSION;
     payload: { sessionId: number };
 }
 
-interface InboundMessage {
+export interface InboundMessage {
     type: InboundMessageType;
 }
 
-interface OutboundMessage {
+export interface OutboundMessage {
     type: OutboundMessageType;
 }
 
