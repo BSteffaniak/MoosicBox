@@ -142,8 +142,8 @@ export namespace Api {
 
     export interface Player {
         playerId: number;
+        audioOutputId: string;
         name: string;
-        type: PlayerType;
     }
 
     export interface Connection {
@@ -264,6 +264,17 @@ export namespace Api {
         id: string;
         type: TrackType;
         data?: string;
+    }
+
+    export interface AudioOutput {
+        id: string;
+        name: string;
+        spec: AudioOutputSpec;
+    }
+
+    export interface AudioOutputSpec {
+        rate: number;
+        channels: number;
     }
 
     export interface PlaybackSession {

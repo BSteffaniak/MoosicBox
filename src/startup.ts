@@ -9,7 +9,6 @@ import {
     onMessage,
     registerConnection,
 } from '~/services/ws';
-import { Api } from '~/services/api';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
 
 init({
@@ -26,13 +25,9 @@ function updatePlayer() {
     );
 
     connection?.players
-        .filter((player) => player.type === Api.PlayerType.HOWLER)
+        .filter((player) => player.audioOutputId === 'HOWLER')
         .forEach((player) => {
-            switch (player.type) {
-                case Api.PlayerType.HOWLER:
-                    registerPlayer(createHowlerPlayer(player.playerId));
-                    break;
-            }
+            registerPlayer(createHowlerPlayer(player.playerId));
         });
 }
 
@@ -48,7 +43,7 @@ function updateConnection(connectionId: string, name: string) {
         name,
         players: [
             {
-                type: Api.PlayerType.HOWLER,
+                audioOutputId: 'HOWLER',
                 name: 'Web Player',
             },
         ],

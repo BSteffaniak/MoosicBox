@@ -23,6 +23,7 @@ interface PlayerState {
     playing: boolean;
     currentPlaybackSession?: Api.PlaybackSession | undefined;
     playbackSessions: Api.PlaybackSession[];
+    audioOutputs: Api.AudioOutput[];
     currentTrack?: Track | undefined;
 }
 
@@ -30,6 +31,7 @@ export const [playerState, setPlayerState] = createStore<PlayerState>({
     playing: false,
     currentPlaybackSession: undefined,
     playbackSessions: [],
+    audioOutputs: [],
     currentTrack: undefined,
 });
 
@@ -731,6 +733,7 @@ function updatePlaybackSession(
         > & { tracks: Track[] };
     },
 ) {
+    console.debug('updatePlaybackSession:', id, request);
     setPlayerState(
         produce((state) => {
             const current = state.currentPlaybackSession;
@@ -761,6 +764,11 @@ function updatePlaybackSession(
                             toSessionPlaylistTrack,
                         ),
                     };
+
+                    console.debug(
+                        'updatePlaybackSession: playlist:',
+                        updatePlaybackSession.playlist,
+                    );
                 } else {
                     delete updatePlaybackSession.playlist;
                 }
