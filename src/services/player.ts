@@ -646,6 +646,10 @@ async function updatePlayback(
     update: Omit<PlaybackUpdate, 'sessionId'>,
     updateSession = true,
 ) {
+    if (!update.quality) {
+        update.quality = playbackQuality();
+    }
+
     if (updateSession) {
         const sessionUpdate: Parameters<
             typeof updateCurrentPlaybackSession
