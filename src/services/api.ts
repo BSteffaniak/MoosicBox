@@ -287,6 +287,7 @@ export namespace Api {
         volume?: number;
         activePlayers: Player[];
         playlist: PlaybackSessionPlaylist;
+        quality?: PlaybackQuality;
     }
 
     export interface PlaybackSessionPlaylist {

@@ -66,6 +66,7 @@ export const setPlaybackQuality = (
     if (trigger && value !== old) {
         onPlaybackQualityChangedListener.trigger(value, old);
     }
+    updatePlayback({ quality: value });
 };
 
 export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
@@ -435,6 +436,7 @@ export async function playPlaylist(tracks: Track[]) {
         position: 0,
         seek: 0,
         tracks,
+        quality: playbackQuality(),
     });
 }
 
@@ -613,6 +615,9 @@ export function sessionUpdated(update: PartialUpdateSession) {
             case 'volume':
                 playbackUpdate.volume = value;
                 break;
+            case 'quality':
+                playbackUpdate.quality = value;
+                break;
             case 'active':
             case 'name':
             case 'sessionId':
@@ -685,6 +690,7 @@ async function updatePlayback(
                     };
                     break;
                 case 'quality':
+                    sessionUpdate.quality = value;
                     break;
                 default:
                     key satisfies never;
