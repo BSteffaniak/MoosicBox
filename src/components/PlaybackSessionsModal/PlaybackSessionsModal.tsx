@@ -1,11 +1,11 @@
 import './playback-sessions-modal.css';
 import Modal from '../Modal';
 import PlaybackSessions from '../PlaybackSessions';
-import { createSession } from '~/services/ws';
 import { playerState } from '~/services/player';
 import { showPlaybackSessions, triggerStartup } from '~/services/app';
 import { clientSignal } from '~/services/util';
 import { onMount } from 'solid-js';
+import { wsService } from '~/services/ws';
 
 export default function playbackSessionsModalFunc() {
     onMount(async () => {
@@ -14,7 +14,7 @@ export default function playbackSessionsModalFunc() {
     const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
 
     function createNewSession() {
-        createSession({
+        wsService.createSession({
             name: 'New Session',
             playlist: {
                 tracks: [],

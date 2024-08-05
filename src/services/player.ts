@@ -1,4 +1,3 @@
-import * as ws from './ws';
 import { createSignal } from 'solid-js';
 import { Howl } from 'howler';
 import { makePersisted } from '@solid-primitives/storage';
@@ -13,6 +12,7 @@ import {
 import { createStore, produce } from 'solid-js/store';
 import { createListener, orderedEntries } from './util';
 import { type PartialBy, type PartialUpdateSession } from './types';
+import { wsService } from './ws';
 
 export type TrackListenerCallback = (
     track: Api.LibraryTrack,
@@ -783,7 +783,7 @@ function updatePlaybackSession(
                     delete updatePlaybackSession.playlist;
                 }
 
-                ws.updateSession(updatePlaybackSession);
+                wsService.updateSession(updatePlaybackSession);
             }
         }),
     );

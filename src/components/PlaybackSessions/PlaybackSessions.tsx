@@ -10,12 +10,11 @@ import {
     updateSession,
 } from '~/services/player';
 import Album from '../Album';
-import * as ws from '~/services/ws';
 import { produce } from 'solid-js/store';
 import Modal from '../Modal/Modal';
 import { appState } from '~/services/app';
 import { clientSignal } from '~/services/util';
-import { connectionId } from '~/services/ws';
+import { connectionId, wsService } from '~/services/ws';
 
 const queuedTracksCache: {
     [id: number]: { position?: number; tracks: Track[] };
@@ -74,7 +73,7 @@ export default function playbackSessionsFunc() {
             newActivePlayers,
         );
 
-        ws.setActivePlayers(session.sessionId, newActivePlayers);
+        wsService.setActivePlayers(session.sessionId, newActivePlayers);
     }
 
     function enableAudioPlayer(
@@ -103,7 +102,7 @@ export default function playbackSessionsFunc() {
             setActivePlayerId(localPlayer.playerId);
         }
 
-        ws.setActivePlayers(
+        wsService.setActivePlayers(
             session.sessionId,
             newActivePlayers.map((player) => player.playerId),
         );
@@ -126,7 +125,7 @@ export default function playbackSessionsFunc() {
                 }),
             );
         }
-        ws.deleteSession(sessionId);
+        wsService.deleteSession(sessionId);
     }
 
     function activateSession(session: Api.PlaybackSession) {

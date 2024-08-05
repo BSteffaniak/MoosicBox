@@ -21,7 +21,7 @@ connection.listen((con) => {
         console.debug('Waiting for signature token');
         return;
     }
-    reconnect();
+    wsService.reconnect();
 });
 Api.onSignatureTokenUpdated((signatureToken) => {
     const con = connection.get();
@@ -32,7 +32,7 @@ Api.onSignatureTokenUpdated((signatureToken) => {
         console.debug('Waiting for signature token');
         return;
     }
-    reconnect();
+    wsService.reconnect();
 });
 
 function updateWsUrl(
@@ -70,7 +70,7 @@ export const connectionName = clientAtom<string>(
     'ws.v1.connectionName',
 );
 
-const onConnectListener =
+export const onConnectListener =
     createListener<
         (value: string) => boolean | void | Promise<boolean | void>
     >();
@@ -81,7 +81,7 @@ onConnect((id) => {
     if (!$connectionId()) {
         connectionId.set(id);
     }
-    getSessions();
+    wsService.getSessions();
 });
 
 export enum InboundMessageType {
@@ -240,124 +240,7 @@ export interface OutboundMessage {
     type: OutboundMessageType;
 }
 
-function ping() {
-    send<PingMessage>({ type: OutboundMessageType.PING });
-}
-
-function getConnectionId() {
-    send<GetConnectionIdMessage>({
-        type: OutboundMessageType.GET_CONNECTION_ID,
-    });
-}
-
-export function registerConnection(connection: RegisterConnection) {
-    send<RegisterConnectionMessage>({
-        type: OutboundMessageType.REGISTER_CONNECTION,
-        payload: connection,
-    });
-}
-
-export function registerPlayers(players: RegisterPlayer[]) {
-    send<RegisterPlayersMessage>({
-        type: OutboundMessageType.REGISTER_PLAYERS,
-        payload: players,
-    });
-}
-
-export function playbackAction(action: PlaybackAction) {
-    send<PlaybackActionMessage>({
-        type: OutboundMessageType.PLAYBACK_ACTION,
-        payload: {
-            action,
-        },
-    });
-}
-
-export function setActivePlayers(sessionId: number, players: number[]) {
-    send<SetActivePlayersMessage>({
-        type: OutboundMessageType.SET_ACTIVE_PLAYERS,
-        payload: {
-            sessionId,
-            players,
-        },
-    });
-}
-
-function getSessions() {
-    send<GetSessionsMessage>({
-        type: OutboundMessageType.GET_SESSIONS,
-    });
-}
-
-export function activateSession(sessionId: number) {
-    updateSession({ sessionId, active: true });
-}
-
-export function createSession(session: CreateSessionRequest) {
-    send<CreateSessionMessage>({
-        type: OutboundMessageType.CREATE_SESSION,
-        payload: {
-            ...session,
-            playlist: {
-                ...session.playlist,
-                tracks: session.playlist.tracks.map(toSessionPlaylistTrack),
-            },
-        },
-    });
-}
-
-export function updateSession(session: Api.UpdatePlaybackSession) {
-    const payload: Api.UpdatePlaybackSession = {
-        ...session,
-        playlist: undefined,
-    } as unknown as Api.UpdatePlaybackSession;
-
-    if (session.playlist) {
-        payload.playlist = {
-            ...session.playlist,
-        };
-    } else {
-        delete payload.playlist;
-    }
-
-    send<UpdateSessionMessage>({
-        type: OutboundMessageType.UPDATE_SESSION,
-        payload,
-    });
-}
-
-export function deleteSession(sessionId: number) {
-    send<DeleteSessionMessage>({
-        type: OutboundMessageType.DELETE_SESSION,
-        payload: {
-            sessionId,
-        },
-    });
-}
-
-export function setSeek(sessionId: number, seek: number) {
-    send<SetSeekOutboundMessage>({
-        type: OutboundMessageType.SET_SEEK,
-        payload: {
-            sessionId,
-            seek,
-        },
-    });
-}
-
-const messageBuffer: OutboundMessage[] = [];
-
-function send<T extends OutboundMessage>(value: T) {
-    if (ws) {
-        console.debug('Sending WebSocket message', value);
-        ws.send(JSON.stringify(value));
-    } else {
-        console.debug('Adding WebSocket message to buffer', value);
-        messageBuffer.push(value);
-    }
-}
-
-const onMessageListener =
+export const onMessageListener =
     createListener<
         (
             message: InboundMessage,
@@ -366,76 +249,6 @@ const onMessageListener =
 export const onMessage = onMessageListener.on;
 export const onMessageFirst = onMessageListener.onFirst;
 export const offMessage = onMessageListener.off;
-
-function newClient(): Promise<WebSocket> {
-    return new Promise((resolve, reject) => {
-        console.log('connecting to ', wsUrl);
-        const client = new WebSocket(wsUrl);
-
-        let pingInterval: NodeJS.Timeout | undefined;
-        let opened = false;
-
-        client.addEventListener('error', (e: Event) => {
-            console.error('WebSocket client error', e);
-            if (!opened) {
-                client.close();
-                reject();
-            }
-        });
-
-        client.addEventListener('open', (_e: Event) => {
-            const wasOpened = opened;
-            opened = true;
-            if (!wasOpened) {
-                pingInterval = setInterval(
-                    () => {
-                        if (!opened) return clearInterval(pingInterval);
-
-                        ping();
-                    },
-                    9 * 60 * 1000,
-                );
-
-                ws = client;
-
-                while (messageBuffer.length > 0) {
-                    const value = messageBuffer.shift();
-                    console.debug('Sending buffered WebSocket message', value);
-                    ws.send(JSON.stringify(value));
-                }
-
-                getConnectionId();
-                resolve(client);
-            }
-        });
-
-        client.addEventListener('message', (event: MessageEvent<string>) => {
-            const data = JSON.parse(event.data) as InboundMessage;
-            onMessageListener.trigger(data);
-        });
-
-        client.addEventListener('close', async () => {
-            if (opened) {
-                console.debug('Closed WebSocket connection');
-                opened = false;
-                client.close();
-                clearInterval(pingInterval);
-
-                const now = Date.now();
-                if (lastConnectionAttemptTime + 5000 > now) {
-                    console.debug(
-                        `Debouncing connection retry attempt. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
-                    );
-                    await sleep(CONNECTION_RETRY_DEBOUNCE);
-                }
-                lastConnectionAttemptTime = now;
-                await attemptConnection();
-            } else {
-                reject();
-            }
-        });
-    });
-}
 
 onMessageFirst((data) => {
     console.debug('Received ws message', data);
@@ -517,57 +330,257 @@ onMessageFirst((data) => {
     }
 });
 
-let lastConnectionAttemptTime: number;
 const MAX_CONNECTION_RETRY_COUNT: number = -1;
 const CONNECTION_RETRY_DEBOUNCE = 5000;
 
-async function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
+const wsContext: {
+    lastConnectionAttemptTime: number;
+    messageBuffer: OutboundMessage[];
+} = {
+    lastConnectionAttemptTime: 0,
+    messageBuffer: [],
+};
 
-async function attemptConnection(): Promise<WebSocket> {
-    let attemptNumber = 0;
+export const wsService = {
+    ping() {
+        this.send<PingMessage>({ type: OutboundMessageType.PING });
+    },
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        console.debug(
-            `Attempting connection${
-                attemptNumber > 0 ? `, Attempt ${attemptNumber + 1}` : ''
-            }`,
-        );
+    getConnectionId() {
+        this.send<GetConnectionIdMessage>({
+            type: OutboundMessageType.GET_CONNECTION_ID,
+        });
+    },
 
-        try {
-            const ws = await newClient();
+    registerConnection(connection: RegisterConnection) {
+        this.send<RegisterConnectionMessage>({
+            type: OutboundMessageType.REGISTER_CONNECTION,
+            payload: connection,
+        });
+    },
 
-            console.debug('Successfully connected client');
+    registerPlayers(players: RegisterPlayer[]) {
+        this.send<RegisterPlayersMessage>({
+            type: OutboundMessageType.REGISTER_PLAYERS,
+            payload: players,
+        });
+    },
 
-            return ws;
-        } catch (e: unknown) {
-            if (
-                attemptNumber++ === MAX_CONNECTION_RETRY_COUNT &&
-                MAX_CONNECTION_RETRY_COUNT !== -1
-            ) {
-                break;
-            }
+    playbackAction(action: PlaybackAction) {
+        this.send<PlaybackActionMessage>({
+            type: OutboundMessageType.PLAYBACK_ACTION,
+            payload: {
+                action,
+            },
+        });
+    },
 
-            console.error(
-                `WebSocket connection failed at '${wsUrl}':`,
-                objToStr(e),
-            );
-            console.debug(
-                `Failed to connect. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
-            );
-            await sleep(CONNECTION_RETRY_DEBOUNCE);
+    setActivePlayers(sessionId: number, players: number[]) {
+        this.send<SetActivePlayersMessage>({
+            type: OutboundMessageType.SET_ACTIVE_PLAYERS,
+            payload: {
+                sessionId,
+                players,
+            },
+        });
+    },
+
+    getSessions() {
+        this.send<GetSessionsMessage>({
+            type: OutboundMessageType.GET_SESSIONS,
+        });
+    },
+
+    activateSession(sessionId: number) {
+        this.updateSession({ sessionId, active: true });
+    },
+
+    createSession(session: CreateSessionRequest) {
+        this.send<CreateSessionMessage>({
+            type: OutboundMessageType.CREATE_SESSION,
+            payload: {
+                ...session,
+                playlist: {
+                    ...session.playlist,
+                    tracks: session.playlist.tracks.map(toSessionPlaylistTrack),
+                },
+            },
+        });
+    },
+
+    updateSession(session: Api.UpdatePlaybackSession) {
+        const payload: Api.UpdatePlaybackSession = {
+            ...session,
+            playlist: undefined,
+        } as unknown as Api.UpdatePlaybackSession;
+
+        if (session.playlist) {
+            payload.playlist = {
+                ...session.playlist,
+            };
+        } else {
+            delete payload.playlist;
         }
-    }
 
-    throw new Error('Failed to establish connection to websocket server');
-}
+        this.send<UpdateSessionMessage>({
+            type: OutboundMessageType.UPDATE_SESSION,
+            payload,
+        });
+    },
 
-function reconnect(): Promise<WebSocket> {
-    if (ws) ws.close();
+    deleteSession(sessionId: number) {
+        this.send<DeleteSessionMessage>({
+            type: OutboundMessageType.DELETE_SESSION,
+            payload: {
+                sessionId,
+            },
+        });
+    },
 
-    return attemptConnection();
-}
+    setSeek(sessionId: number, seek: number) {
+        this.send<SetSeekOutboundMessage>({
+            type: OutboundMessageType.SET_SEEK,
+            payload: {
+                sessionId,
+                seek,
+            },
+        });
+    },
+
+    send<T extends OutboundMessage>(value: T) {
+        if (ws) {
+            console.debug('Sending WebSocket message', value);
+            ws.send(JSON.stringify(value));
+        } else {
+            console.debug('Adding WebSocket message to buffer', value);
+            wsContext.messageBuffer.push(value);
+        }
+    },
+
+    newClient(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            console.log('connecting to ', wsUrl);
+            const client = new WebSocket(wsUrl);
+
+            let pingInterval: NodeJS.Timeout | undefined;
+            let opened = false;
+
+            client.addEventListener('error', (e: Event) => {
+                console.error('WebSocket client error', e);
+                if (!opened) {
+                    client.close();
+                    reject();
+                }
+            });
+
+            client.addEventListener('open', (_e: Event) => {
+                const wasOpened = opened;
+                opened = true;
+                if (!wasOpened) {
+                    pingInterval = setInterval(
+                        () => {
+                            if (!opened) return clearInterval(pingInterval);
+
+                            this.ping();
+                        },
+                        9 * 60 * 1000,
+                    );
+
+                    ws = client;
+
+                    while (wsContext.messageBuffer.length > 0) {
+                        const value = wsContext.messageBuffer.shift();
+                        console.debug(
+                            'Sending buffered WebSocket message',
+                            value,
+                        );
+                        ws.send(JSON.stringify(value));
+                    }
+
+                    this.getConnectionId();
+                    resolve();
+                }
+            });
+
+            client.addEventListener(
+                'message',
+                (event: MessageEvent<string>) => {
+                    const data = JSON.parse(event.data) as InboundMessage;
+                    onMessageListener.trigger(data);
+                },
+            );
+
+            client.addEventListener('close', async () => {
+                if (opened) {
+                    console.debug('Closed WebSocket connection');
+                    opened = false;
+                    client.close();
+                    clearInterval(pingInterval);
+
+                    const now = Date.now();
+                    if (wsContext.lastConnectionAttemptTime + 5000 > now) {
+                        console.debug(
+                            `Debouncing connection retry attempt. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
+                        );
+                        await this.sleep(CONNECTION_RETRY_DEBOUNCE);
+                    }
+                    wsContext.lastConnectionAttemptTime = now;
+                    await this.attemptConnection();
+                } else {
+                    reject();
+                }
+            });
+        });
+    },
+
+    async sleep(ms: number): Promise<void> {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    },
+
+    async attemptConnection(): Promise<void> {
+        let attemptNumber = 0;
+
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            console.debug(
+                `Attempting connection${
+                    attemptNumber > 0 ? `, Attempt ${attemptNumber + 1}` : ''
+                }`,
+            );
+
+            try {
+                await this.newClient();
+
+                console.debug('Successfully connected client');
+
+                return;
+            } catch (e: unknown) {
+                if (
+                    attemptNumber++ === MAX_CONNECTION_RETRY_COUNT &&
+                    MAX_CONNECTION_RETRY_COUNT !== -1
+                ) {
+                    break;
+                }
+
+                console.error(
+                    `WebSocket connection failed at '${wsUrl}':`,
+                    objToStr(e),
+                );
+                console.debug(
+                    `Failed to connect. Waiting ${CONNECTION_RETRY_DEBOUNCE}ms`,
+                );
+                await this.sleep(CONNECTION_RETRY_DEBOUNCE);
+            }
+        }
+
+        throw new Error('Failed to establish connection to websocket server');
+    },
+
+    reconnect(): Promise<void> {
+        if (ws) ws.close();
+
+        return this.attemptConnection();
+    },
+};

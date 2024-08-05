@@ -7,7 +7,7 @@ import {
     connectionName,
     onConnect,
     onMessage,
-    registerConnection,
+    wsService,
 } from '~/services/ws';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
 
@@ -38,7 +38,7 @@ onMessage((data) => {
 });
 
 function updateConnection(connectionId: string, name: string) {
-    registerConnection({
+    wsService.registerConnection({
         connectionId,
         name,
         players: [
