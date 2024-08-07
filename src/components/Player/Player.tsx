@@ -26,7 +26,11 @@ import { toTime } from '~/services/formatting';
 import { isServer } from 'solid-js/web';
 import Album from '../Album';
 import Playlist from '../Playlist';
-import { showPlaybackQuality, showPlaybackSessions } from '~/services/app';
+import {
+    showAudioZones,
+    showPlaybackQuality,
+    showPlaybackSessions,
+} from '~/services/app';
 import Volume from '../Volume';
 import { albumRoute } from '../Album/Album';
 import { artistRoute } from '../Artist/Artist';
@@ -56,6 +60,7 @@ export default function player() {
     const [showTrackOptionsMobile, setShowTrackOptionsMobile] =
         createSignal(false);
 
+    const [$showAudioZones] = clientSignal(showAudioZones);
     const [$showPlaybackSessions] = clientSignal(showPlaybackSessions);
     const [$showPlaybackQuality] = clientSignal(showPlaybackQuality);
 
@@ -100,6 +105,10 @@ export default function player() {
 
     function toggleShowPlaybackQuality() {
         showPlaybackQuality.set(!$showPlaybackQuality());
+    }
+
+    function toggleShowAudioZones() {
+        showAudioZones.set(!$showAudioZones());
     }
 
     function toggleShowPlaybackSessions() {
@@ -364,6 +373,12 @@ export default function player() {
                         <div class="player-track-options-buttons">
                             <Volume />
                             <img
+                                class="show-audio-zones-icon"
+                                src="/img/speaker-white.svg"
+                                alt="Configure Audio Outputs"
+                                onClick={() => toggleShowAudioZones()}
+                            />
+                            <img
                                 class="show-playback-sessions-icon"
                                 src="/img/speaker-white.svg"
                                 alt="Show Playback Sessions"
@@ -398,6 +413,12 @@ export default function player() {
                     }`}
                 >
                     <Volume />
+                    <img
+                        class="show-audio-zones-icon"
+                        src="/img/speaker-white.svg"
+                        alt="Configure Audio Outputs"
+                        onClick={() => toggleShowAudioZones()}
+                    />
                     <img
                         class="show-playback-sessions-icon"
                         src="/img/speaker-white.svg"

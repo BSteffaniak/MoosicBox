@@ -246,6 +246,11 @@
     transform: translate(100%, -50%);
 }
 
+.show-audio-zones-icon {
+    width: 25px;
+    cursor: pointer;
+}
+
 .show-playback-sessions-icon {
     width: 25px;
     cursor: pointer;

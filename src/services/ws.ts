@@ -103,7 +103,7 @@ export enum OutboundMessageType {
     DELETE_SESSION = 'DELETE_SESSION',
     REGISTER_CONNECTION = 'REGISTER_CONNECTION',
     REGISTER_PLAYERS = 'REGISTER_PLAYERS',
-    SET_ACTIVE_PLAYERS = 'SET_ACTIVE_PLAYERS',
+    CREATE_AUDIO_ZONE = 'CREATE_AUDIO_ZONE',
     SET_SEEK = 'SET_SEEK',
 }
 
@@ -188,20 +188,24 @@ export interface GetSessionsMessage extends OutboundMessage {
     type: OutboundMessageType.GET_SESSIONS;
 }
 
-export interface SetActivePlayers {
+export interface SetAudioZone {
     sessionId: number;
-    players: number[];
+    audioZoneId: number;
 }
 
-export interface SetActivePlayersMessage extends OutboundMessage {
-    type: OutboundMessageType.SET_ACTIVE_PLAYERS;
-    payload: SetActivePlayers;
+export interface CreateAudioZoneMessage extends OutboundMessage {
+    type: OutboundMessageType.CREATE_AUDIO_ZONE;
+    payload: CreateAudioZoneRequest;
+}
+
+export interface CreateAudioZoneRequest {
+    name: string;
 }
 
 export interface CreateSessionRequest {
     name: string;
     playlist: CreateSessionPlaylistRequest;
-    activePlayers: number[];
+    audioZoneId: number | undefined;
 }
 
 export interface CreateSessionPlaylistRequest {
@@ -375,12 +379,11 @@ export const wsService = {
         });
     },
 
-    setActivePlayers(sessionId: number, players: number[]) {
-        this.send<SetActivePlayersMessage>({
-            type: OutboundMessageType.SET_ACTIVE_PLAYERS,
+    createAudioZone(audioZone: CreateAudioZoneRequest) {
+        this.send<CreateAudioZoneMessage>({
+            type: OutboundMessageType.CREATE_AUDIO_ZONE,
             payload: {
-                sessionId,
-                players,
+                ...audioZone,
             },
         });
     },

@@ -53,6 +53,7 @@ export function toSessionPlaylistTrack(
         return {
             id: `${track.trackId}`,
             type: track.type,
+            // data: JSON.stringify(track),
         };
     } else {
         return {
@@ -251,7 +252,7 @@ export namespace Api {
         position?: number;
         seek?: number;
         volume?: number;
-        activePlayers?: Player[];
+        audioZoneId?: number;
         playlist?: UpdatePlaybackSessionPlaylist;
     }
 
@@ -266,15 +267,10 @@ export namespace Api {
         data?: string;
     }
 
-    export interface AudioOutput {
-        id: string;
+    export interface AudioZone {
+        id: number;
         name: string;
-        spec: AudioOutputSpec;
-    }
-
-    export interface AudioOutputSpec {
-        rate: number;
-        channels: number;
+        players: Api.Player[];
     }
 
     export interface PlaybackSession {
@@ -285,7 +281,7 @@ export namespace Api {
         position?: number;
         seek?: number;
         volume?: number;
-        activePlayers: Player[];
+        audioZone: AudioZone | undefined;
         playlist: PlaybackSessionPlaylist;
         quality?: PlaybackQuality;
     }
@@ -863,6 +859,13 @@ export interface ApiType {
         max: number,
         signal?: AbortSignal | null,
     ): Promise<number[]>;
+    getAudioZones(
+        signal?: AbortSignal | null,
+    ): Promise<Api.PagingResponseWithTotal<Api.AudioZone>>;
+    createAudioZone(
+        name: string,
+        signal?: AbortSignal | null,
+    ): Promise<Api.AudioZone>;
 }
 
 export function getConnection(): Connection {
@@ -2165,6 +2168,32 @@ async function getTrackVisualization(
     );
 }
 
+async function getAudioZones(
+    signal?: AbortSignal | null,
+): Promise<Api.PagingResponseWithTotal<Api.AudioZone>> {
+    const con = getConnection();
+    const query = new QueryParams({ offset: `0`, limit: `100` });
+
+    return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function createAudioZone(
+    name: string,
+    signal?: AbortSignal | null,
+): Promise<Api.AudioZone> {
+    const con = getConnection();
+    const query = new QueryParams({ name });
+
+    return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2321,4 +2350,6 @@ export const api: ApiType = {
     getTrackVisualization,
     retryDownload,
     download,
+    getAudioZones,
+    createAudioZone,
 };

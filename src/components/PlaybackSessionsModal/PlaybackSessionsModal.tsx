@@ -19,10 +19,7 @@ export default function playbackSessionsModalFunc() {
             playlist: {
                 tracks: [],
             },
-            activePlayers:
-                playerState.currentPlaybackSession?.activePlayers.map(
-                    (p) => p.playerId,
-                ) ?? [],
+            audioZoneId: playerState.currentAudioZone?.id,
         });
     }
 

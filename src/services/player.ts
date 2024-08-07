@@ -23,7 +23,8 @@ interface PlayerState {
     playing: boolean;
     currentPlaybackSession?: Api.PlaybackSession | undefined;
     playbackSessions: Api.PlaybackSession[];
-    audioOutputs: Api.AudioOutput[];
+    currentAudioZone?: Api.AudioZone | undefined;
+    audioZones: Api.AudioZone[];
     currentTrack?: Track | undefined;
 }
 
@@ -31,7 +32,8 @@ export const [playerState, setPlayerState] = createStore<PlayerState>({
     playing: false,
     currentPlaybackSession: undefined,
     playbackSessions: [],
-    audioOutputs: [],
+    currentAudioZone: undefined,
+    audioZones: [],
     currentTrack: undefined,
 });
 
@@ -68,6 +70,13 @@ export const setPlaybackQuality = (
     }
     updatePlayback({ quality: value });
 };
+
+export const [currentAudioZoneId, setCurrentAudioZoneId] = makePersisted(
+    createSignal<number | undefined>(undefined, { equals: false }),
+    {
+        name: `player.v1.currentAudioZoneId`,
+    },
+);
 
 export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
     makePersisted(
@@ -261,7 +270,7 @@ export function isMasterPlayer(): boolean {
     return (
         !!activePlayer &&
         isPlayerActive(activePlayer.id) &&
-        playerState.currentPlaybackSession?.activePlayers.findIndex(
+        playerState.currentPlaybackSession?.audioZone?.players.findIndex(
             (p) => p.playerId === activePlayer?.id,
         ) === 0
     );
@@ -278,7 +287,7 @@ export function isPlayerActive(playerOrId?: PlayerType | number): boolean {
         }
     }
     return (
-        playerState.currentPlaybackSession?.activePlayers.some(
+        playerState.currentPlaybackSession?.audioZone?.players.some(
             (p) => p.playerId === activePlayer?.id,
         ) ?? false
     );
@@ -531,9 +540,10 @@ export function registerPlayer(player: PlayerType) {
     }
     console.debug('Registering player', player);
 
-    const setAsActive = playerState.currentPlaybackSession?.activePlayers?.some(
-        (p) => p.playerId === player.id,
-    );
+    const setAsActive =
+        playerState.currentPlaybackSession?.audioZone?.players.some(
+            (p) => p.playerId === player.id,
+        );
 
     players.push(player);
 
@@ -877,7 +887,7 @@ export function updateSession(
 
         console.debug('session changed to', session, 'from', old);
 
-        const localPlayer = session.activePlayers.find((p) =>
+        const localPlayer = session.audioZone?.players.find((p) =>
             containsPlayer(p.playerId),
         );
 
