@@ -71,12 +71,38 @@ export const setPlaybackQuality = (
     updatePlayback({ quality: value });
 };
 
-export const [currentAudioZoneId, setCurrentAudioZoneId] = makePersisted(
+export const [_currentAudioZoneId, _setCurrentAudioZoneId] = makePersisted(
     createSignal<number | undefined>(undefined, { equals: false }),
     {
         name: `player.v1.currentAudioZoneId`,
     },
 );
+const onCurrentAudioZoneIdChangedListener =
+    createListener<
+        (
+            value: ReturnType<typeof _currentAudioZoneId>,
+            old: ReturnType<typeof _currentAudioZoneId>,
+        ) => boolean | void | Promise<boolean | void>
+    >();
+export const onCurrentAudioZoneIdChanged =
+    onCurrentAudioZoneIdChangedListener.on;
+export const offCurrentAudioZoneIdChanged =
+    onCurrentAudioZoneIdChangedListener.off;
+export const currentAudioZoneId = _currentAudioZoneId;
+export const setCurrentAudioZoneId = (
+    value: Parameters<typeof _setCurrentAudioZoneId>[0],
+    trigger = true,
+) => {
+    const old = _currentAudioZoneId();
+    if (typeof value === 'function') {
+        value = value(old);
+    }
+    _setCurrentAudioZoneId(value);
+    if (trigger && value !== old) {
+        onCurrentAudioZoneIdChangedListener.trigger(value, old);
+    }
+    updatePlayback({});
+};
 
 export const [currentPlaybackSessionId, setCurrentPlaybackSessionId] =
     makePersisted(
@@ -266,30 +292,41 @@ const playListener = createListener<() => void>();
 export const onPlay = playListener.on;
 export const offPlay = playListener.off;
 
-export function isMasterPlayer(): boolean {
-    return (
-        !!activePlayer &&
-        isPlayerActive(activePlayer.id) &&
-        playerState.currentPlaybackSession?.audioZone?.players.findIndex(
-            (p) => p.playerId === activePlayer?.id,
-        ) === 0
+export function isMasterPlayer(zone: Api.AudioZone | undefined): boolean {
+    const activeZonePlayers = getActiveZonePlayers(zone);
+
+    console.debug(
+        'isMasterPlayer:',
+        'zone:',
+        zone,
+        'players:',
+        players,
+        'activeZonePlayers:',
+        activeZonePlayers,
     );
+
+    if (activeZonePlayers.length === 0) {
+        console.debug('isMasterPlayer: no active zone players');
+        return false;
+    }
+
+    const first = activeZonePlayers[0];
+
+    if (zone?.players.findIndex((p) => p.playerId === first?.id) !== 0) {
+        console.debug('isMasterPlayer: player is not first');
+        return false;
+    }
+
+    console.debug('isMasterPlayer: player is master');
+    return true;
 }
 
-export function isPlayerActive(playerOrId?: PlayerType | number): boolean {
-    if (typeof playerOrId === 'number') {
-        if (activePlayer?.id !== playerOrId) {
-            return false;
-        }
-    } else if (typeof playerOrId === 'object') {
-        if (activePlayer?.id !== playerOrId.id) {
-            return false;
-        }
-    }
+export function getActiveZonePlayers(
+    zone: Api.AudioZone | undefined,
+): PlayerType[] {
     return (
-        playerState.currentPlaybackSession?.audioZone?.players.some(
-            (p) => p.playerId === activePlayer?.id,
-        ) ?? false
+        players.filter((p) => zone?.players.some((x) => p.id === x.playerId)) ??
+        []
     );
 }
 
@@ -527,7 +564,6 @@ export function playFromPlaylistPosition(index: number) {
 }
 
 export const players: PlayerType[] = [];
-let activePlayer: PlayerType | undefined;
 
 export function containsPlayer(id: number): boolean {
     return players.some((p) => p.id === id);
@@ -540,56 +576,24 @@ export function registerPlayer(player: PlayerType) {
     }
     console.debug('Registering player', player);
 
-    const setAsActive =
-        playerState.currentPlaybackSession?.audioZone?.players.some(
-            (p) => p.playerId === player.id,
-        );
-
     players.push(player);
-
-    if (setAsActive) {
-        setActivePlayer(player);
-    }
-}
-
-export function setActivePlayerId(id: number) {
-    const player = players.find((p) => p.id === id);
-
-    if (player) {
-        setActivePlayer(player);
-    }
-}
-
-export function setActivePlayer(player: PlayerType) {
-    console.debug('Setting active player to', player);
-    deactivatePlayer();
-    if (player?.activate) {
-        player.activate();
-    }
-    activePlayer = player;
-}
-
-export function deactivatePlayer() {
-    if (activePlayer?.deactivate) {
-        activePlayer.deactivate();
-    }
-
-    activePlayer = undefined;
 }
 
 export function sessionUpdated(update: PartialUpdateSession) {
-    if (!isMasterPlayer()) {
+    if (
+        !isMasterPlayer(
+            playerState.audioZones.find((z) => z.id === update.audioZoneId),
+        )
+    ) {
         return;
     }
 
-    const sessionId = currentPlaybackSessionId()!;
-
-    if (update.sessionId !== sessionId) {
-        return;
-    }
+    const sessionId = update.sessionId;
+    const audioZoneId = update.audioZoneId;
 
     const playbackUpdate: PlaybackUpdate = {
         sessionId,
+        audioZoneId,
     };
 
     for (const [key, value] of orderedEntries(update, [
@@ -631,6 +635,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
             case 'active':
             case 'name':
             case 'sessionId':
+            case 'audioZoneId':
                 break;
             default:
                 key satisfies never;
@@ -642,6 +647,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
 
 export type PlaybackUpdate = {
     sessionId: number;
+    audioZoneId: number;
     play?: boolean;
     stop?: boolean;
     playing?: boolean;
@@ -653,17 +659,22 @@ export type PlaybackUpdate = {
 };
 
 async function updatePlayback(
-    update: Omit<PlaybackUpdate, 'sessionId'>,
+    update: Omit<PlaybackUpdate, 'sessionId' | 'audioZoneId'>,
     updateSession = true,
 ) {
     if (!update.quality) {
         update.quality = playbackQuality();
     }
 
+    const playbackUpdate = update as PlaybackUpdate;
+    const sessionId = playbackUpdate.sessionId;
+    const audioZoneId = playbackUpdate.audioZoneId;
+
     if (updateSession) {
-        const sessionUpdate: Parameters<
-            typeof updateCurrentPlaybackSession
-        >[0] = {};
+        const sessionUpdate: Parameters<typeof updatePlaybackSession>[1] = {
+            sessionId,
+            audioZoneId,
+        };
 
         for (const [key, value] of orderedEntries(update, [
             'play',
@@ -711,42 +722,27 @@ async function updatePlayback(
             }
         }
 
-        updateCurrentPlaybackSession(sessionUpdate);
+        updatePlaybackSession(sessionId, sessionUpdate);
     }
 
-    if (
-        (await activePlayer?.updatePlayback({
-            ...update,
-            sessionId: currentPlaybackSessionId()!,
-        })) === false
-    ) {
-        return;
-    }
-}
+    const activeZonePlayers = getActiveZonePlayers(
+        playerState.audioZones.find(({ id }) => id === audioZoneId),
+    );
 
-function updateCurrentPlaybackSession(
-    request: Omit<
-        PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
-        'playlist'
-    > & {
-        playlist?: PartialBy<
-            Omit<Api.UpdatePlaybackSessionPlaylist, 'tracks'>,
-            'sessionPlaylistId'
-        > & { tracks: Track[] };
-    },
-) {
-    const session = playerState.currentPlaybackSession;
-    if (session) {
-        updatePlaybackSession(session.sessionId, request);
-    }
+    Promise.all(
+        activeZonePlayers.map((activePlayer) =>
+            activePlayer.updatePlayback({
+                ...update,
+                sessionId,
+                audioZoneId,
+            }),
+        ),
+    );
 }
 
 function updatePlaybackSession(
     id: number,
-    request: Omit<
-        PartialBy<PartialUpdateSession, 'sessionId' | 'playlist'>,
-        'playlist'
-    > & {
+    request: Omit<PartialBy<PartialUpdateSession, 'playlist'>, 'playlist'> & {
         playlist?: PartialBy<
             Omit<Api.UpdatePlaybackSessionPlaylist, 'tracks'>,
             'sessionPlaylistId'
@@ -762,7 +758,6 @@ function updatePlaybackSession(
                     ? current
                     : state.playbackSessions.find((s) => s.sessionId === id);
             if (session) {
-                request.sessionId = session.sessionId;
                 const { playlist } = session;
                 if (playlist && request.playlist) {
                     request.playlist.sessionPlaylistId =
@@ -772,7 +767,6 @@ function updatePlaybackSession(
 
                 const updatePlaybackSession: Api.UpdatePlaybackSession = {
                     ...request,
-                    sessionId: session.sessionId!,
                     playlist: undefined,
                 } as unknown as Api.UpdatePlaybackSession;
 
@@ -829,36 +823,34 @@ export function updateSessionPartial(
     if (state.currentPlaybackSession?.sessionId === session.sessionId) {
         Object.assign(state.currentPlaybackSession, session);
 
-        if (state.currentPlaybackSession?.sessionId === session.sessionId) {
-            let updatedPlaylist = false;
+        let updatedPlaylist = false;
 
-            if (typeof session.seek !== 'undefined') {
-                _setCurrentSeek(session.seek);
-            }
-            if (typeof session.position !== 'undefined') {
-                _setPlaylistPosition(session.position);
-                updatedPlaylist = true;
-            }
-            if (typeof session.playlist !== 'undefined') {
-                _setPlaylist(session.playlist.tracks);
-                updatedPlaylist = true;
-            }
+        if (typeof session.seek !== 'undefined') {
+            _setCurrentSeek(session.seek);
+        }
+        if (typeof session.position !== 'undefined') {
+            _setPlaylistPosition(session.position);
+            updatedPlaylist = true;
+        }
+        if (typeof session.playlist !== 'undefined') {
+            _setPlaylist(session.playlist.tracks);
+            updatedPlaylist = true;
+        }
 
-            if (updatedPlaylist) {
-                if (typeof playlistPosition() === 'number') {
-                    const track =
-                        state.currentPlaybackSession.playlist.tracks[
-                            playlistPosition()!
-                        ];
+        if (updatedPlaylist) {
+            if (typeof playlistPosition() === 'number') {
+                const track =
+                    state.currentPlaybackSession.playlist.tracks[
+                        playlistPosition()!
+                    ];
 
-                    if (track) {
-                        state.currentTrack = track;
-                        setCurrentTrackLength(Math.round(track.duration));
-                    }
-                } else {
-                    state.currentTrack = undefined;
-                    setCurrentTrackLength(0);
+                if (track) {
+                    state.currentTrack = track;
+                    setCurrentTrackLength(Math.round(track.duration));
                 }
+            } else {
+                state.currentTrack = undefined;
+                setCurrentTrackLength(0);
             }
         }
     }
@@ -887,16 +879,6 @@ export function updateSession(
 
         console.debug('session changed to', session, 'from', old);
 
-        const localPlayer = session.audioZone?.players.find((p) =>
-            containsPlayer(p.playerId),
-        );
-
-        if (localPlayer) {
-            setActivePlayerId(localPlayer.playerId);
-        } else {
-            deactivatePlayer();
-        }
-
         _setPlaylist(session.playlist.tracks);
         _setCurrentSeek(session.seek);
         _setPlaylistPosition(
@@ -921,11 +903,6 @@ export function updateSession(
 
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
-    if (isMasterPlayer()) {
-        updateCurrentPlaybackSession({
-            seek: value ?? 0,
-        });
-    }
 });
 
 onUpdateSessionPartial((session) => {

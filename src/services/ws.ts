@@ -129,6 +129,7 @@ export interface SessionUpdatedMessage extends InboundMessage {
 
 export interface SetSeek {
     sessionId: number;
+    audioZoneId: number;
     seek: number;
 }
 

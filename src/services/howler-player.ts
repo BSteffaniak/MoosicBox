@@ -257,9 +257,11 @@ export function createPlayer(id: number): PlayerType {
     }
 
     const onBeforeUnload = () => {
-        if (player.isMasterPlayer() && playing()) {
-            player.pause();
-        }
+        playerState.audioZones.forEach((zone) => {
+            if (player.isMasterPlayer(zone) && playing()) {
+                player.pause();
+            }
+        });
     };
 
     const self = {
@@ -328,6 +330,7 @@ export function createPlayer(id: number): PlayerType {
                     case 'tracks':
                     case 'position':
                     case 'sessionId':
+                    case 'audioZoneId':
                         break;
                     default:
                         key satisfies never;

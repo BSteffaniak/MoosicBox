@@ -275,13 +275,13 @@ export namespace Api {
 
     export interface PlaybackSession {
         sessionId: number;
+        audioZoneId: number;
         name: string;
         active: boolean;
         playing: boolean;
         position?: number;
         seek?: number;
         volume?: number;
-        audioZone: AudioZone | undefined;
         playlist: PlaybackSessionPlaylist;
         quality?: PlaybackQuality;
     }
@@ -580,6 +580,7 @@ export interface Connection {
     clientId: string;
     token: string;
     staticToken: string;
+    players?: Api.Player[];
 }
 
 export function setActiveConnection(id: number) {
