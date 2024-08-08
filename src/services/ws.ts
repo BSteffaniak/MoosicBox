@@ -146,11 +146,6 @@ export interface GetConnectionIdMessage extends OutboundMessage {
     type: OutboundMessageType.GET_CONNECTION_ID;
 }
 
-export interface SetSeekOutboundMessage extends OutboundMessage {
-    type: OutboundMessageType.SET_SEEK;
-    payload: SetSeek;
-}
-
 export interface PingMessage extends OutboundMessage {
     type: OutboundMessageType.PING;
 }
@@ -436,16 +431,6 @@ export const wsService = {
             type: OutboundMessageType.DELETE_SESSION,
             payload: {
                 sessionId,
-            },
-        });
-    },
-
-    setSeek(sessionId: number, seek: number) {
-        this.send<SetSeekOutboundMessage>({
-            type: OutboundMessageType.SET_SEEK,
-            payload: {
-                sessionId,
-                seek,
             },
         });
     },
