@@ -667,8 +667,8 @@ async function updatePlayback(
     }
 
     const playbackUpdate = update as PlaybackUpdate;
-    const sessionId = playbackUpdate.sessionId;
-    const audioZoneId = playbackUpdate.audioZoneId;
+    const sessionId = playbackUpdate.sessionId ?? currentPlaybackSessionId();
+    const audioZoneId = playbackUpdate.audioZoneId ?? currentAudioZoneId();
 
     if (updateSession) {
         const sessionUpdate: Parameters<typeof updatePlaybackSession>[1] = {
