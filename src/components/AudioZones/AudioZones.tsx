@@ -7,17 +7,42 @@ import {
     setCurrentAudioZoneId,
     setPlayerState,
 } from '~/services/player';
+import { appState } from '~/services/app';
+
+type AudioZoneWithConnections = Omit<Api.AudioZone, 'players'> & {
+    players: (Api.Player & {
+        connection: Api.Connection | undefined;
+    })[];
+};
 
 export default function audioZonesFunc() {
-    const [audioZones, setAudioZones] = createSignal<Api.AudioZone[]>(
-        playerState.audioZones,
-    );
+    const [audioZones, setAudioZones] = createSignal<
+        AudioZoneWithConnections[]
+    >([]);
     const [activeAudioZone, setActiveAudioZone] = createSignal(
         playerState.currentAudioZone,
     );
 
     createComputed(() => {
-        setAudioZones(playerState.audioZones);
+        const connections = appState.connections;
+        setAudioZones(
+            playerState.audioZones.map((zone) => {
+                const zoneWithConnections: AudioZoneWithConnections = {
+                    ...zone,
+                    players: zone.players.map((player) => {
+                        return {
+                            ...player,
+                            connection: connections.find((c) => {
+                                return c.players?.find(
+                                    (p) => p.playerId === player.playerId,
+                                );
+                            }),
+                        };
+                    }),
+                };
+                return zoneWithConnections;
+            }),
+        );
         setActiveAudioZone(playerState.currentAudioZone);
     });
 
@@ -58,6 +83,7 @@ export default function audioZonesFunc() {
                                             src="/img/audio-white.svg"
                                             alt="Zone Player"
                                         />{' '}
+                                        {player().connection?.name} -{' '}
                                         {player().name}
                                     </div>
                                 )}
