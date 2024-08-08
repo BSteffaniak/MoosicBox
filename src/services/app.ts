@@ -22,29 +22,54 @@ type StartupCallback = () => void | Promise<void>;
 declare global {
     interface Window {
         startupCallbacks: StartupCallback[];
+        startedUp: boolean;
     }
 
     var startupCallbacks: StartupCallback[];
+    // eslint-disable-next-line no-var
+    var startedUp: boolean;
 }
 
 if (isServer) global.startupCallbacks = global.startupCallbacks ?? [];
 else window.startupCallbacks = window.startupCallbacks ?? [];
 
-const startupCallbacks: StartupCallback[] = isServer
-    ? globalThis.startupCallbacks
-    : window.startupCallbacks;
-let startedUp = false;
+function getStartupCallbacks(): StartupCallback[] {
+    if (isServer) {
+        const x = globalThis.startupCallbacks;
+        if (!x) globalThis.startupCallbacks = [];
+        return globalThis.startupCallbacks;
+    } else {
+        const x = window.startupCallbacks;
+        if (!x) window.startupCallbacks = [];
+        return window.startupCallbacks;
+    }
+}
+
+if (isServer) global.startedUp = global.startedUp ?? false;
+else window.startedUp = window.startedUp ?? false;
+
+function isStartedUp(): boolean {
+    return (isServer ? globalThis.startedUp : window.startedUp) === true;
+}
+
+function setStartedUp(value: boolean) {
+    if (isServer) {
+        globalThis.startedUp = value;
+    } else {
+        window.startedUp = value;
+    }
+}
 
 export function onStartupFirst(func: StartupCallback) {
-    if (startedUp) {
+    if (isStartedUp()) {
         func();
         return;
     }
-    startupCallbacks.unshift(func);
+    getStartupCallbacks().unshift(func);
 }
 
 export async function onStartup(func: StartupCallback) {
-    if (startedUp) {
+    if (isStartedUp()) {
         try {
             await func();
         } catch (e) {
@@ -52,14 +77,14 @@ export async function onStartup(func: StartupCallback) {
         }
         return;
     }
-    startupCallbacks.push(func);
+    getStartupCallbacks().push(func);
 }
 
 export async function triggerStartup() {
-    if (startedUp) return;
-    startedUp = true;
+    if (isStartedUp()) return;
+    setStartedUp(true);
 
-    for (const func of startupCallbacks) {
+    for (const func of getStartupCallbacks()) {
         try {
             await func();
         } catch (e) {
