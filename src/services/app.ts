@@ -121,7 +121,11 @@ onStartup(async () => {
     const con = connection.get();
 
     if (con && con.token && con.clientId) {
-        await api.validateSignatureToken();
+        try {
+            await api.validateSignatureToken();
+        } catch (e) {
+            console.debug('Failed to validateSignatureToken:', e);
+        }
     }
 });
 onStartup(async () => {
