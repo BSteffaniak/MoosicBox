@@ -24,10 +24,6 @@ export default function settingsPage() {
     let apiUrlInput: HTMLInputElement;
     let nameInput: HTMLInputElement;
 
-    // function setActiveConnection(id: number) {
-
-    // }
-
     function newConnection() {
         const id = getNewConnectionId();
         setConnection({
