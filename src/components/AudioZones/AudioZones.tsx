@@ -8,6 +8,9 @@ import {
     setPlayerState,
 } from '~/services/player';
 import { appState } from '~/services/app';
+import Modal from '../Modal';
+import { clientSignal } from '~/services/util';
+import { connectionId } from '~/services/ws';
 
 type AudioZoneWithConnections = Omit<Api.AudioZone, 'players'> & {
     players: (Api.Player & {
@@ -26,28 +29,48 @@ export default function audioZonesFunc() {
     );
     const [editingAudioZoneName, setEditingAudioZoneName] =
         createSignal<Api.UpdateAudioZone>();
+    const [activePlayersZone, setActivePlayersZone] =
+        createSignal<AudioZoneWithConnections>();
+
+    const [$connectionId] = clientSignal(connectionId);
+    const [connections, setConnections] = createSignal<Api.Connection[]>([]);
+
+    function getAudioZonesWithConnections(): AudioZoneWithConnections[] {
+        const connections = appState.connections;
+
+        return playerState.audioZones.map((zone) => {
+            const zoneWithConnections: AudioZoneWithConnections = {
+                ...zone,
+                players: zone.players.map((player) => {
+                    return {
+                        ...player,
+                        connection: connections.find((c) => {
+                            return c.players?.find(
+                                (p) => p.playerId === player.playerId,
+                            );
+                        }),
+                    };
+                }),
+            };
+            return zoneWithConnections;
+        });
+    }
 
     createComputed(() => {
-        const connections = appState.connections;
-        setAudioZones(
-            playerState.audioZones.map((zone) => {
-                const zoneWithConnections: AudioZoneWithConnections = {
-                    ...zone,
-                    players: zone.players.map((player) => {
-                        return {
-                            ...player,
-                            connection: connections.find((c) => {
-                                return c.players?.find(
-                                    (p) => p.playerId === player.playerId,
-                                );
-                            }),
-                        };
-                    }),
-                };
-                return zoneWithConnections;
-            }),
-        );
+        setAudioZones(getAudioZonesWithConnections());
         setActiveAudioZone(playerState.currentAudioZone);
+
+        const alive = appState.connections.filter((c) => c.alive);
+        const dead = appState.connections.filter((c) => !c.alive);
+
+        const aliveCurrent = alive.filter(
+            (a) => a.connectionId == $connectionId(),
+        );
+        const aliveOthers = alive.filter(
+            (a) => a.connectionId != $connectionId(),
+        );
+
+        setConnections([...aliveCurrent, ...aliveOthers, ...dead]);
     });
 
     function activateAudioZone(zone: Api.AudioZone) {
@@ -59,7 +82,9 @@ export default function audioZonesFunc() {
         );
     }
 
-    async function updateAudioZone(update: Api.UpdateAudioZone) {
+    async function updateAudioZone(
+        update: Api.UpdateAudioZone,
+    ): Promise<Api.AudioZone> {
         setPlayerState(
             produce((state) => {
                 if (state.currentAudioZone?.id === update.id) {
@@ -69,12 +94,12 @@ export default function audioZonesFunc() {
                 const zone = state.audioZones.find((z) => z.id === update.id);
 
                 if (zone) {
-                    Object.assign(zone, update);
+                    Object.assign(zone, { name: update.name ?? zone.name });
                 }
             }),
         );
 
-        await api.updateAudioZone(update);
+        return await api.updateAudioZone(update);
     }
 
     async function deleteAudioZone(zone: Api.AudioZone) {
@@ -94,6 +119,60 @@ export default function audioZonesFunc() {
         );
 
         await api.deleteAudioZone(zone.id);
+    }
+
+    function replaceZone(
+        existing: AudioZoneWithConnections,
+        zone: Partial<Api.AudioZone>,
+    ) {
+        setPlayerState(
+            produce((state) => {
+                if (state.currentAudioZone?.id === existing.id) {
+                    Object.assign(state.currentAudioZone, zone);
+                }
+
+                const stateZone = state.audioZones.find(
+                    (z) => z.id === existing.id,
+                );
+
+                if (stateZone) {
+                    Object.assign(stateZone, zone);
+                }
+            }),
+        );
+    }
+
+    async function disableAudioPlayer(
+        zone: AudioZoneWithConnections,
+        player: Api.Player,
+    ) {
+        const players = zone.players
+            .filter((p) => p.playerId !== player.playerId)
+            .map(({ playerId }) => playerId);
+        const update: Api.UpdateAudioZone = { id: zone.id, players };
+
+        const newZone = await updateAudioZone(update);
+        replaceZone(zone, newZone);
+
+        const zones = getAudioZonesWithConnections();
+        setActivePlayersZone(zones.find((x) => x.id === newZone.id));
+    }
+
+    async function enableAudioPlayer(
+        zone: AudioZoneWithConnections,
+        player: Api.Player,
+    ) {
+        const players = [
+            ...zone.players.filter((p) => p.playerId !== player.playerId),
+            player,
+        ].map(({ playerId }) => playerId);
+        const update: Api.UpdateAudioZone = { id: zone.id, players };
+
+        const newZone = await updateAudioZone(update);
+        replaceZone(zone, newZone);
+
+        const zones = getAudioZonesWithConnections();
+        setActivePlayersZone(zones.find((x) => x.id === newZone.id));
     }
 
     return (
@@ -213,9 +292,114 @@ export default function audioZonesFunc() {
                                     </div>
                                 )}
                             </Index>
+                            <button
+                                class={`remove-button-styles audio-zone-audio-zone-modal-audio-zone-player add-players`}
+                                onClick={(e) => {
+                                    e.stopImmediatePropagation();
+                                    setActivePlayersZone(audioZone());
+                                }}
+                            >
+                                <img
+                                    class="plus-icon"
+                                    src="/img/plus-white.svg"
+                                    alt="Add players to audio zone"
+                                />{' '}
+                                Add players
+                            </button>
                         </div>
                     )}
                 </Index>
+                <Modal
+                    show={() => activePlayersZone()}
+                    onClose={() => setActivePlayersZone(undefined)}
+                    class="audio-zone-active-players-modal"
+                >
+                    {(activePlayersZone) => (
+                        <div class="audio-zone-active-players-modal-container">
+                            <div class="audio-zone-active-players-modal-header">
+                                <h1>
+                                    {activePlayersZone.name} - Active Players
+                                </h1>
+                                <div
+                                    class="audio-zone-active-players-modal-header-close"
+                                    onClick={(e) => {
+                                        setActivePlayersZone(undefined);
+                                        e.stopImmediatePropagation();
+                                    }}
+                                >
+                                    <img
+                                        class="cross-icon"
+                                        src="/img/cross-white.svg"
+                                        alt="Close playlist sessions modal"
+                                    />
+                                </div>
+                            </div>
+                            <div class="audio-zone-active-players-modal-content">
+                                <Index each={connections()}>
+                                    {(connection) => (
+                                        <div
+                                            class={`audio-zone-active-players-modal-connection${
+                                                connection().alive
+                                                    ? ' alive'
+                                                    : ' dead'
+                                            }`}
+                                        >
+                                            <Index each={connection().players}>
+                                                {(player) => (
+                                                    <div
+                                                        class={`audio-zone-active-players-modal-connection-player${
+                                                            activePlayersZone.players.some(
+                                                                (p) =>
+                                                                    p.playerId ===
+                                                                    player()
+                                                                        .playerId,
+                                                            )
+                                                                ? ' active'
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        {connection().name} -{' '}
+                                                        {player().name}{' '}
+                                                        {activePlayersZone.players.some(
+                                                            (p) =>
+                                                                p.playerId ===
+                                                                player()
+                                                                    .playerId,
+                                                        ) ? (
+                                                            <img
+                                                                class="audio-icon"
+                                                                src="/img/audio-white.svg"
+                                                                alt="Player enabled"
+                                                                onClick={() =>
+                                                                    disableAudioPlayer(
+                                                                        activePlayersZone,
+                                                                        player(),
+                                                                    )
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            <img
+                                                                class="audio-icon"
+                                                                src="/img/audio-off-white.svg"
+                                                                alt="Player disabled"
+                                                                onClick={() =>
+                                                                    enableAudioPlayer(
+                                                                        activePlayersZone,
+                                                                        player(),
+                                                                    )
+                                                                }
+                                                            />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </Index>
+                                        </div>
+                                    )}
+                                </Index>
+                            </div>
+                        </div>
+                    )}
+                </Modal>
             </div>
         </div>
     );
