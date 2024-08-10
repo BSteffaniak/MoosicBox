@@ -273,6 +273,12 @@ export namespace Api {
         players: Api.Player[];
     }
 
+    export interface UpdateAudioZone {
+        id: number;
+        name?: string;
+        players?: number[];
+    }
+
     export interface PlaybackSession {
         sessionId: number;
         audioZoneId: number;
@@ -867,6 +873,11 @@ export interface ApiType {
         name: string,
         signal?: AbortSignal | null,
     ): Promise<Api.AudioZone>;
+    updateAudioZone(
+        update: Api.UpdateAudioZone,
+        signal?: AbortSignal | null,
+    ): Promise<Api.AudioZone>;
+    deleteAudioZone(id: number, signal?: AbortSignal | null): Promise<void>;
 }
 
 export function getConnection(): Connection {
@@ -2195,6 +2206,34 @@ async function createAudioZone(
     });
 }
 
+async function updateAudioZone(
+    update: Api.UpdateAudioZone,
+    signal?: AbortSignal | null,
+): Promise<Api.AudioZone> {
+    const con = getConnection();
+
+    return await requestJson(`${con.apiUrl}/audio-zone`, {
+        method: 'PATCH',
+        body: JSON.stringify(update),
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function deleteAudioZone(
+    id: number,
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const con = getConnection();
+    const query = new QueryParams({ id: `${id}` });
+
+    return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2248,7 +2287,11 @@ async function requestJson<T>(
 
     const token = con.staticToken || con.token;
     if (token) {
-        const headers = { ...(options?.headers ?? {}), Authorization: token };
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: token,
+            ...(options?.headers ?? {}),
+        };
         options = {
             ...options,
             headers,
@@ -2353,4 +2396,6 @@ export const api: ApiType = {
     download,
     getAudioZones,
     createAudioZone,
+    updateAudioZone,
+    deleteAudioZone,
 };

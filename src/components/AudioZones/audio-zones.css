@@ -30,6 +30,14 @@
     width: 24px;
 }
 
+.audio-zones-list-zone-header-edit-name-icon {
+    width: 24px;
+}
+
+.audio-zones-list-zone-header-submit-edit-name-icon {
+    width: 24px;
+}
+
 .audio-zones-list-zone.active .audio-zones-list-zone-header,
 .audio-zones-list-zone-header:hover {
     background-color: #333333;
