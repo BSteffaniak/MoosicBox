@@ -2286,17 +2286,19 @@ async function requestJson<T>(
     }
 
     const token = con.staticToken || con.token;
-    if (token) {
-        const headers = {
-            'Content-Type': 'application/json',
-            Authorization: token,
-            ...(options?.headers ?? {}),
-        };
-        options = {
-            ...options,
-            headers,
-        };
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options?.headers ?? {}),
+    } as { [key: string]: string };
+
+    if (token && !headers.Authorization) {
+        headers.Authorization = token;
     }
+
+    options = {
+        ...options,
+        headers,
+    };
 
     const response = await fetch(url, options);
 
