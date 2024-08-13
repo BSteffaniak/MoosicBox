@@ -903,6 +903,11 @@ export function updateSession(
 
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
+    playerState.audioZones.forEach((zone) => {
+        if (isMasterPlayer(zone)) {
+            updatePlayback({ seek: value ?? 0 });
+        }
+    });
 });
 
 onUpdateSessionPartial((session) => {
