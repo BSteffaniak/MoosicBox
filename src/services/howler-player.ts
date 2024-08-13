@@ -330,7 +330,7 @@ export function createPlayer(id: number): PlayerType {
                     case 'tracks':
                     case 'position':
                     case 'sessionId':
-                    case 'audioZoneId':
+                    case 'playbackTarget':
                         break;
                     default:
                         key satisfies never;

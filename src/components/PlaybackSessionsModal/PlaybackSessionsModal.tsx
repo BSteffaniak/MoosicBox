@@ -1,7 +1,7 @@
 import './playback-sessions-modal.css';
 import Modal from '../Modal';
 import PlaybackSessions from '../PlaybackSessions';
-import { playerState } from '~/services/player';
+import { currentPlaybackTarget } from '~/services/player';
 import { showPlaybackSessions, triggerStartup } from '~/services/app';
 import { clientSignal } from '~/services/util';
 import { onMount } from 'solid-js';
@@ -19,7 +19,7 @@ export default function playbackSessionsModalFunc() {
             playlist: {
                 tracks: [],
             },
-            audioZoneId: playerState.currentAudioZone?.id,
+            playbackTarget: currentPlaybackTarget(),
         });
     }
 

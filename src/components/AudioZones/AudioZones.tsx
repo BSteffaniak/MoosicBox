@@ -4,7 +4,7 @@ import { Index, createComputed, createSignal } from 'solid-js';
 import { api, Api } from '~/services/api';
 import {
     playerState,
-    setCurrentAudioZoneId,
+    setCurrentPlaybackTarget,
     setPlayerState,
 } from '~/services/player';
 import { appState } from '~/services/app';
@@ -77,7 +77,10 @@ export default function audioZonesFunc() {
         setPlayerState(
             produce((state) => {
                 state.currentAudioZone = zone;
-                setCurrentAudioZoneId(zone.id);
+                setCurrentPlaybackTarget({
+                    type: 'AUDIO_ZONE',
+                    audioZoneId: zone.id,
+                });
             }),
         );
     }
@@ -110,7 +113,14 @@ export default function audioZonesFunc() {
                 if (zone.id === state.currentAudioZone?.id) {
                     const newZone = state.audioZones[0];
                     state.currentAudioZone = newZone;
-                    setCurrentAudioZoneId(newZone?.id);
+                    if (newZone) {
+                        setCurrentPlaybackTarget({
+                            type: 'AUDIO_ZONE',
+                            audioZoneId: newZone.id,
+                        });
+                    } else {
+                        setCurrentPlaybackTarget(undefined);
+                    }
                 }
 
                 index = state.audioZones.findIndex((x) => x.id === zone.id);

@@ -252,7 +252,7 @@ export namespace Api {
         position?: number;
         seek?: number;
         volume?: number;
-        audioZoneId?: number;
+        playbackTarget?: PlaybackTarget;
         playlist?: UpdatePlaybackSessionPlaylist;
     }
 
@@ -279,9 +279,24 @@ export namespace Api {
         players?: number[];
     }
 
+    export interface AudioZonePlaybackTarget {
+        type: 'AUDIO_ZONE';
+        audioZoneId: number;
+    }
+
+    export interface ConnectionOutputPlaybackTarget {
+        type: 'CONNECTION_OUTPUT';
+        connectionId: number;
+        outputId: string;
+    }
+
+    export type PlaybackTarget =
+        | AudioZonePlaybackTarget
+        | ConnectionOutputPlaybackTarget;
+
     export interface PlaybackSession {
         sessionId: number;
-        audioZoneId: number;
+        playbackTarget: PlaybackTarget;
         name: string;
         active: boolean;
         playing: boolean;

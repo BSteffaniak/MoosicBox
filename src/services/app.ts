@@ -4,8 +4,8 @@ import { createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { clientAtom } from './util';
 import {
-    currentAudioZoneId,
-    setCurrentAudioZoneId,
+    currentPlaybackTarget,
+    setCurrentPlaybackTarget,
     setPlayerState,
 } from './player';
 
@@ -135,10 +135,12 @@ onStartup(async () => {
         produce((state) => {
             state.audioZones = zones.items;
 
-            const current = currentAudioZoneId();
+            const current = currentPlaybackTarget();
 
-            if (typeof current === 'number') {
-                const existing = state.audioZones.find((x) => x.id === current);
+            if (current?.type === 'AUDIO_ZONE') {
+                const existing = state.audioZones.find(
+                    (x) => x.id === current.audioZoneId,
+                );
 
                 if (existing) {
                     state.currentAudioZone = existing;
@@ -148,7 +150,10 @@ onStartup(async () => {
             if (!state.currentAudioZone) {
                 state.currentAudioZone = state.audioZones[0];
                 if (state.currentAudioZone) {
-                    setCurrentAudioZoneId(state.currentAudioZone.id);
+                    setCurrentPlaybackTarget({
+                        type: 'AUDIO_ZONE',
+                        audioZoneId: state.currentAudioZone.id,
+                    });
                 }
             }
         }),

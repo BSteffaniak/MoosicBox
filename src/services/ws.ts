@@ -129,7 +129,7 @@ export interface SessionUpdatedMessage extends InboundMessage {
 
 export interface SetSeek {
     sessionId: number;
-    audioZoneId: number;
+    playbackTarget: Api.PlaybackTarget;
     seek: number;
 }
 
@@ -184,11 +184,6 @@ export interface GetSessionsMessage extends OutboundMessage {
     type: OutboundMessageType.GET_SESSIONS;
 }
 
-export interface SetAudioZone {
-    sessionId: number;
-    audioZoneId: number;
-}
-
 export interface CreateAudioZoneMessage extends OutboundMessage {
     type: OutboundMessageType.CREATE_AUDIO_ZONE;
     payload: CreateAudioZoneRequest;
@@ -201,7 +196,7 @@ export interface CreateAudioZoneRequest {
 export interface CreateSessionRequest {
     name: string;
     playlist: CreateSessionPlaylistRequest;
-    audioZoneId: number | undefined;
+    playbackTarget: Api.PlaybackTarget | undefined;
 }
 
 export interface CreateSessionPlaylistRequest {

@@ -71,35 +71,38 @@ export const setPlaybackQuality = (
     updatePlayback({ quality: value });
 };
 
-export const [_currentAudioZoneId, _setCurrentAudioZoneId] = makePersisted(
-    createSignal<number | undefined>(undefined, { equals: false }),
-    {
-        name: `player.v1.currentAudioZoneId`,
-    },
-);
-const onCurrentAudioZoneIdChangedListener =
+export const [_currentPlaybackTarget, _setCurrentPlaybackTarget] =
+    makePersisted(
+        createSignal<Api.PlaybackTarget | undefined>(undefined, {
+            equals: false,
+        }),
+        {
+            name: `player.v1.currentPlaybackTarget`,
+        },
+    );
+const onCurrentPlaybackTargetChangedListener =
     createListener<
         (
-            value: ReturnType<typeof _currentAudioZoneId>,
-            old: ReturnType<typeof _currentAudioZoneId>,
+            value: ReturnType<typeof _currentPlaybackTarget>,
+            old: ReturnType<typeof _currentPlaybackTarget>,
         ) => boolean | void | Promise<boolean | void>
     >();
-export const onCurrentAudioZoneIdChanged =
-    onCurrentAudioZoneIdChangedListener.on;
-export const offCurrentAudioZoneIdChanged =
-    onCurrentAudioZoneIdChangedListener.off;
-export const currentAudioZoneId = _currentAudioZoneId;
-export const setCurrentAudioZoneId = (
-    value: Parameters<typeof _setCurrentAudioZoneId>[0],
+export const onCurrentPlaybackTargetChanged =
+    onCurrentPlaybackTargetChangedListener.on;
+export const offCurrentPlaybackTargetChanged =
+    onCurrentPlaybackTargetChangedListener.off;
+export const currentPlaybackTarget = _currentPlaybackTarget;
+export const setCurrentPlaybackTarget = (
+    value: Parameters<typeof _setCurrentPlaybackTarget>[0],
     trigger = true,
 ) => {
-    const old = _currentAudioZoneId();
+    const old = _currentPlaybackTarget();
     if (typeof value === 'function') {
         value = value(old);
     }
-    _setCurrentAudioZoneId(value);
+    _setCurrentPlaybackTarget(value);
     if (trigger && value !== old) {
-        onCurrentAudioZoneIdChangedListener.trigger(value, old);
+        onCurrentPlaybackTargetChangedListener.trigger(value, old);
     }
     updatePlayback({});
 };
@@ -580,20 +583,37 @@ export function registerPlayer(player: PlayerType) {
 }
 
 export function sessionUpdated(update: PartialUpdateSession) {
-    if (
-        !isMasterPlayer(
-            playerState.audioZones.find((z) => z.id === update.audioZoneId),
-        )
-    ) {
-        return;
+    const playbackTarget = update.playbackTarget;
+    const playbackTargetType = playbackTarget.type;
+
+    switch (playbackTargetType) {
+        case 'AUDIO_ZONE':
+            {
+                if (
+                    !isMasterPlayer(
+                        playerState.audioZones.find(
+                            (z) => z.id === playbackTarget.audioZoneId,
+                        ),
+                    )
+                ) {
+                    return;
+                }
+            }
+            break;
+        case 'CONNECTION_OUTPUT':
+            return;
+        default:
+            playbackTargetType satisfies never;
+            throw new Error(
+                `Invalid playbackTargetType: '${playbackTargetType}'`,
+            );
     }
 
     const sessionId = update.sessionId;
-    const audioZoneId = update.audioZoneId;
 
     const playbackUpdate: PlaybackUpdate = {
         sessionId,
-        audioZoneId,
+        playbackTarget,
     };
 
     for (const [key, value] of orderedEntries(update, [
@@ -635,7 +655,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
             case 'active':
             case 'name':
             case 'sessionId':
-            case 'audioZoneId':
+            case 'playbackTarget':
                 break;
             default:
                 key satisfies never;
@@ -647,7 +667,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
 
 export type PlaybackUpdate = {
     sessionId: number;
-    audioZoneId: number;
+    playbackTarget: Api.PlaybackTarget;
     play?: boolean;
     stop?: boolean;
     playing?: boolean;
@@ -659,7 +679,7 @@ export type PlaybackUpdate = {
 };
 
 async function updatePlayback(
-    update: Omit<PlaybackUpdate, 'sessionId' | 'audioZoneId'>,
+    update: Omit<PlaybackUpdate, 'sessionId' | 'playbackTarget'>,
     updateSession = true,
 ) {
     if (!update.quality) {
@@ -668,12 +688,13 @@ async function updatePlayback(
 
     const playbackUpdate = update as PlaybackUpdate;
     const sessionId = playbackUpdate.sessionId ?? currentPlaybackSessionId();
-    const audioZoneId = playbackUpdate.audioZoneId ?? currentAudioZoneId();
+    const playbackTarget =
+        playbackUpdate.playbackTarget ?? currentPlaybackTarget();
 
     if (updateSession) {
         const sessionUpdate: Parameters<typeof updatePlaybackSession>[1] = {
             sessionId,
-            audioZoneId,
+            playbackTarget,
         };
 
         for (const [key, value] of orderedEntries(update, [
@@ -725,16 +746,35 @@ async function updatePlayback(
         updatePlaybackSession(sessionId, sessionUpdate);
     }
 
-    const activeZonePlayers = getActiveZonePlayers(
-        playerState.audioZones.find(({ id }) => id === audioZoneId),
-    );
+    const activePlayers = [];
+    const playbackTargetType = playbackTarget.type;
+
+    switch (playbackTargetType) {
+        case 'AUDIO_ZONE':
+            activePlayers.push(
+                ...getActiveZonePlayers(
+                    playerState.audioZones.find(
+                        ({ id }) => id === playbackTarget.audioZoneId,
+                    ),
+                ),
+            );
+            break;
+        case 'CONNECTION_OUTPUT':
+            // FIXME: handle ConnectionOutputPlaybackTarget
+            break;
+        default:
+            playbackTargetType satisfies never;
+            throw new Error(
+                `Invalid playbackTargetType: '${playbackTargetType}'`,
+            );
+    }
 
     Promise.all(
-        activeZonePlayers.map((activePlayer) =>
+        activePlayers.map((activePlayer) =>
             activePlayer.updatePlayback({
                 ...update,
                 sessionId,
-                audioZoneId,
+                playbackTarget,
             }),
         ),
     );
