@@ -95,10 +95,12 @@ export async function triggerStartup() {
 
 interface AppState {
     connections: Api.Connection[];
+    connection: Api.Connection | undefined;
 }
 
 export const [appState, setAppState] = createStore<AppState>({
     connections: [],
+    connection: undefined,
 });
 
 export const [currentArtistSearch, setCurrentArtistSearch] = createSignal<{
@@ -147,7 +149,7 @@ onStartup(async () => {
                 }
             }
 
-            if (!state.currentAudioZone) {
+            if (!state.currentAudioZone && !currentPlaybackTarget()) {
                 state.currentAudioZone = state.audioZones[0];
                 if (state.currentAudioZone) {
                     setCurrentPlaybackTarget({

@@ -286,7 +286,7 @@ export namespace Api {
 
     export interface ConnectionOutputPlaybackTarget {
         type: 'CONNECTION_OUTPUT';
-        connectionId: number;
+        connectionId: string;
         outputId: string;
     }
 

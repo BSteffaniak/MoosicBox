@@ -13,6 +13,7 @@ import { createStore, produce } from 'solid-js/store';
 import { createListener, orderedEntries } from './util';
 import { type PartialBy, type PartialUpdateSession } from './types';
 import { wsService } from './ws';
+import { appState } from './app';
 
 export type TrackListenerCallback = (
     track: Api.LibraryTrack,
@@ -327,9 +328,36 @@ export function isMasterPlayer(zone: Api.AudioZone | undefined): boolean {
 export function getActiveZonePlayers(
     zone: Api.AudioZone | undefined,
 ): PlayerType[] {
+    console.debug('getActiveZonePlayers: zone =', zone, 'players =', players);
     return (
         players.filter((p) => zone?.players.some((x) => p.id === x.playerId)) ??
         []
+    );
+}
+
+export function getActiveConnectionPlayers(
+    connection: Api.Connection | undefined,
+    playbackTarget: Api.ConnectionOutputPlaybackTarget,
+): PlayerType[] {
+    console.debug(
+        'getActiveConnectionPlayers: connection =',
+        connection,
+        'players =',
+        players,
+    );
+
+    if (connection?.connectionId !== playbackTarget.connectionId) {
+        return [];
+    }
+
+    return (
+        players.filter((p) =>
+            connection?.players.some(
+                (x) =>
+                    p.id === x.playerId &&
+                    x.audioOutputId === playbackTarget.outputId,
+            ),
+        ) ?? []
     );
 }
 
@@ -760,7 +788,12 @@ async function updatePlayback(
             );
             break;
         case 'CONNECTION_OUTPUT':
-            // FIXME: handle ConnectionOutputPlaybackTarget
+            activePlayers.push(
+                ...getActiveConnectionPlayers(
+                    appState.connection,
+                    playbackTarget,
+                ),
+            );
             break;
         default:
             playbackTargetType satisfies never;
@@ -768,6 +801,8 @@ async function updatePlayback(
                 `Invalid playbackTargetType: '${playbackTargetType}'`,
             );
     }
+
+    console.debug('activePlayers:', activePlayers);
 
     Promise.all(
         activePlayers.map((activePlayer) =>

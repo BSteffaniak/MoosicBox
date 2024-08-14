@@ -289,6 +289,9 @@ onMessageFirst((data) => {
             setAppState(
                 produce((state) => {
                     state.connections = message.payload;
+                    state.connection = state.connections.find(
+                        (c) => c.connectionId === connectionId.get(),
+                    );
                 }),
             );
             break;

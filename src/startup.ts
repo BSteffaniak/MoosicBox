@@ -20,11 +20,7 @@ setProperty('connectionId', connectionId.get());
 setProperty('connectionName', connectionName.get());
 
 function updatePlayer() {
-    const connection = appState.connections.find(
-        (c) => c.connectionId === connectionId.get(),
-    );
-
-    connection?.players
+    appState.connection?.players
         .filter((player) => player.audioOutputId === 'HOWLER')
         .forEach((player) => {
             registerPlayer(createHowlerPlayer(player.playerId));

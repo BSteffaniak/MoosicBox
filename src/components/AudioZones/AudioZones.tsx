@@ -3,6 +3,7 @@ import { produce } from 'solid-js/store';
 import { Index, createComputed, createSignal } from 'solid-js';
 import { api, Api } from '~/services/api';
 import {
+    currentPlaybackTarget,
     playerState,
     setCurrentPlaybackTarget,
     setPlayerState,
@@ -12,15 +13,19 @@ import Modal from '../Modal';
 import { clientSignal } from '~/services/util';
 import { connectionId } from '~/services/ws';
 
+type PlayerWithConnection = Api.Player & {
+    connection: Api.Connection | undefined;
+};
 type AudioZoneWithConnections = Omit<Api.AudioZone, 'players'> & {
-    players: (Api.Player & {
-        connection: Api.Connection | undefined;
-    })[];
+    players: PlayerWithConnection[];
 };
 
 export default function audioZonesFunc() {
     let audioZoneNameRef: HTMLInputElement | undefined;
 
+    const [connectionPlayers, setConnectionPlayers] = createSignal<
+        PlayerWithConnection[]
+    >([]);
     const [audioZones, setAudioZones] = createSignal<
         AudioZoneWithConnections[]
     >([]);
@@ -34,6 +39,20 @@ export default function audioZonesFunc() {
 
     const [$connectionId] = clientSignal(connectionId);
     const [connections, setConnections] = createSignal<Api.Connection[]>([]);
+
+    function getPlayersWithConnections(): PlayerWithConnection[] {
+        const current = appState.connection;
+        console.log(current);
+
+        return (
+            current?.players?.map((player) => {
+                return {
+                    ...player,
+                    connection: current,
+                };
+            }) ?? []
+        );
+    }
 
     function getAudioZonesWithConnections(): AudioZoneWithConnections[] {
         const connections = appState.connections;
@@ -57,6 +76,7 @@ export default function audioZonesFunc() {
     }
 
     createComputed(() => {
+        setConnectionPlayers(getPlayersWithConnections());
         setAudioZones(getAudioZonesWithConnections());
         setActiveAudioZone(playerState.currentAudioZone);
 
@@ -72,6 +92,22 @@ export default function audioZonesFunc() {
 
         setConnections([...aliveCurrent, ...aliveOthers, ...dead]);
     });
+
+    function activateConnectionPlayer(player: PlayerWithConnection) {
+        setPlayerState(
+            produce((state) => {
+                state.currentAudioZone = undefined;
+                const connectionId = player.connection?.connectionId;
+                if (connectionId) {
+                    setCurrentPlaybackTarget({
+                        type: 'CONNECTION_OUTPUT',
+                        connectionId,
+                        outputId: player.audioOutputId,
+                    });
+                }
+            }),
+        );
+    }
 
     function activateAudioZone(zone: Api.AudioZone) {
         setPlayerState(
@@ -188,6 +224,42 @@ export default function audioZonesFunc() {
     return (
         <div class="audio-zones">
             <div class="audio-zones-list-modal-content">
+                <Index each={connectionPlayers()}>
+                    {(connectionPlayer) => (
+                        <div
+                            class={`audio-zones-list-zone${
+                                currentPlaybackTarget()?.type ===
+                                    'CONNECTION_OUTPUT' &&
+                                connectionPlayer().audioOutputId ===
+                                    (
+                                        currentPlaybackTarget() as Api.ConnectionOutputPlaybackTarget
+                                    ).outputId
+                                    ? ' active'
+                                    : ''
+                            }`}
+                        >
+                            <h2
+                                onClick={() =>
+                                    activateConnectionPlayer(connectionPlayer())
+                                }
+                                class="audio-zones-list-zone-header"
+                            >
+                                {connectionPlayer().name}
+                            </h2>
+                            <div
+                                class={`audio-zone-audio-zone-modal-audio-zone-player`}
+                            >
+                                <img
+                                    class="audio-icon"
+                                    src="/img/audio-white.svg"
+                                    alt="Zone Player"
+                                />{' '}
+                                {connectionPlayer().connection?.name} -{' '}
+                                {connectionPlayer().name}
+                            </div>
+                        </div>
+                    )}
+                </Index>
                 <Index each={audioZones()}>
                     {(audioZone) => (
                         <div
