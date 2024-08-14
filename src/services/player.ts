@@ -335,6 +335,17 @@ export function getActiveZonePlayers(
     );
 }
 
+export function isActiveConnectionPlayer(
+    playbackTarget: Api.ConnectionOutputPlaybackTarget,
+): boolean {
+    const players = getActiveConnectionPlayers(
+        appState.connection,
+        playbackTarget,
+    );
+
+    return players.length === 1;
+}
+
 export function getActiveConnectionPlayers(
     connection: Api.Connection | undefined,
     playbackTarget: Api.ConnectionOutputPlaybackTarget,
