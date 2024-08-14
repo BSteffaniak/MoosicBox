@@ -994,11 +994,17 @@ export function updateSession(
 
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
-    playerState.audioZones.forEach((zone) => {
-        if (isMasterPlayer(zone)) {
-            updatePlayback({ seek: value ?? 0 });
-        }
-    });
+    const activeZonePlayer = playerState.audioZones.some((zone) =>
+        isMasterPlayer(zone),
+    );
+    const playbackTarget = currentPlaybackTarget();
+    if (
+        activeZonePlayer ||
+        (playbackTarget?.type === 'CONNECTION_OUTPUT' &&
+            isActiveConnectionPlayer(playbackTarget))
+    ) {
+        updatePlayback({ seek: value ?? 0 });
+    }
 });
 
 onUpdateSessionPartial((session) => {
