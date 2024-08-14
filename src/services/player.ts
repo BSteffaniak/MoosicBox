@@ -10,10 +10,11 @@ import {
     toSessionPlaylistTrack,
 } from './api';
 import { createStore, produce } from 'solid-js/store';
-import { createListener, orderedEntries } from './util';
+import { createListener, deepEqual, orderedEntries } from './util';
 import { type PartialBy, type PartialUpdateSession } from './types';
 import { wsService } from './ws';
-import { appState } from './app';
+import { appState, showChangePlaybackTargetModal } from './app';
+import { responsePromise } from '~/components/ChangePlaybackTargetModal/ChangePlaybackTargetModal';
 
 export type TrackListenerCallback = (
     track: Api.LibraryTrack,
@@ -709,6 +710,15 @@ export function sessionUpdated(update: PartialUpdateSession) {
     updatePlayback(playbackUpdate, false);
 }
 
+async function confirmChangePlaybackTarget() {
+    showChangePlaybackTargetModal.set(true);
+
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve) => {
+        resolve(await responsePromise());
+    });
+}
+
 export type PlaybackUpdate = {
     sessionId: number;
     playbackTarget: Api.PlaybackTarget;
@@ -732,8 +742,32 @@ async function updatePlayback(
 
     const playbackUpdate = update as PlaybackUpdate;
     const sessionId = playbackUpdate.sessionId ?? currentPlaybackSessionId();
-    const playbackTarget =
-        playbackUpdate.playbackTarget ?? currentPlaybackTarget();
+    const session = playerState.playbackSessions.find(
+        (x) => x.sessionId === sessionId,
+    );
+    let playbackTarget = playbackUpdate.playbackTarget;
+    const currentTarget = currentPlaybackTarget();
+    let useDefaultPlaybackTarget = false;
+
+    if (session) {
+        playbackTarget = session.playbackTarget;
+
+        if (
+            currentTarget &&
+            !deepEqual(currentTarget, session.playbackTarget) &&
+            !session.playing &&
+            (update.playing || update.play) &&
+            (await confirmChangePlaybackTarget())
+        ) {
+            useDefaultPlaybackTarget = true;
+        }
+    }
+
+    if (useDefaultPlaybackTarget) {
+        if (currentTarget) {
+            playbackTarget = currentTarget;
+        }
+    }
 
     if (updateSession) {
         const sessionUpdate: Parameters<typeof updatePlaybackSession>[1] = {
