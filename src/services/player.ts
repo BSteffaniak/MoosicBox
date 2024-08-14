@@ -635,12 +635,17 @@ export function sessionUpdated(update: PartialUpdateSession) {
                         ),
                     )
                 ) {
+                    console.debug('Not master player. Returning');
                     return;
                 }
             }
             break;
         case 'CONNECTION_OUTPUT':
-            return;
+            if (!isActiveConnectionPlayer(playbackTarget)) {
+                console.debug('Not active connection player. Returning');
+                return;
+            }
+            break;
         default:
             playbackTargetType satisfies never;
             throw new Error(
