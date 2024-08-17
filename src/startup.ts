@@ -10,6 +10,7 @@ import {
     wsService,
 } from '~/services/ws';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
+import { startSilence } from './services/silence-player';
 
 init({
     logWriterApiUrl: 'https://logs.moosicbox.com',
@@ -55,3 +56,5 @@ connectionName.listen((connectionName) => {
     updateConnection(connectionId.get()!, connectionName);
     setProperty('connectionName', connectionName);
 });
+
+startSilence();

@@ -15,6 +15,7 @@ import { type PartialBy, type PartialUpdateSession } from './types';
 import { wsService } from './ws';
 import { appState, showChangePlaybackTargetModal } from './app';
 import { responsePromise } from '~/components/ChangePlaybackTargetModal/ChangePlaybackTargetModal';
+import { isSilencePlaying, startSilence, stopSilence } from './silence-player';
 
 export type TrackListenerCallback = (
     track: Api.LibraryTrack,
@@ -255,34 +256,6 @@ export const setPlaylist = (
         onPlaylistChangedListener.trigger(value, old);
     }
 };
-
-if (!isServer) {
-    if (navigator?.mediaSession) {
-        navigator.mediaSession.setActionHandler('play', () => play());
-        navigator.mediaSession.setActionHandler('pause', () => pause());
-        navigator.mediaSession.setActionHandler('stop', () => stop());
-        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-        navigator.mediaSession.setActionHandler('previoustrack', () =>
-            previousTrack(),
-        );
-    }
-
-    document.body.onkeydown = function (e) {
-        const target = e.target as HTMLElement;
-
-        if (
-            !(target instanceof HTMLInputElement) &&
-            (e.key == ' ' || e.code == 'Space')
-        ) {
-            if (playerState.currentPlaybackSession?.playing || playing()) {
-                pause();
-            } else {
-                play();
-            }
-            e.preventDefault();
-        }
-    };
-}
 
 export interface PlayerType {
     id: number;
@@ -636,6 +609,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
                         ),
                     )
                 ) {
+                    handlePlaybackUpdate(update);
                     console.debug('Not master player. Returning');
                     return;
                 }
@@ -643,6 +617,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
             break;
         case 'CONNECTION_OUTPUT':
             if (!isActiveConnectionPlayer(playbackTarget)) {
+                handlePlaybackUpdate(update);
                 console.debug('Not active connection player. Returning');
                 return;
             }
@@ -854,15 +829,98 @@ async function updatePlayback(
 
     console.debug('activePlayers:', activePlayers);
 
-    Promise.all(
+    await updateActivePlayers(activePlayers, {
+        ...update,
+        sessionId,
+        playbackTarget,
+    });
+}
+
+async function updateActivePlayers(
+    activePlayers: PlayerType[],
+    update: PlaybackUpdate,
+) {
+    if (activePlayers.length === 0) {
+        handlePlaybackUpdate(update);
+    } else {
+        stopSilence();
+    }
+
+    await Promise.all(
         activePlayers.map((activePlayer) =>
-            activePlayer.updatePlayback({
-                ...update,
-                sessionId,
-                playbackTarget,
-            }),
+            activePlayer.updatePlayback(update),
         ),
     );
+}
+
+function handlePlaybackUpdate(update: PlaybackUpdate) {
+    for (const [key, value] of orderedEntries(update, [
+        'stop',
+        'volume',
+        'seek',
+        'play',
+        'tracks',
+        'position',
+        'playing',
+        'quality',
+    ])) {
+        if (typeof value === 'undefined') continue;
+
+        switch (key) {
+            case 'stop':
+                if (update.play || update.playing) continue;
+                if (navigator.mediaSession) {
+                    navigator.mediaSession.playbackState = 'paused';
+                }
+                break;
+            case 'playing':
+                if (update.play) continue;
+                if (navigator.mediaSession) {
+                    navigator.mediaSession.playbackState = update.playing
+                        ? 'playing'
+                        : 'paused';
+                }
+                if (update.playing) {
+                    return startSilence();
+                }
+                break;
+            case 'play':
+                if (!isSilencePlaying()) {
+                    return startSilence();
+                }
+                if (navigator.mediaSession) {
+                    navigator.mediaSession.playbackState = 'playing';
+                }
+                break;
+            case 'seek':
+                if (typeof update.seek === 'number') {
+                    navigator.mediaSession?.setPositionState({
+                        position: update.seek,
+                        duration: currentTrackLength(),
+                    });
+                }
+                break;
+            case 'volume':
+            case 'quality':
+            case 'tracks':
+            case 'position':
+            case 'sessionId':
+            case 'playbackTarget':
+                break;
+            default:
+                key satisfies never;
+        }
+    }
+
+    const session = playerState.playbackSessions.find(
+        (session) => session.sessionId === update.sessionId,
+    );
+
+    if (session?.playing) {
+        if (!isSilencePlaying()) {
+            return startSilence();
+        }
+    }
 }
 
 function updatePlaybackSession(
@@ -1028,6 +1086,12 @@ export function updateSession(
 
 onCurrentSeekChanged((value, old) => {
     console.debug('current seek changed from', old, 'to', value);
+    if (typeof value === 'number') {
+        navigator.mediaSession?.setPositionState({
+            position: value,
+            duration: currentTrackLength(),
+        });
+    }
     const activeZonePlayer = playerState.audioZones.some((zone) =>
         isMasterPlayer(zone),
     );
@@ -1053,4 +1117,58 @@ onUpdateSessionPartial((session) => {
 
 export function playing(): boolean {
     return playerState.currentPlaybackSession?.playing ?? false;
+}
+
+if (!isServer) {
+    if (navigator?.mediaSession) {
+        onCurrentPlaybackSessionChanged((value) => {
+            navigator.mediaSession.playbackState = value?.playing
+                ? 'playing'
+                : 'paused';
+            console.debug(
+                'updated playback state to',
+                navigator.mediaSession.playbackState,
+            );
+        });
+        navigator.mediaSession.setActionHandler('play', () => {
+            console.log('mediaSession: play');
+            play();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            console.log('mediaSession: pause');
+            if (navigator.mediaSession.playbackState === 'playing') {
+                pause();
+            } else {
+                play();
+            }
+        });
+        navigator.mediaSession.setActionHandler('stop', () => {
+            console.log('mediaSession: stop');
+            stop();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            console.log('mediaSession: nexttrack');
+            nextTrack();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            console.log('mediaSession: previoustrack');
+            previousTrack();
+        });
+    }
+
+    document.body.onkeydown = function (e) {
+        const target = e.target as HTMLElement;
+
+        if (
+            !(target instanceof HTMLInputElement) &&
+            (e.key == ' ' || e.code == 'Space')
+        ) {
+            if (playerState.currentPlaybackSession?.playing || playing()) {
+                pause();
+            } else {
+                play();
+            }
+            e.preventDefault();
+        }
+    };
 }
