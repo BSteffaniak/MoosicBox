@@ -13,10 +13,10 @@ importers:
         version: 0.5.10(prettier-plugin-astro@0.13.0)(prettier@3.3.3)(typescript@5.5.2)
       '@astrojs/node':
         specifier: ^8.3.3
-        version: 8.3.3(astro@4.14.2(@types/node@22.4.0)(rollup@4.21.0)(typescript@5.5.2))
+        version: 8.3.3(astro@4.14.2(@types/node@22.4.1)(rollup@4.21.0)(typescript@5.5.2))
       '@astrojs/solid-js':
         specifier: ^4.4.1
-        version: 4.4.1(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.0))
+        version: 4.4.1(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1))
       '@aws-sdk/client-ssm':
         specifier: ^3.632.0
         version: 3.632.0(aws-crt@1.21.3)
@@ -40,7 +40,7 @@ importers:
         version: 6.2.3(solid-js@1.8.21)
       astro:
         specifier: ^4.14.2
-        version: 4.14.2(@types/node@22.4.0)(rollup@4.21.0)(typescript@5.5.2)
+        version: 4.14.2(@types/node@22.4.1)(rollup@4.21.0)(typescript@5.5.2)
       astro-sst:
         specifier: ^2.43.5
         version: 2.43.5
@@ -83,7 +83,7 @@ importers:
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.2)
       '@vitest/coverage-v8':
         specifier: ^1.6.0
-        version: 1.6.0(vitest@1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1))
+        version: 1.6.0(vitest@1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1))
       '@vitest/ui':
         specifier: ^1.6.0
         version: 1.6.0(vitest@1.6.0)
@@ -125,10 +125,10 @@ importers:
         version: 5.5.2
       vite:
         specifier: ^5.4.1
-        version: 5.4.1(@types/node@22.4.0)
+        version: 5.4.1(@types/node@22.4.1)
       vitest:
         specifier: ^1.6.0
-        version: 1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1)
+        version: 1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1)
 
 packages:
 
@@ -295,8 +295,8 @@ packages:
     resolution: {integrity: sha512-mtbrnwk5aXblWDezelgXz7EkVV0onZEIGNOSogokDXCBUXZBXYYO83abVfGtYNBYIvBi8E++JuSgqdwQ2ZoA2A==}
     engines: {node: '>=16.0.0'}
 
-  '@aws-sdk/client-lambda@3.632.0':
-    resolution: {integrity: sha512-vF4KRuHGr6EfW+dssm56S6b+jAa8dKqdWduHNms1TQFah0iOkjc9Dpo4p4j6bobZcuricGko/OZy9ynb1Dwldg==}
+  '@aws-sdk/client-lambda@3.634.0':
+    resolution: {integrity: sha512-usQhHRkJ9etWUIDusS2DK/UP1PlEP1XoeXJpnMDTTQGT2XPMtWlLaa5OYOrVqUiZbVE3FJNCS7K2ReIex/JciQ==}
     engines: {node: '>=16.0.0'}
 
   '@aws-sdk/client-rds-data@3.632.0':
@@ -1675,8 +1675,8 @@ packages:
   '@types/nlcst@2.0.3':
     resolution: {integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==}
 
-  '@types/node@22.4.0':
-    resolution: {integrity: sha512-49AbMDwYUz7EXxKU/r7mXOsxwFr4BYbvB7tWYxVuLdb2ibd30ijjXINSMAHiEEZk5PCRBmW1gUeisn2VMKt3cQ==}
+  '@types/node@22.4.1':
+    resolution: {integrity: sha512-1tbpb9325+gPnKK0dMm+/LMriX0vKxf6RnB0SZUqfyVkQ4fMgUSySqhxE/y8Jvs4NyF1yHzTfG9KlnkIODxPKg==}
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -1975,8 +1975,8 @@ packages:
     engines: {node: ^18.17.1 || ^20.3.0 || >=21.0.0, npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
-  async@3.2.5:
-    resolution: {integrity: sha512-baNZyqaaLhyLVKm/DlvdW051MSgO6b8eVfIezl9E5PqWxFgzLm/wQntEW4zOytVburDEr0JlALEpdOFwvErLsg==}
+  async@3.2.6:
+    resolution: {integrity: sha512-htCUDlxyyCLMgaM3xXg0C0LW2xqfuQ6p05pCEIsXuyQ+a1koYKTuBMzRNwmybfLgvJDMd0r1LTn4+E0Ti6C2AA==}
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
@@ -2021,8 +2021,8 @@ packages:
     resolution: {integrity: sha512-JEnLUx288ttfuwy+ZJA/g9vFG+M3Mucyo1LXypWC8cNV1D8hGvAxeqHygs9TiinvjUazM7gcXwSA+s3E+tbx/g==}
     engines: {node: '>=8.17.0'}
 
-  aws-sdk@2.1677.0:
-    resolution: {integrity: sha512-hIwHr+sfKwS40+AA6yNGR4I0xYGK6tZ9wrg1YmhQRQ5q12KmdXgau6rFNa2VizUxdMlwumgixncvNk4m8Ffx8g==}
+  aws-sdk@2.1678.0:
+    resolution: {integrity: sha512-7+MNi7hholVrQYBu8bVbfzOBHxKlC63BfuxUwwMaUrFN1hok4pdB0QsEvL6YHwZtF+3Bq5zhONImnT2Q7W15yg==}
     engines: {node: '>= 10.0.0'}
 
   axios@1.7.4:
@@ -3575,8 +3575,8 @@ packages:
   mdast-util-from-markdown@2.0.1:
     resolution: {integrity: sha512-aJEUyzZ6TzlsX2s5B4Of7lN7EQtAxvtradMMglCQDyaTFgse6CmtmdJ15ElnVRlCg1vpNyVtbem0PWzlNieZsA==}
 
-  mdast-util-gfm-autolink-literal@2.0.0:
-    resolution: {integrity: sha512-FyzMsduZZHSc3i0Px3PQcBT4WJY/X/RCtEJKuybiC6sjPqLv7h1yqAkmILZtuxMSsUyaLUWNp71+vQH2zqp5cg==}
+  mdast-util-gfm-autolink-literal@2.0.1:
+    resolution: {integrity: sha512-5HVP2MKaP6L+G6YaxPNjuL0BPrq9orG3TsrZ9YXbA3vDw/ACI4MEsnoDpn6ZNm7GnZgtAcONJyPhOP8tNJQavQ==}
 
   mdast-util-gfm-footnote@2.0.0:
     resolution: {integrity: sha512-5jOT2boTSVkMnQ7LTrd6n/18kqwjmuYqo7JUPe+tRCY6O7dAuTFMtTPauYYrMPpox9hlN0uOx/FL8XvEfG9/mQ==}
@@ -4737,8 +4737,8 @@ packages:
   unbox-primitive@1.0.2:
     resolution: {integrity: sha512-61pPlCD9h51VoreyJ0BReideM3MDKMKnh6+V9L08331ipq6Q8OFXZYiqP6n/tbHx4s5I9uRhcye6BrbkizkBDw==}
 
-  undici-types@6.19.6:
-    resolution: {integrity: sha512-e/vggGopEfTKSvj4ihnOLTsqhrKRN3LeO6qSN/GxohhuRv8qH9bNQ4B8W7e/vFL+0XTnmHPB4/kegunZGA4Org==}
+  undici-types@6.19.8:
+    resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
   undici@5.28.4:
     resolution: {integrity: sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==}
@@ -5314,9 +5314,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/node@8.3.3(astro@4.14.2(@types/node@22.4.0)(rollup@4.21.0)(typescript@5.5.2))':
+  '@astrojs/node@8.3.3(astro@4.14.2(@types/node@22.4.1)(rollup@4.21.0)(typescript@5.5.2))':
     dependencies:
-      astro: 4.14.2(@types/node@22.4.0)(rollup@4.21.0)(typescript@5.5.2)
+      astro: 4.14.2(@types/node@22.4.1)(rollup@4.21.0)(typescript@5.5.2)
       send: 0.18.0
       server-destroy: 1.0.1
     transitivePeerDependencies:
@@ -5326,10 +5326,10 @@ snapshots:
     dependencies:
       prismjs: 1.29.0
 
-  '@astrojs/solid-js@4.4.1(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.0))':
+  '@astrojs/solid-js@4.4.1(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1))':
     dependencies:
       solid-js: 1.8.21
-      vite-plugin-solid: 2.10.2(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.0))
+      vite-plugin-solid: 2.10.2(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1))
     transitivePeerDependencies:
       - '@testing-library/jest-dom'
       - supports-color
@@ -5768,7 +5768,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-lambda@3.632.0(aws-crt@1.21.3)':
+  '@aws-sdk/client-lambda@3.634.0(aws-crt@1.21.3)':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
@@ -6973,7 +6973,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.4.0
+      '@types/node': 22.4.1
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -7696,9 +7696,9 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
-  '@types/node@22.4.0':
+  '@types/node@22.4.1':
     dependencies:
-      undici-types: 6.19.6
+      undici-types: 6.19.8
 
   '@types/stack-utils@2.0.3': {}
 
@@ -7710,7 +7710,7 @@ snapshots:
 
   '@types/ws@8.5.12':
     dependencies:
-      '@types/node': 22.4.0
+      '@types/node': 22.4.1
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -7801,7 +7801,7 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitest/coverage-v8@1.6.0(vitest@1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1))':
+  '@vitest/coverage-v8@1.6.0(vitest@1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -7816,7 +7816,7 @@ snapshots:
       std-env: 3.7.0
       strip-literal: 2.1.0
       test-exclude: 6.0.0
-      vitest: 1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1)
+      vitest: 1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -7851,7 +7851,7 @@ snapshots:
       pathe: 1.1.2
       picocolors: 1.0.1
       sirv: 2.0.4
-      vitest: 1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1)
+      vitest: 1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1)
 
   '@vitest/utils@1.6.0':
     dependencies:
@@ -8032,7 +8032,7 @@ snapshots:
   archiver@5.3.2:
     dependencies:
       archiver-utils: 2.1.0
-      async: 3.2.5
+      async: 3.2.6
       buffer-crc32: 0.2.13
       readable-stream: 3.6.2
       readdir-glob: 1.1.3
@@ -8125,7 +8125,7 @@ snapshots:
       '@astrojs/webapi': 3.0.0
       set-cookie-parser: 2.7.0
 
-  astro@4.14.2(@types/node@22.4.0)(rollup@4.21.0)(typescript@5.5.2):
+  astro@4.14.2(@types/node@22.4.1)(rollup@4.21.0)(typescript@5.5.2):
     dependencies:
       '@astrojs/compiler': 2.10.3
       '@astrojs/internal-helpers': 0.4.1
@@ -8186,8 +8186,8 @@ snapshots:
       tsconfck: 3.1.1(typescript@5.5.2)
       unist-util-visit: 5.0.0
       vfile: 6.0.2
-      vite: 5.4.1(@types/node@22.4.0)
-      vitefu: 0.2.5(vite@5.4.1(@types/node@22.4.0))
+      vite: 5.4.1(@types/node@22.4.1)
+      vitefu: 0.2.5(vite@5.4.1(@types/node@22.4.1))
       which-pm: 3.0.0
       xxhash-wasm: 1.0.2
       yargs-parser: 21.1.1
@@ -8209,7 +8209,7 @@ snapshots:
       - terser
       - typescript
 
-  async@3.2.5: {}
+  async@3.2.6: {}
 
   asynckit@0.4.0: {}
 
@@ -8256,7 +8256,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  aws-sdk@2.1677.0:
+  aws-sdk@2.1678.0:
     dependencies:
       buffer: 4.9.2
       events: 1.1.1
@@ -8418,7 +8418,7 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 2.124.0
       '@aws-cdk/cx-api': 2.124.0(@aws-cdk/cloud-assembly-schema@2.124.0)
       archiver: 5.3.2
-      aws-sdk: 2.1677.0
+      aws-sdk: 2.1678.0
       glob: 7.2.3
       mime: 2.6.0
       yargs: 16.2.0
@@ -9835,7 +9835,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 22.4.0
+      '@types/node': 22.4.1
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -10073,7 +10073,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mdast-util-gfm-autolink-literal@2.0.0:
+  mdast-util-gfm-autolink-literal@2.0.1:
     dependencies:
       '@types/mdast': 4.0.4
       ccount: 2.0.1
@@ -10121,7 +10121,7 @@ snapshots:
   mdast-util-gfm@3.0.0:
     dependencies:
       mdast-util-from-markdown: 2.0.1
-      mdast-util-gfm-autolink-literal: 2.0.0
+      mdast-util-gfm-autolink-literal: 2.0.1
       mdast-util-gfm-footnote: 2.0.0
       mdast-util-gfm-strikethrough: 2.0.0
       mdast-util-gfm-table: 2.0.0
@@ -11266,7 +11266,7 @@ snapshots:
       '@aws-sdk/client-iam': 3.632.0(aws-crt@1.21.3)
       '@aws-sdk/client-iot': 3.632.0(aws-crt@1.21.3)
       '@aws-sdk/client-iot-data-plane': 3.632.0(aws-crt@1.21.3)
-      '@aws-sdk/client-lambda': 3.632.0(aws-crt@1.21.3)
+      '@aws-sdk/client-lambda': 3.634.0(aws-crt@1.21.3)
       '@aws-sdk/client-rds-data': 3.632.0(aws-crt@1.21.3)
       '@aws-sdk/client-s3': 3.633.0(aws-crt@1.21.3)
       '@aws-sdk/client-ssm': 3.632.0(aws-crt@1.21.3)
@@ -11285,7 +11285,7 @@ snapshots:
       adm-zip: 0.5.15
       aws-cdk-lib: 2.124.0(constructs@10.3.0)
       aws-iot-device-sdk: 2.2.15
-      aws-sdk: 2.1677.0
+      aws-sdk: 2.1678.0
       builtin-modules: 3.2.0
       cdk-assets: 2.124.0
       chalk: 5.3.0
@@ -11589,7 +11589,7 @@ snapshots:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  undici-types@6.19.6: {}
+  undici-types@6.19.8: {}
 
   undici@5.28.4:
     dependencies:
@@ -11715,13 +11715,13 @@ snapshots:
       unist-util-stringify-position: 4.0.0
       vfile-message: 4.0.2
 
-  vite-node@1.6.0(@types/node@22.4.0):
+  vite-node@1.6.0(@types/node@22.4.1):
     dependencies:
       cac: 6.7.14
       debug: 4.3.6
       pathe: 1.1.2
       picocolors: 1.0.1
-      vite: 5.4.1(@types/node@22.4.0)
+      vite: 5.4.1(@types/node@22.4.1)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -11733,7 +11733,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-solid@2.10.2(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.0)):
+  vite-plugin-solid@2.10.2(@testing-library/jest-dom@5.17.0)(solid-js@1.8.21)(vite@5.4.1(@types/node@22.4.1)):
     dependencies:
       '@babel/core': 7.25.2
       '@types/babel__core': 7.20.5
@@ -11741,27 +11741,27 @@ snapshots:
       merge-anything: 5.1.7
       solid-js: 1.8.21
       solid-refresh: 0.6.3(solid-js@1.8.21)
-      vite: 5.4.1(@types/node@22.4.0)
-      vitefu: 0.2.5(vite@5.4.1(@types/node@22.4.0))
+      vite: 5.4.1(@types/node@22.4.1)
+      vitefu: 0.2.5(vite@5.4.1(@types/node@22.4.1))
     optionalDependencies:
       '@testing-library/jest-dom': 5.17.0
     transitivePeerDependencies:
       - supports-color
 
-  vite@5.4.1(@types/node@22.4.0):
+  vite@5.4.1(@types/node@22.4.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.41
       rollup: 4.21.0
     optionalDependencies:
-      '@types/node': 22.4.0
+      '@types/node': 22.4.1
       fsevents: 2.3.3
 
-  vitefu@0.2.5(vite@5.4.1(@types/node@22.4.0)):
+  vitefu@0.2.5(vite@5.4.1(@types/node@22.4.1)):
     optionalDependencies:
-      vite: 5.4.1(@types/node@22.4.0)
+      vite: 5.4.1(@types/node@22.4.1)
 
-  vitest@1.6.0(@types/node@22.4.0)(@vitest/ui@1.6.0)(jsdom@24.1.1):
+  vitest@1.6.0(@types/node@22.4.1)(@vitest/ui@1.6.0)(jsdom@24.1.1):
     dependencies:
       '@vitest/expect': 1.6.0
       '@vitest/runner': 1.6.0
@@ -11780,11 +11780,11 @@ snapshots:
       strip-literal: 2.1.0
       tinybench: 2.9.0
       tinypool: 0.8.4
-      vite: 5.4.1(@types/node@22.4.0)
-      vite-node: 1.6.0(@types/node@22.4.0)
+      vite: 5.4.1(@types/node@22.4.1)
+      vite-node: 1.6.0(@types/node@22.4.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 22.4.0
+      '@types/node': 22.4.1
       '@vitest/ui': 1.6.0(vitest@1.6.0)
       jsdom: 24.1.1
     transitivePeerDependencies:
