@@ -1,5 +1,3 @@
-/// <reference path="../.sst/platform/config.d.ts" />
-
 import { exec } from 'node:child_process';
 
 async function getHostedZoneId(domain: string): Promise<string> {

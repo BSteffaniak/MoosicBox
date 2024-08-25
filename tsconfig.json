@@ -1,5 +1,5 @@
 {
-    "extends": "astro/tsconfigs/strictest",
+    "extends": "./.sst/platform/tsconfig.json",
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
