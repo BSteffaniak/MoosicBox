@@ -53,7 +53,7 @@ export function toSessionPlaylistTrack(
         return {
             id: `${track.trackId}`,
             type: track.type,
-            // data: JSON.stringify(track),
+            data: JSON.stringify(track),
         };
     } else {
         return {
