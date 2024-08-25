@@ -31,8 +31,6 @@
         "@typescript-eslint/parser": "^7.18.0",
         "@vitest/coverage-v8": "^1.6.0",
         "@vitest/ui": "^1.6.0",
-        "aws-cdk-lib": "2.124.0",
-        "constructs": "10.3.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-diff": "^2.0.3",
@@ -41,7 +39,7 @@
         "jsdom": "^24.1.1",
         "prettier": "^3.3.3",
         "prettier-plugin-astro": "^0.13.0",
-        "sst": "2.40.3",
+        "sst": "^3.0.70",
         "typescript": "5.5.2",
         "vite": "^5.4.2",
         "vitest": "^1.6.0"
