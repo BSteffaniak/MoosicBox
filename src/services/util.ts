@@ -372,3 +372,7 @@ export function deepEqual<T>(x: T, y: T) {
         return true;
     } else return false;
 }
+
+export function onlyUnique<T>(value: T, index: number, array: T[]): boolean {
+    return array.indexOf(value) === index;
+}
