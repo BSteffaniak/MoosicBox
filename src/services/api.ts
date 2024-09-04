@@ -29,6 +29,7 @@ export type Track =
     | Api.YtTrack;
 export type TrackType = Track['type'];
 
+export type ScanOrigin = 'LOCAL' | 'TIDAL' | 'QOBUZ' | 'YT';
 export type ApiSource = 'LIBRARY' | 'TIDAL' | 'QOBUZ' | 'YT';
 export type Id = string | number;
 
@@ -893,6 +894,16 @@ export interface ApiType {
         signal?: AbortSignal | null,
     ): Promise<Api.AudioZone>;
     deleteAudioZone(id: number, signal?: AbortSignal | null): Promise<void>;
+    runScan(origins: ScanOrigin[], signal?: AbortSignal | null): Promise<void>;
+    startScan(
+        origins: ScanOrigin[],
+        signal?: AbortSignal | null,
+    ): Promise<void>;
+    enableScanOrigin(
+        origin: ScanOrigin,
+        signal?: AbortSignal | null,
+    ): Promise<void>;
+    addScanPath(path: string, signal?: AbortSignal | null): Promise<void>;
 }
 
 export function getConnection(): Connection {
@@ -2249,6 +2260,62 @@ async function deleteAudioZone(
     });
 }
 
+async function runScan(
+    origins: ScanOrigin[],
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const con = getConnection();
+    const query = new QueryParams({ origins: `${origins.join(',')}` });
+
+    return await requestJson(`${con.apiUrl}/scan/run-scan?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function startScan(
+    origins: ScanOrigin[],
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const con = getConnection();
+    const query = new QueryParams({ origins: `${origins.join(',')}` });
+
+    return await requestJson(`${con.apiUrl}/scan/start-scan?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function enableScanOrigin(
+    origin: ScanOrigin,
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const con = getConnection();
+    const query = new QueryParams({ origin: `${origin}` });
+
+    return await requestJson(`${con.apiUrl}/scan/scan-origins?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function addScanPath(
+    path: string,
+    signal?: AbortSignal | null,
+): Promise<void> {
+    const con = getConnection();
+    const query = new QueryParams({ path: `${path}` });
+
+    return await requestJson(`${con.apiUrl}/scan/scan-paths?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2415,4 +2482,8 @@ export const api: ApiType = {
     createAudioZone,
     updateAudioZone,
     deleteAudioZone,
+    runScan,
+    startScan,
+    enableScanOrigin,
+    addScanPath,
 };
