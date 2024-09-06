@@ -116,113 +116,129 @@ export default function settingsPage() {
 
     return (
         <div>
-            <ul>
-                <li>
-                    Name:{' '}
-                    <input
-                        ref={connectionNameInput!}
-                        type="text"
-                        value={$connectionName()}
-                        onKeyUp={(e) =>
-                            e.key === 'Enter' && saveConnectionName()
-                        }
-                    />
-                    <button onClick={saveConnectionName}>save</button>
-                </li>
-            </ul>
+            <section>
+                <ul>
+                    <li>
+                        Name:{' '}
+                        <input
+                            ref={connectionNameInput!}
+                            type="text"
+                            value={$connectionName()}
+                            onKeyUp={(e) =>
+                                e.key === 'Enter' && saveConnectionName()
+                            }
+                        />
+                        <button onClick={saveConnectionName}>save</button>
+                    </li>
+                </ul>
 
-            <Show when={$connections()}>
-                {(connections) => (
-                    <select
-                        name="connections"
-                        id="connections-dropdown"
-                        onChange={(e) => {
-                            setActiveConnection(
-                                parseInt(e.currentTarget.value),
-                            );
-                        }}
-                    >
-                        <For each={connections()}>
-                            {(con) => (
-                                <option
-                                    value={con.id}
-                                    selected={con.id === $connection()?.id}
-                                >
-                                    {con.name}
-                                </option>
-                            )}
-                        </For>
-                    </select>
-                )}
-            </Show>
+                <Show when={$connections()}>
+                    {(connections) => (
+                        <select
+                            name="connections"
+                            id="connections-dropdown"
+                            onChange={(e) => {
+                                setActiveConnection(
+                                    parseInt(e.currentTarget.value),
+                                );
+                            }}
+                        >
+                            <For each={connections()}>
+                                {(con) => (
+                                    <option
+                                        value={con.id}
+                                        selected={con.id === $connection()?.id}
+                                    >
+                                        {con.name}
+                                    </option>
+                                )}
+                            </For>
+                        </select>
+                    )}
+                </Show>
 
-            <button type="button" onClick={newConnection}>
-                New connection
-            </button>
+                <button type="button" onClick={newConnection}>
+                    New connection
+                </button>
 
-            <ul>
-                <li>
-                    Name:{' '}
-                    <input
-                        ref={nameInput!}
-                        type="text"
-                        value={$connection()?.name ?? 'New connection'}
-                        onKeyUp={(e) => e.key === 'Enter' && saveName()}
-                    />
-                    <button onClick={saveName}>save</button>
-                </li>
-                <li>
-                    API Url:{' '}
-                    <input
-                        ref={apiUrlInput!}
-                        type="text"
-                        value={$connection()?.apiUrl ?? ''}
-                        onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
-                    />
-                    <button onClick={saveApiUrl}>save</button>
-                </li>
-                <li>
-                    Client ID:{' '}
-                    <input
-                        ref={clientIdInput!}
-                        type="text"
-                        value={$connection()?.clientId ?? ''}
-                        onKeyUp={(e) => e.key === 'Enter' && saveClientId()}
-                    />
-                    <button onClick={saveClientId}>save</button>
-                </li>
-                <li>
-                    Token:{' '}
-                    <input
-                        ref={tokenInput!}
-                        type="text"
-                        value={$connection()?.token ?? ''}
-                        onKeyUp={(e) => e.key === 'Enter' && saveToken()}
-                    />
-                    <button onClick={saveToken}>save</button>
-                </li>
-                <li>
-                    Static Token:{' '}
-                    <input
-                        ref={staticTokenInput!}
-                        type="text"
-                        value={$connection()?.staticToken ?? ''}
-                        onKeyUp={(e) => e.key === 'Enter' && saveStaticToken()}
-                    />
-                    <button onClick={saveStaticToken}>save</button>
-                </li>
-                <li>
-                    Magic Token:{' '}
-                    <input
-                        ref={magicTokenInput!}
-                        type="text"
-                        onKeyUp={(e) => e.key === 'Enter' && saveMagicToken()}
-                    />
-                    <button onClick={saveMagicToken}>save</button>
-                </li>
-            </ul>
-            {status() && status()}
-            {loading() && 'loading...'}
+                <ul>
+                    <li>
+                        Name:{' '}
+                        <input
+                            ref={nameInput!}
+                            type="text"
+                            value={$connection()?.name ?? 'New connection'}
+                            onKeyUp={(e) => e.key === 'Enter' && saveName()}
+                        />
+                        <button onClick={saveName}>save</button>
+                    </li>
+                    <li>
+                        API Url:{' '}
+                        <input
+                            ref={apiUrlInput!}
+                            type="text"
+                            value={$connection()?.apiUrl ?? ''}
+                            onKeyUp={(e) => e.key === 'Enter' && saveApiUrl()}
+                        />
+                        <button onClick={saveApiUrl}>save</button>
+                    </li>
+                    <li>
+                        Client ID:{' '}
+                        <input
+                            ref={clientIdInput!}
+                            type="text"
+                            value={$connection()?.clientId ?? ''}
+                            onKeyUp={(e) => e.key === 'Enter' && saveClientId()}
+                        />
+                        <button onClick={saveClientId}>save</button>
+                    </li>
+                    <li>
+                        Token:{' '}
+                        <input
+                            ref={tokenInput!}
+                            type="text"
+                            value={$connection()?.token ?? ''}
+                            onKeyUp={(e) => e.key === 'Enter' && saveToken()}
+                        />
+                        <button onClick={saveToken}>save</button>
+                    </li>
+                    <li>
+                        Static Token:{' '}
+                        <input
+                            ref={staticTokenInput!}
+                            type="text"
+                            value={$connection()?.staticToken ?? ''}
+                            onKeyUp={(e) =>
+                                e.key === 'Enter' && saveStaticToken()
+                            }
+                        />
+                        <button onClick={saveStaticToken}>save</button>
+                    </li>
+                    <li>
+                        Magic Token:{' '}
+                        <input
+                            ref={magicTokenInput!}
+                            type="text"
+                            onKeyUp={(e) =>
+                                e.key === 'Enter' && saveMagicToken()
+                            }
+                        />
+                        <button onClick={saveMagicToken}>save</button>
+                    </li>
+                </ul>
+                {status() && status()}
+                {loading() && 'loading...'}
+            </section>
+            <hr />
+            <section>
+                <button
+                    onClick={async () => api.startScan(['LOCAL'])}
+                    type="button"
+                    class="remove-button-styles moosicbox-button"
+                >
+                    Scan
+                </button>
+            </section>
         </div>
     );
 }
