@@ -17,6 +17,7 @@ export const showAudioZones = clientAtom(false);
 export const showPlaybackSessions = clientAtom(false);
 export const showPlaybackQuality = clientAtom(false);
 export const showChangePlaybackTargetModal = clientAtom(false);
+export const showScanStatusBanner = clientAtom(false);
 
 type StartupCallback = () => void | Promise<void>;
 

@@ -7,6 +7,7 @@ import type { PartialUpdateSession } from './types';
 import { clientAtom, createListener, objToStr } from './util';
 import { onDownloadEventListener } from './downloads';
 import type { DownloadEvent } from './downloads';
+import { onScanEventListener, ScanEvent } from './scan';
 
 connection.listen((con) => {
     if (!con) return;
@@ -91,6 +92,7 @@ export enum InboundMessageType {
     CONNECTIONS = 'CONNECTIONS',
     SET_SEEK = 'SET_SEEK',
     DOWNLOAD_EVENT = 'DOWNLOAD_EVENT',
+    SCAN_EVENT = 'SCAN_EVENT',
 }
 
 export enum OutboundMessageType {
@@ -141,6 +143,11 @@ export interface SetSeekInboundMessage extends InboundMessage {
 export interface DownloadEventInboundMessage extends InboundMessage {
     type: InboundMessageType.DOWNLOAD_EVENT;
     payload: DownloadEvent;
+}
+
+export interface ScanEventInboundMessage extends InboundMessage {
+    type: InboundMessageType.SCAN_EVENT;
+    payload: ScanEvent;
 }
 
 export interface GetConnectionIdMessage extends OutboundMessage {
@@ -309,6 +316,11 @@ onMessageFirst((data) => {
         case InboundMessageType.DOWNLOAD_EVENT: {
             const message = data as DownloadEventInboundMessage;
             onDownloadEventListener.trigger(message.payload);
+            break;
+        }
+        case InboundMessageType.SCAN_EVENT: {
+            const message = data as ScanEventInboundMessage;
+            onScanEventListener.trigger(message.payload);
             break;
         }
         case InboundMessageType.SESSION_UPDATED: {
