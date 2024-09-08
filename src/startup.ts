@@ -11,12 +11,23 @@ import {
 } from '~/services/ws';
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
 import { startSilence } from './services/silence-player';
+import { isServer } from 'solid-js/web';
+
+if (!isServer) {
+    if (
+        !connectionId.get() &&
+        !window.location.pathname.startsWith('/setup/')
+    ) {
+        window.location.href = '/setup/hello';
+    }
+}
 
 init({
     logWriterApiUrl: 'https://logs.moosicbox.com',
     shimConsole: true,
     logLevel: 'WARN',
 });
+
 setProperty('connectionId', connectionId.get());
 setProperty('connectionName', connectionName.get());
 
