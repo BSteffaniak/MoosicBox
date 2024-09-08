@@ -670,7 +670,7 @@ export interface ApiType {
         signal?: AbortSignal | null,
     ): Promise<Api.LibraryAlbum>;
     getAlbums(
-        request: Api.AlbumsRequest | undefined,
+        request?: Api.AlbumsRequest | undefined,
         signal?: AbortSignal | null,
     ): Promise<Api.PagingResponseWithTotal<Api.LibraryAlbum>>;
     getAllAlbums(
@@ -705,7 +705,7 @@ export interface ApiType {
         signal?: AbortSignal | null,
     ): Promise<Api.LibraryTrack[]>;
     getArtists(
-        request: Api.ArtistsRequest | undefined,
+        request?: Api.ArtistsRequest | undefined,
         signal?: AbortSignal | null,
     ): Promise<Api.LibraryArtist[]>;
     fetchSignatureToken(
