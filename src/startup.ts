@@ -12,10 +12,11 @@ import {
 import { createPlayer as createHowlerPlayer } from '~/services/howler-player';
 import { startSilence } from './services/silence-player';
 import { isServer } from 'solid-js/web';
+import { connections } from './services/api';
 
 if (!isServer) {
     if (
-        !connectionId.get() &&
+        connections.get().length === 0 &&
         !window.location.pathname.startsWith('/setup/')
     ) {
         window.location.href = '/setup/hello';
