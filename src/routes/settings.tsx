@@ -1,5 +1,5 @@
-import { createSignal, For, Show } from 'solid-js';
 import './settings.css';
+import { createEffect, createSignal, For, on, onMount, Show } from 'solid-js';
 import {
     api,
     connection,
@@ -11,8 +11,13 @@ import {
 } from '~/services/api';
 import { clientSignal } from '~/services/util';
 import { connectionName } from '~/services/ws';
+import { htmx } from '~/middleware/htmx';
+import { isServer } from 'solid-js/web';
+import { config } from '~/config';
 
 export default function settingsPage() {
+    let root: HTMLDivElement;
+
     const [$connections, _setConnections] = clientSignal(connections);
     const [$connection, setConnection] = clientSignal(connection);
     const [$connectionName, setConnectionName] = clientSignal(connectionName);
@@ -23,6 +28,18 @@ export default function settingsPage() {
     let clientIdInput: HTMLInputElement;
     let apiUrlInput: HTMLInputElement;
     let nameInput: HTMLInputElement;
+
+    if (!isServer) {
+        createEffect(
+            on($connection, () => {
+                document.body.dispatchEvent(new Event('connection-updated'));
+            }),
+        );
+
+        onMount(() => {
+            htmx.process(root);
+        });
+    }
 
     function newConnection() {
         const id = getNewConnectionId();
@@ -115,7 +132,7 @@ export default function settingsPage() {
     }
 
     return (
-        <div>
+        <div ref={root!}>
             <section>
                 <ul>
                     <li>
@@ -231,13 +248,24 @@ export default function settingsPage() {
             </section>
             <hr />
             <section>
-                <button
-                    onClick={async () => api.startScan(['LOCAL'])}
-                    type="button"
-                    class="remove-button-styles moosicbox-button"
-                >
-                    Scan
-                </button>
+                {config.bundled ? (
+                    $connection() && (
+                        <div
+                            hx-get={`/admin/scans`}
+                            hx-trigger="load, connection-updated from:body"
+                        >
+                            loading...
+                        </div>
+                    )
+                ) : (
+                    <button
+                        onClick={async () => api.startScan(['LOCAL'])}
+                        type="button"
+                        class="remove-button-styles moosicbox-button"
+                    >
+                        Scan
+                    </button>
+                )}
             </section>
         </div>
     );
