@@ -35,7 +35,9 @@ export type ScanEvent = (
     | ScannedScanEvent
 ) & { type: ScanEventType };
 
-export type ScanTask = LocalScanTask['type'] | ApiScanTask['type'];
+export type ScanTaskType = LocalScanTask['type'] | ApiScanTask['type'];
+
+export type ScanTask = (LocalScanTask | ApiScanTask) & { type: ScanTaskType };
 
 export type LocalScanTask = {
     paths: string[];
