@@ -17,3 +17,10 @@
     width: fit-content;
     align-self: center;
 }
+
+.scan-status-banner-scan-task .cross-icon {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 20px;
+}
