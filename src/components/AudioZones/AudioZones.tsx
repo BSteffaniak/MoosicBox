@@ -10,8 +10,6 @@ import {
 } from '~/services/player';
 import { appState } from '~/services/app';
 import Modal from '../Modal';
-import { clientSignal } from '~/services/util';
-import { connectionId } from '~/services/ws';
 
 type PlayerWithConnection = Api.Player & {
     connection: Api.Connection | undefined;
@@ -37,7 +35,6 @@ export default function audioZonesFunc() {
     const [activePlayersZone, setActivePlayersZone] =
         createSignal<AudioZoneWithConnections>();
 
-    const [$connectionId] = clientSignal(connectionId);
     const [connections, setConnections] = createSignal<Api.Connection[]>([]);
 
     function getPlayersWithConnections(): PlayerWithConnection[] {
@@ -84,10 +81,10 @@ export default function audioZonesFunc() {
         const dead = appState.connections.filter((c) => !c.alive);
 
         const aliveCurrent = alive.filter(
-            (a) => a.connectionId == $connectionId(),
+            (a) => a.connectionId === appState.connection?.connectionId,
         );
         const aliveOthers = alive.filter(
-            (a) => a.connectionId != $connectionId(),
+            (a) => a.connectionId !== appState.connection?.connectionId,
         );
 
         setConnections([...aliveCurrent, ...aliveOthers, ...dead]);

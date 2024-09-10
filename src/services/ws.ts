@@ -4,7 +4,7 @@ import { Api, connection, toSessionPlaylistTrack } from './api';
 import type { Track } from './api';
 import { setAppState } from './app';
 import type { PartialUpdateSession } from './types';
-import { clientAtom, createListener, objToStr } from './util';
+import { ClientAtom, clientAtom, createListener, objToStr } from './util';
 import { onDownloadEventListener } from './downloads';
 import type { DownloadEvent } from './downloads';
 import { onScanEventListener, ScanEvent } from './scan';
@@ -36,6 +36,13 @@ Api.onSignatureTokenUpdated((signatureToken) => {
     wsService.reconnect();
 });
 
+export const onConnectionChangedListener =
+    createListener<
+        (value: string) => boolean | void | Promise<boolean | void>
+    >();
+export const onConnectionChanged = onConnectionChangedListener.on;
+export const offConnectionChanged = onConnectionChangedListener.off;
+
 function updateWsUrl(
     apiUrl: string,
     clientId: string | undefined,
@@ -57,14 +64,35 @@ function updateWsUrl(
     wsUrl = `ws${apiUrl.slice(4)}/ws${
         params.length > 0 ? `?${params.join('&')}` : ''
     }`;
+    onConnectionChangedListener.trigger(wsUrl);
 }
 
 let ws: WebSocket;
 let wsUrl: string;
 export let connectionPromise: Promise<WebSocket>;
 
-export const connectionId = clientAtom<string>('', 'ws.v1.connectionId');
-const $connectionId = () => connectionId.get();
+export function setWsUrl(url: string) {
+    wsUrl = url;
+}
+
+export function setConnectionId(key: string, id?: string | undefined) {
+    if (!connectionIds[key]) {
+        connectionIds[key] = clientAtom<string>(
+            '',
+            `ws.v2.connectionId.${key}`,
+        );
+    }
+
+    if (typeof id === 'string' && !connectionIds[key].get()) {
+        connectionIds[key].set(id);
+    }
+
+    connectionId.set(connectionIds[key].get());
+}
+
+const connectionId = clientAtom<string>('', `ws.v2.connectionId`);
+const connectionIds: { [url: string]: ClientAtom<string> } = {};
+export const $connectionId = () => connectionId.get();
 
 export const connectionName = clientAtom<string>(
     'New Connection',
@@ -79,10 +107,12 @@ export const onConnect = onConnectListener.on;
 export const offConnect = onConnectListener.off;
 
 onConnect((id) => {
-    if (!$connectionId()) {
-        connectionId.set(id);
-    }
+    setConnectionId(`${connection.get()?.id}`, id);
     wsService.getSessions();
+});
+
+connection.listen((connection) => {
+    setConnectionId(`${connection?.id}`);
 });
 
 export enum InboundMessageType {
@@ -297,7 +327,7 @@ onMessageFirst((data) => {
                 produce((state) => {
                     state.connections = message.payload;
                     state.connection = state.connections.find(
-                        (c) => c.connectionId === connectionId.get(),
+                        (c) => c.connectionId === $connectionId(),
                     );
                 }),
             );

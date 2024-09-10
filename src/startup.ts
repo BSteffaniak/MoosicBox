@@ -2,8 +2,8 @@ import { init, setProperty } from '@free-log/node-client';
 import { appState } from '~/services/app';
 import { registerPlayer } from '~/services/player';
 import {
+    $connectionId,
     InboundMessageType,
-    connectionId,
     connectionName,
     onConnect,
     onMessage,
@@ -29,7 +29,7 @@ init({
     logLevel: 'WARN',
 });
 
-setProperty('connectionId', connectionId.get());
+setProperty('connectionId', $connectionId());
 setProperty('connectionName', connectionName.get());
 
 function updatePlayer() {
@@ -59,13 +59,12 @@ function updateConnection(connectionId: string, name: string) {
     });
 }
 
-onConnect(() => {
-    updateConnection(connectionId.get()!, connectionName.get());
-
-    setProperty('connectionId', connectionId.get());
+onConnect((id) => {
+    updateConnection(id, connectionName.get());
+    setProperty('connectionId', $connectionId());
 });
 connectionName.listen((connectionName) => {
-    updateConnection(connectionId.get()!, connectionName);
+    updateConnection($connectionId()!, connectionName);
     setProperty('connectionName', connectionName);
 });
 
