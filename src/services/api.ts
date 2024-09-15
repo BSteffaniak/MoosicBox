@@ -593,6 +593,10 @@ export namespace Api {
         totalBytes: number;
         speed?: number;
     }
+
+    export interface ScanPaths {
+        paths: string[];
+    }
 }
 
 export interface Connection {
@@ -904,6 +908,7 @@ export interface ApiType {
         signal?: AbortSignal | null,
     ): Promise<void>;
     addScanPath(path: string, signal?: AbortSignal | null): Promise<void>;
+    getScanPaths(signal?: AbortSignal | null): Promise<Api.ScanPaths>;
 }
 
 export function getConnection(): Connection {
@@ -2316,6 +2321,17 @@ async function addScanPath(
     });
 }
 
+async function getScanPaths(
+    signal?: AbortSignal | null,
+): Promise<Api.ScanPaths> {
+    const con = getConnection();
+
+    return await requestJson(`${con.apiUrl}/scan/scan-paths`, {
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2486,4 +2502,5 @@ export const api: ApiType = {
     startScan,
     enableScanOrigin,
     addScanPath,
+    getScanPaths,
 };
