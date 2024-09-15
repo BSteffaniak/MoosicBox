@@ -11,7 +11,7 @@ if (!isServer) {
     const config: MutableConfig = htmx.config;
     config.selfRequestsOnly = false;
 
-    document.body.addEventListener('htmx:configRequest', (event) => {
+    document.addEventListener('htmx:configRequest', (event) => {
         if (!('detail' in event))
             throw new Error(`Invalid htmx event: ${JSON.stringify(event)}`);
 
