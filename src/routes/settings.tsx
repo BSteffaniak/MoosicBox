@@ -13,7 +13,7 @@ import { clientSignal } from '~/services/util';
 import { connectionName } from '~/services/ws';
 import { htmx } from '~/middleware/htmx';
 import { isServer } from 'solid-js/web';
-import { config } from '~/config';
+import ScanSettings from '~/components/ScanSettings';
 
 export default function settingsPage() {
     let root: HTMLDivElement;
@@ -248,24 +248,7 @@ export default function settingsPage() {
             </section>
             <hr />
             <section>
-                {config.bundled ? (
-                    $connection() && (
-                        <div
-                            hx-get={`/admin/scans`}
-                            hx-trigger="load, connection-updated from:body"
-                        >
-                            loading...
-                        </div>
-                    )
-                ) : (
-                    <button
-                        onClick={async () => api.startScan(['LOCAL'])}
-                        type="button"
-                        class="remove-button-styles moosicbox-button"
-                    >
-                        Scan
-                    </button>
-                )}
+                <ScanSettings />
             </section>
         </div>
     );
