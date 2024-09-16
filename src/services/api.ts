@@ -602,6 +602,13 @@ export namespace Api {
     export interface ScanPaths {
         paths: string[];
     }
+
+    export interface AuthQobuzResponse {
+        accessToken: string;
+        userId: number;
+        userEmail: string;
+        userPublicId: string;
+    }
 }
 
 export interface Connection {
@@ -926,6 +933,12 @@ export interface ApiType {
     ): Promise<void>;
     addScanPath(path: string, signal?: AbortSignal | null): Promise<void>;
     getScanPaths(signal?: AbortSignal | null): Promise<Api.ScanPaths>;
+    authQobuz(
+        username: string,
+        password: string,
+        persist?: boolean,
+        signal?: AbortSignal | null,
+    ): Promise<Api.AuthQobuzResponse>;
 }
 
 export function getConnection(): Connection {
@@ -2381,6 +2394,26 @@ async function getScanPaths(
     });
 }
 
+async function authQobuz(
+    username: string,
+    password: string,
+    persist?: boolean,
+    signal?: AbortSignal | null,
+): Promise<Api.AuthQobuzResponse> {
+    const con = getConnection();
+    const query = new QueryParams({
+        username: `${username}`,
+        password: `${password}`,
+        persist: typeof persist === 'boolean' ? `${persist}` : undefined,
+    });
+
+    return await requestJson(`${con.apiUrl}/qobuz/auth/login?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2554,4 +2587,5 @@ export const api: ApiType = {
     enableScanOrigin,
     addScanPath,
     getScanPaths,
+    authQobuz,
 };
