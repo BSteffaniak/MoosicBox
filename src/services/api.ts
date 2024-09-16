@@ -609,6 +609,16 @@ export namespace Api {
         userEmail: string;
         userPublicId: string;
     }
+
+    export interface TidalDeviceAuthorizationResponse {
+        url: string;
+        deviceCode: string;
+    }
+
+    export interface TidalDeviceAuthorizationTokenResponse {
+        accessToken: string;
+        refreshToken: string;
+    }
 }
 
 export interface Connection {
@@ -939,6 +949,17 @@ export interface ApiType {
         persist?: boolean,
         signal?: AbortSignal | null,
     ): Promise<Api.AuthQobuzResponse>;
+    tidalDeviceAuthorization(
+        clientId?: string,
+        signal?: AbortSignal | null,
+    ): Promise<Api.TidalDeviceAuthorizationResponse>;
+    tidalDeviceAuthorizationToken(
+        clientSecret: string,
+        deviceCode: string,
+        persist?: boolean,
+        clientId?: string,
+        signal?: AbortSignal | null,
+    ): Promise<Api.TidalDeviceAuthorizationTokenResponse>;
 }
 
 export function getConnection(): Connection {
@@ -2414,6 +2435,56 @@ async function authQobuz(
     });
 }
 
+const defaultClientId = `zU4XHVVkc2tDPo4t`;
+
+async function tidalDeviceAuthorization(
+    clientId?: string,
+    signal?: AbortSignal | null,
+): Promise<Api.TidalDeviceAuthorizationResponse> {
+    const con = getConnection();
+    const query = new QueryParams({
+        clientId:
+            typeof clientId === 'string' ? `${clientId}` : defaultClientId,
+    });
+
+    return await requestJson(
+        `${con.apiUrl}/tidal/auth/device-authorization?${query}`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
+}
+
+async function tidalDeviceAuthorizationToken(
+    clientSecret: string,
+    deviceCode: string,
+    persist?: boolean,
+    clientId?: string,
+    signal?: AbortSignal | null,
+): Promise<Api.TidalDeviceAuthorizationTokenResponse> {
+    const con = getConnection();
+    const query = new QueryParams({
+        clientSecret:
+            typeof clientSecret === 'string' ? `${clientSecret}` : undefined,
+        deviceCode:
+            typeof deviceCode === 'string' ? `${deviceCode}` : undefined,
+        persist: typeof persist === 'boolean' ? `${persist}` : undefined,
+        clientId:
+            typeof clientId === 'string' ? `${clientId}` : defaultClientId,
+    });
+
+    return await requestJson(
+        `${con.apiUrl}/tidal/auth/device-authorization/token?${query}`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
+}
+
 class RequestError extends Error {
     constructor(public response: Response) {
         let message = `Request failed: ${response.status}`;
@@ -2588,4 +2659,6 @@ export const api: ApiType = {
     addScanPath,
     getScanPaths,
     authQobuz,
+    tidalDeviceAuthorization,
+    tidalDeviceAuthorizationToken,
 };
