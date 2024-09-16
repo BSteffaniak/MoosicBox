@@ -542,9 +542,9 @@ export namespace Api {
     export type TrackDownloadItem = {
         id: number;
         type: 'TRACK';
-        artistId: number;
-        albumId: number;
-        trackId: number;
+        artistId: string;
+        albumId: string;
+        trackId: string;
         title: string;
         source: DownloadApiSource;
         quality: TrackAudioQuality;
@@ -552,17 +552,17 @@ export namespace Api {
     };
     export type AlbumCoverDownloadItem = {
         type: 'ALBUM_COVER';
-        artistId: number;
+        artistId: string;
         artist: string;
-        albumId: number;
+        albumId: string;
         title: string;
         source: DownloadApiSource;
         containsCover: boolean;
     };
     export type ArtistCoverDownloadItem = {
         type: 'ARTIST_COVER';
-        artistId: number;
-        albumId: number;
+        artistId: string;
+        albumId: string;
         title: string;
         source: DownloadApiSource;
         containsCover: boolean;
