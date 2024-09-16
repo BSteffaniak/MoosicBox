@@ -112,6 +112,11 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
                         <div class="downloads-download-task-header-details">
                             Album ({item.albumId}) cover - {item.title} -{' '}
                             {displayDownloadTaskState(task.state)}
+                            <Show when={task.state === 'ERROR'}>
+                                <button onClick={() => api.retryDownload(id)}>
+                                    Retry
+                                </button>
+                            </Show>
                         </div>
                         <div class="downloads-download-task-location-details">
                             {task.filePath}
@@ -144,6 +149,11 @@ function downloadTask(task: Api.DownloadTask): JSXElement {
                             Artist ({item.artistId}) (album_id: {item.albumId})
                             cover - {item.title} -{' '}
                             {displayDownloadTaskState(task.state)}
+                            <Show when={task.state === 'ERROR'}>
+                                <button onClick={() => api.retryDownload(id)}>
+                                    Retry
+                                </button>
+                            </Show>
                         </div>
                         <div class="downloads-download-task-location-details">
                             {task.filePath}
