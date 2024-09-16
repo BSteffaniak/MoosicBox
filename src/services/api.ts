@@ -594,6 +594,11 @@ export namespace Api {
         speed?: number;
     }
 
+    export interface DownloadLocation {
+        id: number;
+        path: string;
+    }
+
     export interface ScanPaths {
         paths: string[];
     }
@@ -636,6 +641,11 @@ export function setConnection(id: number, values: Partial<Connection>) {
     }
     connections.set([...updatedConnections]);
 }
+
+export const defaultDownloadLocation = clientAtom<number | undefined>(
+    undefined,
+    'app.defaultDownloadLocation.v1',
+);
 
 export const connections = clientAtom<Connection[]>([], 'api.v2.connections');
 const $connections = () => connections.get();
@@ -880,6 +890,13 @@ export interface ApiType {
     getDownloadTasks(
         signal?: AbortSignal | null,
     ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>>;
+    getDownloadLocations(
+        signal?: AbortSignal | null,
+    ): Promise<Api.PagingResponseWithTotal<Api.DownloadLocation>>;
+    addDownloadLocation(
+        path: string,
+        signal?: AbortSignal | null,
+    ): Promise<Api.DownloadLocation>;
     getTrackVisualization(
         track: Track | number,
         source: ApiSource,
@@ -2170,6 +2187,9 @@ async function download(
         albumId: items.albumId ? `${items.albumId}` : undefined,
         albumIds: items.albumIds ? `${items.albumIds.join(',')}` : undefined,
         source: `${source}`,
+        locationId: defaultDownloadLocation.get()
+            ? `${defaultDownloadLocation.get()}`
+            : undefined,
     });
 
     return await requestJson(`${con.apiUrl}/downloader/download?${query}`, {
@@ -2187,6 +2207,35 @@ async function getDownloadTasks(
         credentials: 'include',
         signal: signal ?? null,
     });
+}
+
+async function getDownloadLocations(
+    signal?: AbortSignal | null,
+): Promise<Api.PagingResponseWithTotal<Api.DownloadLocation>> {
+    const con = getConnection();
+    return await requestJson(`${con.apiUrl}/downloader/download-locations`, {
+        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function addDownloadLocation(
+    path: string,
+    signal?: AbortSignal | null,
+): Promise<Api.DownloadLocation> {
+    const con = getConnection();
+    const query = new QueryParams({
+        path: `${path}`,
+    });
+
+    return await requestJson(
+        `${con.apiUrl}/downloader/download-locations?${query}`,
+        {
+            method: 'POST',
+            credentials: 'include',
+            signal: signal ?? null,
+        },
+    );
 }
 
 async function getTrackVisualization(
@@ -2490,10 +2539,12 @@ export const api: ApiType = {
     addAlbumToLibrary,
     removeAlbumFromLibrary,
     refavoriteAlbum,
-    getDownloadTasks,
     getTrackVisualization,
     retryDownload,
     download,
+    getDownloadTasks,
+    getDownloadLocations,
+    addDownloadLocation,
     getAudioZones,
     createAudioZone,
     updateAudioZone,

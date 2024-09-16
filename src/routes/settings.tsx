@@ -14,6 +14,8 @@ import { connectionName } from '~/services/ws';
 import { htmx } from '~/middleware/htmx';
 import { isServer } from 'solid-js/web';
 import ScanSettings from '~/components/ScanSettings';
+import { config } from '~/config';
+import DownloadSettings from '~/components/DownloadSettings';
 
 export default function settingsPage() {
     let root: HTMLDivElement;
@@ -250,6 +252,14 @@ export default function settingsPage() {
             <section>
                 <ScanSettings />
             </section>
+            {config.bundled && (
+                <>
+                    <hr />
+                    <section>
+                        <DownloadSettings />
+                    </section>
+                </>
+            )}
         </div>
     );
 }
