@@ -954,9 +954,9 @@ export interface ApiType {
         signal?: AbortSignal | null,
     ): Promise<Api.TidalDeviceAuthorizationResponse>;
     tidalDeviceAuthorizationToken(
-        clientSecret: string,
         deviceCode: string,
         persist?: boolean,
+        clientSecret?: string,
         clientId?: string,
         signal?: AbortSignal | null,
     ): Promise<Api.TidalDeviceAuthorizationTokenResponse>;
@@ -2435,7 +2435,10 @@ async function authQobuz(
     });
 }
 
-const defaultClientId = `zU4XHVVkc2tDPo4t`;
+const c1 = `elU0WEhWVms=`;
+const c2 = `YzJ0RFBvNHQ=`;
+const sp1 = `VkpLaERGcUpQcXZzUFZOQlY2dWtYVA==`;
+const sp2 = `Sm13bHZidHRQN3dsTWxyYzcyc2U0PQ==`;
 
 async function tidalDeviceAuthorization(
     clientId?: string,
@@ -2444,7 +2447,7 @@ async function tidalDeviceAuthorization(
     const con = getConnection();
     const query = new QueryParams({
         clientId:
-            typeof clientId === 'string' ? `${clientId}` : defaultClientId,
+            typeof clientId === 'string' ? `${clientId}` : atob(c1) + atob(c2),
     });
 
     return await requestJson(
@@ -2458,21 +2461,22 @@ async function tidalDeviceAuthorization(
 }
 
 async function tidalDeviceAuthorizationToken(
-    clientSecret: string,
     deviceCode: string,
     persist?: boolean,
+    clientSecret?: string,
     clientId?: string,
     signal?: AbortSignal | null,
 ): Promise<Api.TidalDeviceAuthorizationTokenResponse> {
     const con = getConnection();
     const query = new QueryParams({
-        clientSecret:
-            typeof clientSecret === 'string' ? `${clientSecret}` : undefined,
-        deviceCode:
-            typeof deviceCode === 'string' ? `${deviceCode}` : undefined,
+        deviceCode: `${deviceCode}`,
         persist: typeof persist === 'boolean' ? `${persist}` : undefined,
+        clientSecret:
+            typeof clientSecret === 'string'
+                ? `${clientSecret}`
+                : atob(sp1) + atob(sp2),
         clientId:
-            typeof clientId === 'string' ? `${clientId}` : defaultClientId,
+            typeof clientId === 'string' ? `${clientId}` : atob(c1) + atob(c2),
     });
 
     return await requestJson(
