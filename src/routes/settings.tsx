@@ -260,6 +260,30 @@ export default function settingsPage() {
                     </section>
                 </>
             )}
+            {$connection() && (
+                <>
+                    <hr />
+                    <section>
+                        <h2>Tidal</h2>
+                        <div
+                            hx-get={`/admin/tidal/settings`}
+                            hx-trigger="load, connection-updated from:body"
+                        >
+                            loading...
+                        </div>
+                    </section>
+                    <hr />
+                    <section>
+                        <h2>Qobuz</h2>
+                        <div
+                            hx-get={`/admin/qobuz/settings`}
+                            hx-trigger="load, connection-updated from:body"
+                        >
+                            loading...
+                        </div>
+                    </section>
+                </>
+            )}
         </div>
     );
 }
