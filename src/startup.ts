@@ -60,7 +60,7 @@ function updateConnection(connectionId: string, name: string) {
 }
 
 onConnect((id) => {
-    updateConnection(id, connectionName.get());
+    updateConnection($connectionId() ?? id, connectionName.get());
     setProperty('connectionId', $connectionId());
 });
 connectionName.listen((connectionName) => {
