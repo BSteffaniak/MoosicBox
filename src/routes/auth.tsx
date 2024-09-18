@@ -15,10 +15,10 @@ export default function authPage() {
     const [loading, setLoading] = createSignal(true);
     const [error, setError] = createSignal<string>();
 
-    function saveConnection(values: Partial<Connection>) {
+    async function saveConnection(values: Partial<Connection>) {
         const con = connection.get();
         const id = con?.id ?? getNewConnectionId();
-        setConnection(id, values);
+        await setConnection(id, values);
     }
 
     onMount(async () => {
@@ -29,7 +29,7 @@ export default function authPage() {
         }
 
         if (apiUrlParam) {
-            saveConnection({
+            await saveConnection({
                 apiUrl: apiUrlParam,
             });
         }
@@ -38,7 +38,7 @@ export default function authPage() {
         setLoading(false);
 
         if (resp) {
-            saveConnection({
+            await saveConnection({
                 clientId: resp.clientId,
                 token: resp.accessToken,
             });

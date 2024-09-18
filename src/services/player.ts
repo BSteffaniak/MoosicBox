@@ -317,6 +317,8 @@ export function isActiveConnectionPlayer(
         playbackTarget,
     );
 
+    console.debug('isActiveConnectionPlayer: players =', players);
+
     return players.length === 1;
 }
 
@@ -329,6 +331,8 @@ export function getActiveConnectionPlayers(
         connection,
         'players =',
         players,
+        'playbackTarget =',
+        playbackTarget,
     );
 
     if (connection?.connectionId !== playbackTarget.connectionId) {
@@ -726,21 +730,34 @@ async function updatePlayback(
 
     if (session) {
         playbackTarget = session.playbackTarget;
+        console.debug(
+            'updatePlayback: using session playback target',
+            playbackTarget,
+        );
 
         if (
             currentTarget &&
-            !deepEqual(currentTarget, session.playbackTarget) &&
+            !deepEqual(currentTarget, playbackTarget) &&
             !session.playing &&
             (update.playing || update.play) &&
             (await confirmChangePlaybackTarget())
         ) {
             useDefaultPlaybackTarget = true;
         }
+    } else {
+        console.debug(
+            'updatePlayback: using passed playback target',
+            playbackTarget,
+        );
     }
 
     if (useDefaultPlaybackTarget) {
         if (currentTarget) {
             playbackTarget = currentTarget;
+            console.debug(
+                'updatePlayback: using default playback target',
+                playbackTarget,
+            );
         }
     }
 

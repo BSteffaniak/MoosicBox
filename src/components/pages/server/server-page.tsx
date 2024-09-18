@@ -7,7 +7,7 @@ export default function serverPage() {
     let serverAddressInput: HTMLInputElement;
 
     async function saveServerAddress() {
-        setConnection(id, {
+        await setConnection(id, {
             id,
             name: 'MoosicBox Server',
             apiUrl: serverAddressInput.value,

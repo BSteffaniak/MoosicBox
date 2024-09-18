@@ -602,36 +602,102 @@ export namespace Api {
     export interface ScanPaths {
         paths: string[];
     }
+
+    export interface Profile {
+        name: string;
+    }
 }
 
 export interface Connection {
     id: number;
     name: string;
     apiUrl: string;
+    profile?: string | undefined;
+    profiles?: string[] | undefined;
     clientId: string;
     token: string;
     staticToken: string;
     players?: Api.Player[];
 }
 
-export function setActiveConnection(id: number) {
+export async function setActiveProfile(profile: string) {
+    const con = $connection();
+    if (!con?.profiles?.some((x) => x === profile))
+        throw new Error(`Invalid profile: ${profile}`);
+    await setConnection(con.id, { profile });
+}
+
+export async function setActiveConnection(id: number) {
     const cons = connections.get();
     const existing = cons.find((x) => x.id === id);
     if (!existing) throw new Error(`Invalid connection id: ${id}`);
-    setConnection(id, existing);
+    connection.set(await setConnection(id, existing));
 }
 
-export function setConnection(id: number, values: Partial<Connection>) {
+export async function refreshConnectionProfiles(con: Connection) {
+    const profiles = (await api.getProfiles(con)).map((x) => x.name);
+
+    const update: Parameters<typeof setConnection>[1] = { profiles };
+
+    if (con.profile && !profiles.includes(con.profile)) {
+        if (profiles.length > 0) {
+            update.profile = profiles[0];
+        } else {
+            update.profile = undefined;
+        }
+    } else if (profiles.length > 0) {
+        update.profile = profiles[0];
+    }
+
+    await setConnectionInner(con.id, update, true);
+}
+
+export async function setConnection(
+    id: number,
+    values: Partial<Connection>,
+): Promise<Connection> {
+    return await setConnectionInner(id, values);
+}
+
+async function setConnectionInner(
+    id: number,
+    values: Partial<Connection>,
+    recursed: boolean = false,
+): Promise<Connection> {
     const con = connection.get();
-    const updated: Connection = {
-        id,
-        name: values.name ?? con?.name ?? '',
-        apiUrl: values.apiUrl ?? con?.apiUrl ?? '',
-        clientId: values.clientId ?? con?.clientId ?? '',
-        token: values.token ?? con?.token ?? '',
-        staticToken: values.staticToken ?? con?.staticToken ?? '',
-    };
-    connection.set(updated);
+
+    let updated: Connection;
+
+    const existing = connections.get()?.find((x) => x.id === id);
+
+    if (existing?.id === id) {
+        updated = {
+            id,
+            name: values.name ?? existing?.name ?? '',
+            apiUrl: values.apiUrl ?? existing?.apiUrl ?? '',
+            profile: values.profile ?? existing?.profile,
+            profiles: values.profiles ?? existing?.profiles,
+            clientId: values.clientId ?? existing?.clientId ?? '',
+            token: values.token ?? existing?.token ?? '',
+            staticToken: values.staticToken ?? existing?.staticToken ?? '',
+        };
+
+        if (con?.id === id) {
+            connection.set(updated);
+        }
+    } else {
+        updated = {
+            id,
+            name: values.name ?? '',
+            apiUrl: values.apiUrl ?? '',
+            profile: values.profile,
+            profiles: values.profiles,
+            clientId: values.clientId ?? '',
+            token: values.token ?? '',
+            staticToken: values.staticToken ?? '',
+        };
+    }
+
     const updatedConnections = connections.get();
     const existingI = updatedConnections.findIndex((x) => x.id === updated.id);
     if (existingI !== -1) {
@@ -640,6 +706,19 @@ export function setConnection(id: number, values: Partial<Connection>) {
         updatedConnections.push(updated);
     }
     connections.set([...updatedConnections]);
+
+    if (!recursed && !updated.profile) {
+        try {
+            await refreshConnectionProfiles(updated);
+        } catch (e) {
+            console.error(
+                `Failed to refreshConnectionProfiles: ${JSON.stringify(e)}`,
+                e,
+            );
+        }
+    }
+
+    return updated;
 }
 
 export const defaultDownloadLocation = clientAtom<number | undefined>(
@@ -926,6 +1005,10 @@ export interface ApiType {
     ): Promise<void>;
     addScanPath(path: string, signal?: AbortSignal | null): Promise<void>;
     getScanPaths(signal?: AbortSignal | null): Promise<Api.ScanPaths>;
+    getProfiles(
+        connection?: Connection,
+        signal?: AbortSignal | null,
+    ): Promise<Api.Profile[]>;
 }
 
 export function getConnection(): Connection {
@@ -943,7 +1026,6 @@ async function getArtist(
     });
 
     return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -959,6 +1041,7 @@ function getAlbumArtwork(
     const query = new QueryParams({
         source: albumType,
         artistId: album.artistId?.toString(),
+        moosicboxProfile: $connection()?.profile,
     });
 
     switch (albumType) {
@@ -1026,6 +1109,7 @@ function getAlbumSourceArtwork(album: Album | Track | undefined): string {
     const query = new QueryParams({
         source: albumType,
         artistId: album.artistId.toString(),
+        moosicboxProfile: $connection()?.profile,
     });
 
     switch (albumType) {
@@ -1097,7 +1181,6 @@ async function getAlbum(
     });
 
     return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1121,7 +1204,6 @@ async function getAlbums(
         query.set('search', albumsRequest.filters.search);
 
     return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1324,7 +1406,6 @@ async function getAlbumTracks(
         `${con.apiUrl}/menu/album/tracks?albumId=${albumId}`,
         {
             method: 'GET',
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -1339,7 +1420,6 @@ async function getAlbumVersions(
         `${con.apiUrl}/menu/album/versions?albumId=${albumId}`,
         {
             method: 'GET',
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -1354,7 +1434,6 @@ async function getTracks(
         `${con.apiUrl}/menu/tracks?trackIds=${trackIds.join(',')}`,
         {
             method: 'GET',
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -1373,7 +1452,6 @@ async function getArtists(
         query.set('search', artistsRequest.filters.search);
 
     return await requestJson(`${con.apiUrl}/menu/artists?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1385,7 +1463,6 @@ async function fetchSignatureToken(
     const { token } = await requestJson<{ token: string }>(
         `${con.apiUrl}/auth/signature-token`,
         {
-            credentials: 'include',
             method: 'POST',
             signal: signal ?? null,
         },
@@ -1416,7 +1493,6 @@ async function validateSignatureTokenAndClient(
         const { valid } = await requestJson<{ valid: boolean }>(
             `${con.apiUrl}/auth/validate-signature-token?signature=${signature}`,
             {
-                credentials: 'include',
                 method: 'POST',
                 signal: signal ?? null,
             },
@@ -1480,7 +1556,6 @@ async function magicToken(
         return await requestJson(
             `${con.apiUrl}/auth/magic-token?magicToken=${magicToken}`,
             {
-                credentials: 'include',
                 signal: signal ?? null,
             },
         );
@@ -1504,7 +1579,6 @@ async function globalSearch(
     return await requestJson(
         `${con.apiUrl}/search/global-search?${queryParams.toString()}`,
         {
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -1526,7 +1600,6 @@ async function searchExternalMusicApi(
     return await requestJson(
         `${con.apiUrl}/${api}/search?${queryParams.toString()}`,
         {
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -1599,7 +1672,6 @@ async function getArtistFromTidalArtistId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1614,7 +1686,6 @@ async function getArtistFromQobuzArtistId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1629,7 +1700,6 @@ async function getArtistFromTidalAlbumId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/artist?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1644,7 +1714,6 @@ async function getTidalArtist(
     });
 
     return await requestJson(`${con.apiUrl}/tidal/artists?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1659,7 +1728,6 @@ async function getQobuzArtist(
     });
 
     return await requestJson(`${con.apiUrl}/qobuz/artists?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1880,7 +1948,6 @@ async function getTidalArtistAlbums(
     }
 
     return await requestJson(`${con.apiUrl}/tidal/artists/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1900,7 +1967,6 @@ async function getQobuzArtistAlbums(
     }
 
     return await requestJson(`${con.apiUrl}/qobuz/artists/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1915,7 +1981,6 @@ async function getAlbumFromTidalAlbumId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1930,7 +1995,6 @@ async function getAlbumFromQobuzAlbumId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1945,7 +2009,6 @@ async function getLibraryAlbumsFromTidalArtistId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1960,7 +2023,6 @@ async function getLibraryAlbumsFromQobuzArtistId(
     });
 
     return await requestJson(`${con.apiUrl}/menu/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1975,7 +2037,6 @@ async function getTidalAlbum(
     });
 
     return await requestJson(`${con.apiUrl}/tidal/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -1990,7 +2051,6 @@ async function getQobuzAlbum(
     });
 
     return await requestJson(`${con.apiUrl}/qobuz/albums?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2005,7 +2065,6 @@ async function getTidalAlbumTracks(
     });
 
     return await requestJson(`${con.apiUrl}/tidal/albums/tracks?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2020,7 +2079,6 @@ async function getQobuzAlbumTracks(
     });
 
     return await requestJson(`${con.apiUrl}/qobuz/albums/tracks?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2035,7 +2093,6 @@ async function getYtAlbumTracks(
     });
 
     return await requestJson(`${con.apiUrl}/yt/albums/tracks?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2050,7 +2107,6 @@ async function getTidalTrack(
     });
 
     return await requestJson(`${con.apiUrl}/tidal/track?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2071,7 +2127,6 @@ async function getTrackUrlForSource(
     const urls = await requestJson<string[]>(
         `${con.apiUrl}/files/tracks/url?${query}`,
         {
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -2098,7 +2153,6 @@ async function addAlbumToLibrary(
 
     return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2122,7 +2176,6 @@ async function removeAlbumFromLibrary(
 
     return await requestJson(`${con.apiUrl}/menu/album?${query}`, {
         method: 'DELETE',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2146,7 +2199,6 @@ async function refavoriteAlbum(
 
     return await requestJson(`${con.apiUrl}/menu/album/re-favorite?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2164,7 +2216,6 @@ async function retryDownload(
         `${con.apiUrl}/downloader/retry-download?${query}`,
         {
             method: 'POST',
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -2194,7 +2245,6 @@ async function download(
 
     return await requestJson(`${con.apiUrl}/downloader/download?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2204,7 +2254,6 @@ async function getDownloadTasks(
 ): Promise<Api.PagingResponseWithTotal<Api.DownloadTask>> {
     const con = getConnection();
     return await requestJson(`${con.apiUrl}/downloader/download-tasks`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2214,7 +2263,6 @@ async function getDownloadLocations(
 ): Promise<Api.PagingResponseWithTotal<Api.DownloadLocation>> {
     const con = getConnection();
     return await requestJson(`${con.apiUrl}/downloader/download-locations`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2232,7 +2280,6 @@ async function addDownloadLocation(
         `${con.apiUrl}/downloader/download-locations?${query}`,
         {
             method: 'POST',
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -2254,7 +2301,6 @@ async function getTrackVisualization(
     return await requestJson(
         `${con.apiUrl}/files/track/visualization?${query}`,
         {
-            credentials: 'include',
             signal: signal ?? null,
         },
     );
@@ -2267,7 +2313,6 @@ async function getAudioZones(
     const query = new QueryParams({ offset: `0`, limit: `100` });
 
     return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2281,7 +2326,6 @@ async function createAudioZone(
 
     return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2295,7 +2339,6 @@ async function updateAudioZone(
     return await requestJson(`${con.apiUrl}/audio-zone`, {
         method: 'PATCH',
         body: JSON.stringify(update),
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2309,7 +2352,6 @@ async function deleteAudioZone(
 
     return await requestJson(`${con.apiUrl}/audio-zone?${query}`, {
         method: 'DELETE',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2323,7 +2365,6 @@ async function runScan(
 
     return await requestJson(`${con.apiUrl}/scan/run-scan?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2337,7 +2378,6 @@ async function startScan(
 
     return await requestJson(`${con.apiUrl}/scan/start-scan?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2351,7 +2391,6 @@ async function enableScanOrigin(
 
     return await requestJson(`${con.apiUrl}/scan/scan-origins?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2365,7 +2404,6 @@ async function addScanPath(
 
     return await requestJson(`${con.apiUrl}/scan/scan-paths?${query}`, {
         method: 'POST',
-        credentials: 'include',
         signal: signal ?? null,
     });
 }
@@ -2376,7 +2414,17 @@ async function getScanPaths(
     const con = getConnection();
 
     return await requestJson(`${con.apiUrl}/scan/scan-paths`, {
-        credentials: 'include',
+        signal: signal ?? null,
+    });
+}
+
+async function getProfiles(
+    connection?: Connection,
+    signal?: AbortSignal | null,
+): Promise<Api.Profile[]> {
+    const con = connection ?? getConnection();
+
+    return await requestJson(`${con.apiUrl}/config/profiles`, {
         signal: signal ?? null,
     });
 }
@@ -2441,8 +2489,12 @@ async function requestJson<T>(
     if (token && !headers.Authorization) {
         headers.Authorization = token;
     }
+    if (con.profile) {
+        headers['moosicbox-profile'] = con.profile;
+    }
 
     options = {
+        credentials: 'include',
         ...options,
         headers,
     };
@@ -2554,4 +2606,5 @@ export const api: ApiType = {
     enableScanOrigin,
     addScanPath,
     getScanPaths,
+    getProfiles,
 };

@@ -1,5 +1,5 @@
 import { isServer } from 'solid-js/web';
-import { Api, api, connection } from './api';
+import { Api, api, connection, refreshConnectionProfiles } from './api';
 import { createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { clientAtom } from './util';
@@ -119,6 +119,12 @@ connection.listen((con, prev) => {
     if (!con) return;
     if (con.token !== prev?.token || con.clientId !== prev?.clientId) {
         api.refetchSignatureToken();
+    }
+});
+onStartupFirst(() => {
+    const con = connection.get();
+    if (con) {
+        refreshConnectionProfiles(con);
     }
 });
 onStartup(async () => {

@@ -8,6 +8,7 @@ import {
     getNewConnectionId,
     connections,
     setActiveConnection,
+    setActiveProfile,
 } from '~/services/api';
 import { clientSignal } from '~/services/util';
 import { connectionName } from '~/services/ws';
@@ -43,7 +44,7 @@ export default function settingsPage() {
         });
     }
 
-    function newConnection() {
+    async function newConnection() {
         const id = getNewConnectionId();
         setConnection({
             id,
@@ -53,32 +54,33 @@ export default function settingsPage() {
             token: '',
             staticToken: '',
         });
-        apiSetConnection(id, { name: 'New connection' });
+        await apiSetConnection(id, { name: 'New connection' });
     }
 
-    function saveConnection(values: Partial<Connection>) {
+    async function saveConnection(values: Partial<Connection>) {
         const con = $connection();
         const id = con?.id ?? getNewConnectionId();
         setConnection({
             id,
             name: values.name ?? con?.name ?? '',
             apiUrl: values.apiUrl ?? con?.apiUrl ?? '',
+            profile: values.profile ?? con?.profile,
             clientId: values.clientId ?? con?.clientId ?? '',
             token: values.token ?? con?.token ?? '',
             staticToken: values.staticToken ?? con?.staticToken ?? '',
         });
-        apiSetConnection(id, values);
+        await apiSetConnection(id, values);
     }
 
-    function saveName() {
-        saveConnection({
+    async function saveName() {
+        await saveConnection({
             name: nameInput.value,
         });
     }
 
-    function saveApiUrl() {
+    async function saveApiUrl() {
         const con = $connection();
-        saveConnection({
+        await saveConnection({
             apiUrl: apiUrlInput.value,
             staticToken: con?.staticToken ?? '',
         });
@@ -90,24 +92,24 @@ export default function settingsPage() {
         setConnectionName(connectionNameInput.value);
     }
 
-    function saveClientId() {
-        saveConnection({
+    async function saveClientId() {
+        await saveConnection({
             clientId: clientIdInput.value,
         });
     }
 
     let tokenInput: HTMLInputElement;
 
-    function saveToken() {
-        saveConnection({
+    async function saveToken() {
+        await saveConnection({
             token: tokenInput.value,
         });
     }
 
     let staticTokenInput: HTMLInputElement;
 
-    function saveStaticToken() {
-        saveConnection({
+    async function saveStaticToken() {
+        await saveConnection({
             staticToken: staticTokenInput.value,
         });
     }
@@ -120,7 +122,7 @@ export default function settingsPage() {
 
         if (resp) {
             const con = $connection();
-            saveConnection({
+            await saveConnection({
                 name: con?.name ?? 'New connection',
                 apiUrl: con?.apiUrl ?? '',
                 clientId: resp.clientId,
@@ -156,8 +158,8 @@ export default function settingsPage() {
                         <select
                             name="connections"
                             id="connections-dropdown"
-                            onChange={(e) => {
-                                setActiveConnection(
+                            onChange={async (e) => {
+                                await setActiveConnection(
                                     parseInt(e.currentTarget.value),
                                 );
                             }}
@@ -191,6 +193,26 @@ export default function settingsPage() {
                         />
                         <button onClick={saveName}>save</button>
                     </li>
+                    <select
+                        name="connections"
+                        id="connections-dropdown"
+                        onChange={async (e) => {
+                            await setActiveProfile(e.currentTarget.value);
+                        }}
+                    >
+                        <For each={$connection()?.profiles}>
+                            {(profile) => (
+                                <option
+                                    value={profile}
+                                    selected={
+                                        profile === $connection()?.profile
+                                    }
+                                >
+                                    {profile}
+                                </option>
+                            )}
+                        </For>
+                    </select>
                     <li>
                         API Url:{' '}
                         <input

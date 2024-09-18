@@ -14,6 +14,7 @@ connection.listen((con) => {
 
     updateWsUrl(
         con.apiUrl,
+        con.profile,
         con.clientId,
         Api.signatureToken(),
         con.staticToken,
@@ -28,7 +29,13 @@ Api.onSignatureTokenUpdated((signatureToken) => {
     const con = connection.get();
     if (!con) return;
 
-    updateWsUrl(con.apiUrl, con.clientId, signatureToken, con.staticToken);
+    updateWsUrl(
+        con.apiUrl,
+        con.profile,
+        con.clientId,
+        signatureToken,
+        con.staticToken,
+    );
     if (con.token && !signatureToken) {
         console.debug('Waiting for signature token');
         return;
@@ -45,6 +52,7 @@ export const offConnectionChanged = onConnectionChangedListener.off;
 
 function updateWsUrl(
     apiUrl: string,
+    profile: string | undefined,
     clientId: string | undefined,
     signatureToken: string | undefined,
     staticToken: string | undefined,
@@ -52,6 +60,9 @@ function updateWsUrl(
     if (!apiUrl?.startsWith('http')) return;
 
     const params = [];
+    if (profile) {
+        params.push(`moosicboxProfile=${encodeURIComponent(profile)}`);
+    }
     if (clientId) {
         params.push(`clientId=${encodeURIComponent(clientId)}`);
     }
