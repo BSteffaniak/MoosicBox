@@ -39,7 +39,6 @@ export default function audioZonesFunc() {
 
     function getPlayersWithConnections(): PlayerWithConnection[] {
         const current = appState.connection;
-        console.log(current);
 
         return (
             current?.players?.map((player) => {
