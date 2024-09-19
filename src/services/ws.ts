@@ -441,8 +441,8 @@ export const wsService = {
         });
     },
 
-    activateSession(sessionId: number) {
-        this.updateSession({ sessionId, active: true });
+    activateSession(sessionId: number, profile: string) {
+        this.updateSession({ sessionId, profile, active: true });
     },
 
     createSession(session: CreateSessionRequest) {

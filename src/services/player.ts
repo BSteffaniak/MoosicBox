@@ -7,6 +7,7 @@ import {
     Api,
     type Track,
     api,
+    connection,
     toSessionPlaylistTrack,
 } from './api';
 import { createStore, produce } from 'solid-js/store';
@@ -634,9 +635,11 @@ export function sessionUpdated(update: PartialUpdateSession) {
     }
 
     const sessionId = update.sessionId;
+    const profile = update.profile;
 
     const playbackUpdate: PlaybackUpdate = {
         sessionId,
+        profile,
         playbackTarget,
     };
 
@@ -679,6 +682,7 @@ export function sessionUpdated(update: PartialUpdateSession) {
             case 'active':
             case 'name':
             case 'sessionId':
+            case 'profile':
             case 'playbackTarget':
                 break;
             default:
@@ -700,6 +704,7 @@ async function confirmChangePlaybackTarget() {
 
 export type PlaybackUpdate = {
     sessionId: number;
+    profile: string;
     playbackTarget: Api.PlaybackTarget;
     play?: boolean;
     stop?: boolean;
@@ -712,7 +717,7 @@ export type PlaybackUpdate = {
 };
 
 async function updatePlayback(
-    update: Omit<PlaybackUpdate, 'sessionId' | 'playbackTarget'>,
+    update: Omit<PlaybackUpdate, 'sessionId' | 'profile' | 'playbackTarget'>,
     updateSession = true,
 ) {
     if (!update.quality) {
@@ -721,6 +726,8 @@ async function updatePlayback(
 
     const playbackUpdate = update as PlaybackUpdate;
     const sessionId = playbackUpdate.sessionId ?? currentPlaybackSessionId();
+    const profile = playbackUpdate.profile ?? connection.get()?.profile;
+    if (!profile) throw new Error('Missing profile');
     const session = playerState.playbackSessions.find(
         (x) => x.sessionId === sessionId,
     );
@@ -764,6 +771,7 @@ async function updatePlayback(
     if (updateSession) {
         const sessionUpdate: Parameters<typeof updatePlaybackSession>[1] = {
             sessionId,
+            profile,
             playbackTarget,
         };
 
@@ -849,6 +857,7 @@ async function updatePlayback(
     await updateActivePlayers(activePlayers, {
         ...update,
         sessionId,
+        profile,
         playbackTarget,
     });
 }
@@ -922,6 +931,7 @@ function handlePlaybackUpdate(update: PlaybackUpdate) {
             case 'tracks':
             case 'position':
             case 'sessionId':
+            case 'profile':
             case 'playbackTarget':
                 break;
             default:

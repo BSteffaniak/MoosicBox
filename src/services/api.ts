@@ -247,6 +247,7 @@ export namespace Api {
 
     export interface UpdatePlaybackSession {
         sessionId: number;
+        profile: string;
         name?: string;
         active?: boolean;
         playing?: boolean;
@@ -297,6 +298,7 @@ export namespace Api {
 
     export interface PlaybackSession {
         sessionId: number;
+        profile: string;
         playbackTarget: PlaybackTarget;
         name: string;
         active: boolean;

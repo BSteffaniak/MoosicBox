@@ -330,6 +330,7 @@ export function createPlayer(id: number): PlayerType {
                     case 'tracks':
                     case 'position':
                     case 'sessionId':
+                    case 'profile':
                     case 'playbackTarget':
                         break;
                     default:
