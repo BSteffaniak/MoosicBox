@@ -3,11 +3,19 @@ import type { HtmxRequestConfig } from 'htmx.org';
 import { isServer } from 'solid-js/web';
 import { getConnection } from '~/services/api';
 
+declare global {
+    interface Window {
+        htmx: typeof htmx;
+    }
+}
+
 type MutableConfig = {
     -readonly [K in keyof typeof htmx.config]: (typeof htmx.config)[K];
 };
 
 if (!isServer) {
+    window.htmx = htmx;
+
     const config: MutableConfig = htmx.config;
     config.selfRequestsOnly = false;
 
