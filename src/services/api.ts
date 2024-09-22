@@ -701,6 +701,11 @@ async function setConnectionInner(
             token: values.token ?? '',
             staticToken: values.staticToken ?? '',
         };
+
+        if (!con) {
+            connection.set(updated);
+            profile.set(updated.profile);
+        }
     }
 
     const updatedConnections = connections.get();
