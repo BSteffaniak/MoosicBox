@@ -633,7 +633,9 @@ export async function setActiveConnection(id: number) {
     const cons = connections.get();
     const existing = cons.find((x) => x.id === id);
     if (!existing) throw new Error(`Invalid connection id: ${id}`);
-    connection.set(await setConnection(id, existing));
+    const con = await setConnection(id, existing);
+    connection.set(con);
+    profile.set(con.profile);
 }
 
 export async function refreshConnectionProfiles(con: Connection) {
@@ -686,6 +688,7 @@ async function setConnectionInner(
 
         if (con?.id === id) {
             connection.set(updated);
+            profile.set(updated.profile);
         }
     } else {
         updated = {
@@ -722,6 +725,11 @@ async function setConnectionInner(
 
     return updated;
 }
+
+export const profile = clientAtom<string | undefined>(
+    undefined,
+    'app.profile.v1',
+);
 
 export const defaultDownloadLocation = clientAtom<number | undefined>(
     undefined,
