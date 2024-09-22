@@ -282,7 +282,7 @@ export default function settingsPage() {
                     <section>
                         <h2>Tidal</h2>
                         <div
-                            hx-get={`/admin/tidal/settings`}
+                            hx-get={`/admin/tidal/settings?showScan=true`}
                             hx-trigger="load, connection-updated from:body"
                         >
                             loading...
@@ -292,7 +292,7 @@ export default function settingsPage() {
                     <section>
                         <h2>Qobuz</h2>
                         <div
-                            hx-get={`/admin/qobuz/settings`}
+                            hx-get={`/admin/qobuz/settings?showScan=true`}
                             hx-trigger="load, connection-updated from:body"
                         >
                             loading...
