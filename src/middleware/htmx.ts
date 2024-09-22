@@ -32,6 +32,10 @@ if (!isServer) {
             detail.parameters.clientId = clientId;
         }
 
+        if (con.profile) {
+            detail.headers['moosicbox-profile'] = con.profile;
+        }
+
         const token = con.staticToken || con.token;
 
         if (token && !detail.headers.Authorization) {
