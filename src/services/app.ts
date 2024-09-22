@@ -116,6 +116,7 @@ export const [currentAlbumSearch, setCurrentAlbumSearch] = createSignal<{
 }>();
 
 connection.listen((con, prev) => {
+    document.body.dispatchEvent(new Event('connection-updated'));
     if (!con) return;
     if (con.token !== prev?.token || con.clientId !== prev?.clientId) {
         api.refetchSignatureToken();

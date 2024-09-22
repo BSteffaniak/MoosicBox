@@ -33,12 +33,6 @@ export default function settingsPage() {
     let nameInput: HTMLInputElement;
 
     if (!isServer) {
-        createEffect(
-            on($connection, () => {
-                document.body.dispatchEvent(new Event('connection-updated'));
-            }),
-        );
-
         onMount(() => {
             htmx.process(root);
         });
