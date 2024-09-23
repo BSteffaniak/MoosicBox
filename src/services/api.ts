@@ -1284,6 +1284,7 @@ function getArtistCover(
     const artistType = artist.type;
     const query = new QueryParams({
         source: artistType,
+        moosicboxProfile: $connection()?.profile,
     });
 
     switch (artistType) {
@@ -1352,6 +1353,7 @@ function getArtistSourceCover(
     const artistType = artist.type;
     const query = new QueryParams({
         source: artistType,
+        moosicboxProfile: $connection()?.profile,
     });
 
     switch (artistType) {
