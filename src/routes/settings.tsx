@@ -1,5 +1,5 @@
 import './settings.css';
-import { createEffect, createSignal, For, on, onMount, Show } from 'solid-js';
+import { createSignal, For, onMount, Show } from 'solid-js';
 import {
     api,
     connection,
