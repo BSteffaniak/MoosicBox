@@ -47,9 +47,7 @@ export default function tabsFunc(props: TabsProps) {
             <Show when={selected()}>
                 {(value) => (
                     <div class="moosicbox-tabs-content">
-                        <div onClick={(e) => e.stopPropagation()}>
-                            {props.children(value())}
-                        </div>
+                        {props.children(value())}
                     </div>
                 )}
             </Show>
