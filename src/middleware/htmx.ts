@@ -43,6 +43,7 @@ if (!isServer) {
         }
 
         detail.path = `${con.apiUrl}${detail.path}`;
+        console.debug('htmx:configRequest', detail);
     });
 }
 
