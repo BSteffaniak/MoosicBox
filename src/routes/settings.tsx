@@ -1,5 +1,5 @@
 import './settings.css';
-import { createSignal, For, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, For, on, onMount, Show } from 'solid-js';
 import {
     api,
     connection,
@@ -24,6 +24,8 @@ export default function settingsPage() {
     const [$connections, _setConnections] = clientSignal(connections);
     const [$connection, setConnection] = clientSignal(connection);
     const [$connectionName, setConnectionName] = clientSignal(connectionName);
+    const [profiles, setProfiles] = createSignal<string[]>();
+    const [profile, setProfile] = createSignal<string>();
 
     const [status, setStatus] = createSignal<string>();
     const [loading, setLoading] = createSignal(false);
@@ -31,6 +33,13 @@ export default function settingsPage() {
     let clientIdInput: HTMLInputElement;
     let apiUrlInput: HTMLInputElement;
     let nameInput: HTMLInputElement;
+
+    createEffect(
+        on($connection, (con) => {
+            setProfile(con?.profile);
+            setProfiles(con?.profiles);
+        }),
+    );
 
     if (!isServer) {
         onMount(() => {
@@ -194,15 +203,10 @@ export default function settingsPage() {
                             await setActiveProfile(e.currentTarget.value);
                         }}
                     >
-                        <For each={$connection()?.profiles}>
-                            {(profile) => (
-                                <option
-                                    value={profile}
-                                    selected={
-                                        profile === $connection()?.profile
-                                    }
-                                >
-                                    {profile}
+                        <For each={profiles()}>
+                            {(p) => (
+                                <option value={p} selected={p === profile()}>
+                                    {p}
                                 </option>
                             )}
                         </For>
