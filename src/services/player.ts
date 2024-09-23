@@ -18,10 +18,7 @@ import { appState, showChangePlaybackTargetModal } from './app';
 import { responsePromise } from '~/components/ChangePlaybackTargetModal/ChangePlaybackTargetModal';
 import { isSilencePlaying, startSilence, stopSilence } from './silence-player';
 
-export type TrackListenerCallback = (
-    track: Api.LibraryTrack,
-    position: number,
-) => void;
+export type TrackListenerCallback = (track: Track, position: number) => void;
 
 interface PlayerState {
     playing: boolean;
@@ -390,12 +387,14 @@ export async function previousTrack(): Promise<boolean> {
         console.debug('Playing previous track');
 
         const position = playlistPosition() ?? 0;
+        const newPosition = position > 0 ? position - 1 : position;
 
         await updatePlayback({
             play: true,
             seek: 0,
-            position: position > 0 ? position - 1 : position,
+            position: newPosition,
         });
+        prevTrackListener.trigger(playerState.currentTrack!, newPosition);
     } else {
         console.debug('Setting track position to 0');
         seek(0, true);
@@ -415,12 +414,14 @@ export async function nextTrack(): Promise<boolean> {
         console.debug('Playing next track');
 
         const position = playlistPosition() ?? 0;
+        const newPosition = position + 1;
 
         await updatePlayback({
             play: true,
             seek: 0,
-            position: position + 1,
+            position: newPosition,
         });
+        nextTrackListener.trigger(playerState.currentTrack!, newPosition);
     } else {
         console.debug('No next track to play');
         stop();

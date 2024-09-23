@@ -48,6 +48,9 @@ export function createPlayer(id: number): PlayerType {
                     query.set('clientId', clientIdParam);
                     query.set('signature', signatureToken);
                 }
+                if (con.profile) {
+                    query.set('moosicboxProfile', con.profile);
+                }
                 if (con.staticToken) {
                     query.set('authorization', con.staticToken);
                 }
