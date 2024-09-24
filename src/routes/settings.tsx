@@ -5,6 +5,7 @@ import {
     connection,
     type Connection,
     setConnection as apiSetConnection,
+    deleteConnection as apiDeleteConnection,
     getNewConnectionId,
     connections,
     setActiveConnection,
@@ -73,6 +74,10 @@ export default function settingsPage() {
             staticToken: values.staticToken ?? con?.staticToken ?? '',
         });
         await apiSetConnection(id, values);
+    }
+
+    async function deleteConnection(connection: Connection) {
+        await apiDeleteConnection(connection);
     }
 
     async function saveName() {
@@ -184,6 +189,14 @@ export default function settingsPage() {
                 <button type="button" onClick={newConnection}>
                     New connection
                 </button>
+
+                <Show when={$connection()}>
+                    {(connection) => (
+                        <button onClick={() => deleteConnection(connection())}>
+                            delete
+                        </button>
+                    )}
+                </Show>
 
                 <ul>
                     <li>

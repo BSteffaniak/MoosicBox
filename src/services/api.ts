@@ -686,7 +686,7 @@ async function setConnectionInner(
             staticToken: values.staticToken ?? existing?.staticToken ?? '',
         };
 
-        if (con?.id === id) {
+        if (!con || con.id === id) {
             connection.set(updated);
             profile.set(updated.profile);
         }
@@ -729,6 +729,18 @@ async function setConnectionInner(
     }
 
     return updated;
+}
+
+export async function deleteConnection(con: Connection) {
+    connections.set($connections().filter((x) => x.id !== con.id));
+
+    if ($connection()?.id === con.id) {
+        connection.set(null);
+
+        if ($connections().length > 0) {
+            await setConnection($connections()[0].id, {});
+        }
+    }
 }
 
 export const profile = clientAtom<string | undefined>(
