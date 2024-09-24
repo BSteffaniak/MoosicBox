@@ -60,11 +60,21 @@ interface ScansState {
         scanned: number;
         total: number;
     }[];
+    hiddenTasks: ScanTask[];
 }
 
 export const [scanState, setScansState] = createStore<ScansState>({
     tasks: [],
+    hiddenTasks: [],
 });
+
+export function hideTask(task: ScanTask) {
+    setScansState(
+        produce((state) => {
+            state.hiddenTasks = [...state.hiddenTasks, task];
+        }),
+    );
+}
 
 function handleScanEvent(event: ScanEvent) {
     const eventType = event.type;
