@@ -249,17 +249,19 @@
 .show-audio-zones-icon {
     width: 25px;
     cursor: pointer;
+    margin-left: 10px;
 }
 
 .show-playback-sessions-icon {
     width: 25px;
     cursor: pointer;
+    margin-left: 10px;
 }
 
 .show-playlist-icon {
     width: 32px;
     cursor: pointer;
-    margin: 0 10px;
+    margin-left: 10px;
 }
 
 .playlist-slideout {
