@@ -1,8 +1,9 @@
 #scan-status-banner {
     position: fixed;
     top: 0;
-    left: 0;
+    left: 50%;
     right: 0;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     justify-content: center;
