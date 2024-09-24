@@ -380,7 +380,7 @@ export default function player() {
                             />
                             <img
                                 class="show-playback-sessions-icon"
-                                src="/img/speaker-white.svg"
+                                src="/img/sessions-white.svg"
                                 alt="Show Playback Sessions"
                                 onClick={() => toggleShowPlaybackSessions()}
                             />
@@ -421,7 +421,7 @@ export default function player() {
                     />
                     <img
                         class="show-playback-sessions-icon"
-                        src="/img/speaker-white.svg"
+                        src="/img/sessions-white.svg"
                         alt="Show Playback Sessions"
                         onClick={() => toggleShowPlaybackSessions()}
                     />
