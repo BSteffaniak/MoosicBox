@@ -8,7 +8,7 @@ export default $config({
             name: 'moosicbox-app',
             removal: input?.stage === 'prod' ? 'retain' : 'remove',
             home: 'aws',
-            providers: { aws: { region: 'us-east-1' } },
+            providers: { aws: { region: 'us-east-1' }, cloudflare: '5.39.1' },
         };
     },
     async run() {
